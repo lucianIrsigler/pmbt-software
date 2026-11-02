@@ -7,15 +7,15 @@ See `CLAUDE.md` for rules, stack and conventions.
 
 ## Phase 0: Scaffold
 
-- [ ] Create Next.js app (App Router, TypeScript strict, Tailwind, ESLint, `src/` dir) with pnpm
-- [ ] Add Prettier, Vitest, Playwright
-- [ ] `docker-compose.dev.yml` with Postgres 16 (named volume, port 5432)
-- [ ] Drizzle + drizzle-kit configured; `src/db/index.ts` exports a db client
-- [ ] `.env.example` with `DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SMTP_HOST`,
+- [x] Create Next.js app (App Router, TypeScript strict, Tailwind, ESLint, `src/` dir) with pnpm
+- [x] Add Prettier, Vitest, Playwright
+- [x] `docker-compose.dev.yml` with Postgres 16 (named volume, port 5432)
+- [x] Drizzle + drizzle-kit configured; `src/db/index.ts` exports a db client
+- [x] `.env.example` with `DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SMTP_HOST`,
       `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `BUSINESS_TZ=Africa/Johannesburg`
-- [ ] Env vars parsed and validated with Zod at startup (`src/lib/env.ts`)
-- [ ] All scripts from CLAUDE.md "Commands" exist in `package.json` (placeholders OK)
-- [ ] GitHub Actions CI: install, typecheck, lint, unit tests
+- [x] Env vars parsed and validated with Zod at startup (`src/lib/env.ts`)
+- [x] All scripts from CLAUDE.md "Commands" exist in `package.json` (placeholders OK)
+- [x] GitHub Actions CI: install, typecheck, lint, unit tests
 
 **Done when:** `pnpm db:up && pnpm dev` shows a placeholder home page, and CI is green.
 

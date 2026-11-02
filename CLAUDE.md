@@ -134,14 +134,18 @@ without help.
 ```
 pnpm dev            # start Next.js
 pnpm db:up          # start local Postgres (docker compose)
+pnpm db:down        # stop local Postgres (data is kept in the volume)
 pnpm db:generate    # generate migration from schema
 pnpm db:migrate     # apply migrations
 pnpm db:seed        # seed services, hours, settings
 pnpm user:create    # create a login for the owner/admin
 pnpm test           # vitest
+pnpm test:watch     # vitest in watch mode
 pnpm test:e2e       # playwright
 pnpm typecheck
 pnpm lint
+pnpm format         # prettier --write
+pnpm format:check   # prettier --check (runs in CI)
 ```
 
 Keep this list up to date as scripts are added.
