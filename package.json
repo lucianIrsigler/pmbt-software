@@ -16,12 +16,13 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:int": "vitest run --config vitest.integration.config.mts",
     "test:e2e": "playwright test --pass-with-no-tests",
     "db:up": "docker compose -f docker-compose.dev.yml up -d --wait",
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx --env-file=.env --conditions=react-server src/db/seed.ts",
+    "db:seed": "tsx --env-file=.env --conditions=react-server scripts/seed.ts",
     "user:create": "tsx --env-file=.env --conditions=react-server scripts/create-user.ts"
   },
   "dependencies": {
