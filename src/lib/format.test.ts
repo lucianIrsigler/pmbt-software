@@ -5,6 +5,7 @@ import {
   formatDuration,
   formatLocalDate,
   formatMonth,
+  formatPhone,
   formatPrice,
   formatTime,
 } from "./format";
@@ -51,5 +52,16 @@ describe("dates and times", () => {
   it("formats calendar dates and months", () => {
     expect(formatLocalDate("2026-11-03")).toBe("Tuesday 3 November");
     expect(formatMonth("2026-11")).toBe("November 2026");
+  });
+});
+
+describe("formatPhone", () => {
+  it("shows South African numbers the local way", () => {
+    expect(formatPhone("+27821234567")).toBe("082 123 4567");
+    expect(formatPhone("+27215551234")).toBe("021 555 1234");
+  });
+
+  it("leaves other numbers alone", () => {
+    expect(formatPhone("+442079460958")).toBe("+442079460958");
   });
 });

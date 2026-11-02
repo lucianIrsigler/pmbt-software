@@ -59,3 +59,9 @@ export function formatLocalDate(date: string): string {
   const [year, month, day] = date.split("-").map(Number) as [number, number, number];
   return formatDayLong(new Date(Date.UTC(year, month - 1, day, 12)), "UTC");
 }
+
+/** `+27821234567` → `082 123 4567`. Non-South-African numbers are shown as stored. */
+export function formatPhone(e164: string): string {
+  const match = /^\+27(\d{2})(\d{3})(\d{4})$/.exec(e164);
+  return match ? `0${match[1]} ${match[2]} ${match[3]}` : e164;
+}
