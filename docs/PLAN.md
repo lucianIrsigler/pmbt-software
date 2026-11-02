@@ -86,22 +86,22 @@ All in `src/domain/`, fully unit tested, no Next.js imports.
 
 ## Phase 3: Public website + booking flow
 
-- [ ] Layout: header with business name, simple nav (Home, Services, Products, Book), footer with contact info and a link to the privacy notice
-- [ ] `/`: short intro to PBMT and natural products, "Book now" button
-- [ ] `/services`: grouped into "For you" and "For your animals", showing duration and price
-- [ ] `/products`: display only, note "available at your session"
-- [ ] `/privacy`: placeholder POPIA privacy notice (mark clearly as TODO for the owner to review)
-- [ ] `/book` multi-step flow (URL search params for state, works without client JS where possible):
+- [x] Layout: header with business name, simple nav (Home, Services, Products, Book), footer with contact info and a link to the privacy notice
+- [x] `/`: short intro to PBMT and natural products, "Book now" button
+- [x] `/services`: grouped into "For you" and "For your animals", showing duration and price
+- [x] `/products`: display only, note "available at your session"
+- [x] `/privacy`: placeholder POPIA privacy notice (mark clearly as TODO for the owner to review)
+- [x] `/book` multi-step flow (URL search params for state, works without client JS where possible):
   1. Choose service
   2. Choose date (month view; unavailable days disabled)
   3. Choose time (grid of slot buttons)
   4. Details: name, phone, email (optional), and for animal services pet name, species, breed. Consent checkbox linking to privacy notice.
   5. Confirm → server action → `createBooking`
-- [ ] On `SlotTakenError`: return to step 3 with "Sorry, that time was just taken, please pick another"
-- [ ] Spam protection: hidden honeypot field; DB-backed rate limit (e.g. 5 bookings per IP per hour); max 2 future `booked` appointments per phone number
-- [ ] `/booking/[token]`: shows booking details, "Add to calendar" (.ics download), and a Cancel button (with confirmation) if before the cutoff
-- [ ] Confirmation page with booking summary and the manage link
-- [ ] Playwright e2e: book a human service, book an animal service, cancel via token
+- [x] On `SlotTakenError`: return to step 3 with "Sorry, that time was just taken, please pick another"
+- [x] Spam protection: hidden honeypot field; DB-backed rate limit (e.g. 5 bookings per IP per hour); max 2 future `booked` appointments per phone number
+- [x] `/booking/[token]`: shows booking details, "Add to calendar" (.ics download), and a Cancel button (with confirmation) if before the cutoff
+- [x] Confirmation page with booking summary and the manage link
+- [x] Playwright e2e: book a human service, book an animal service, cancel via token
 
 **Done when:** a visitor can book and cancel on mobile, and the e2e tests pass.
 

@@ -142,7 +142,7 @@ pnpm user:create    # create a login for the owner/admin
 pnpm test           # vitest
 pnpm test:watch     # vitest in watch mode
 pnpm test:int       # integration tests against a fresh <db>_test database (needs db:up)
-pnpm test:e2e       # playwright
+pnpm test:e2e       # playwright: builds the app, runs it on :3100 against a fresh <db>_e2e database
 pnpm typecheck
 pnpm lint
 pnpm format         # prettier --write
