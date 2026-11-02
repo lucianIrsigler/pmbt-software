@@ -24,10 +24,21 @@ export interface SlotWorkingHours {
   endTime: string;
 }
 
+/**
+ * Appointment statuses that occupy their time. A visit marked done keeps its slot; a
+ * cancelled or missed ("didn't come") one frees it. Mirrors the `appointment_no_overlap`
+ * exclusion constraint in the database.
+ */
+export const BLOCKING_STATUSES = ["booked", "done"] as const;
+
 export interface SlotAppointment {
   during: TimeRange;
-  /** Only `booked` appointments block time. Omitted means booked. */
+  /** Only BLOCKING_STATUSES block time. Omitted means booked. */
   status?: "booked" | "done" | "no_show" | "cancelled";
+}
+
+function blocksTime(status: SlotAppointment["status"] = "booked"): boolean {
+  return (BLOCKING_STATUSES as readonly string[]).includes(status);
 }
 
 export interface SlotSettings {
@@ -83,7 +94,7 @@ function candidateMinutes(block: SlotWorkingHours, length: number, step: number)
 /**
  * Start times on `date` where `[start, start + duration + buffer)`:
  * - lies inside one of that weekday's working-hours blocks (business tz),
- * - doesn't overlap time off or a booked appointment,
+ * - doesn't overlap time off or a booked (or done) appointment,
  * - starts on a `slotStepMin` boundary (counted from local midnight),
  * - is at least `minNoticeHours` after `now` (unless `ignoreMinNotice`),
  * - falls on a date between today and today + `maxDaysAhead`.
@@ -101,7 +112,7 @@ export function getAvailableSlots(query: SlotQuery): Date[] {
     : addMinutesTo(query.now, settings.minNoticeHours * 60);
   const busy: TimeRange[] = [
     ...query.timeOff,
-    ...query.appointments.filter((a) => (a.status ?? "booked") === "booked").map((a) => a.during),
+    ...query.appointments.filter((a) => blocksTime(a.status)).map((a) => a.during),
   ];
 
   const weekday = weekdayOf(query.date);

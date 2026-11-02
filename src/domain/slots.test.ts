@@ -116,12 +116,17 @@ describe("getAvailableSlots", () => {
       expect(times(getAvailableSlots(query({ appointments: [ends1200] })))).toContain("12:00");
     });
 
-    it("ignores cancelled, done and no-show appointments", () => {
-      const others = (["cancelled", "done", "no_show"] as const).map((status) => ({
+    it("ignores cancelled and no-show appointments", () => {
+      const others = (["cancelled", "no_show"] as const).map((status) => ({
         ...booking,
         status,
       }));
       expect(getAvailableSlots(query({ appointments: others }))).toHaveLength(15);
+    });
+
+    it("keeps a done appointment's time blocked", () => {
+      const done = { ...booking, status: "done" as const };
+      expect(times(getAvailableSlots(query({ appointments: [done] })))).not.toContain("11:00");
     });
   });
 

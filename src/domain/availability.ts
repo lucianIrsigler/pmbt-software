@@ -1,11 +1,11 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Database } from "@/db/client";
 import { formatTstzRange } from "@/db/range";
 import { appointment, service, settings, timeOff, workingHours } from "@/db/schema";
 import { NotFoundError, SettingsMissingError } from "./errors";
 import { datesQuerySchema, slotsQuerySchema } from "./schemas";
-import { getAvailableDates, getAvailableSlots, type SlotQuery } from "./slots";
+import { BLOCKING_STATUSES, getAvailableDates, getAvailableSlots, type SlotQuery } from "./slots";
 import { daysInMonth, localDayRange, type LocalDate, type TimeRange } from "./time";
 
 /** Anything we can run a select on: the db or a transaction. */
@@ -41,7 +41,12 @@ export async function loadAvailability(
     db
       .select({ during: appointment.during })
       .from(appointment)
-      .where(and(eq(appointment.status, "booked"), sql`${appointment.during} && ${overlaps}`)),
+      .where(
+        and(
+          inArray(appointment.status, [...BLOCKING_STATUSES]),
+          sql`${appointment.during} && ${overlaps}`,
+        ),
+      ),
     loadSettings(db),
   ]);
   return {

@@ -146,8 +146,9 @@ Table appointment {
   }
 
   Note: '''
-  Double-booking guard (hand-written migration 0002):
-    EXCLUDE USING gist (during WITH &&) WHERE (status = 'booked')
+  Double-booking guard (hand-written migrations 0002, 0004):
+    EXCLUDE USING gist (during WITH &&) WHERE (status IN ('booked', 'done'))
+  A done visit keeps its time; cancelled and no_show free it.
   Violations raise SQLSTATE 23P01, shown to users as "that time was just taken".
   '''
 }

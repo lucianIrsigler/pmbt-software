@@ -179,7 +179,10 @@ export const appointment = pgTable(
     serviceId: uuid("service_id")
       .notNull()
       .references(() => service.id),
-    /** Includes the service's buffer. Overlaps between `booked` rows are rejected by `appointment_no_overlap`. */
+    /**
+     * Includes the service's buffer. Overlaps between `booked`/`done` rows are rejected
+     * by the `appointment_no_overlap` exclusion constraint (migrations 0002, 0004).
+     */
     during: tstzrange("during").notNull(),
     status: appointmentStatus("status").notNull().default("booked"),
     source: bookingSource("source").notNull(),

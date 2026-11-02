@@ -111,6 +111,29 @@ describe("appointment_no_overlap", () => {
   });
 });
 
+describe("appointment_no_overlap: done and no-show", () => {
+  it("still blocks the time of a done appointment", async () => {
+    const ids = await makeFixtures();
+    const done = bookingValues(ids, slot("2030-01-14T07:00:00Z", 40));
+    await db.insert(appointment).values({ ...done, status: "done" });
+    await expectPgError(
+      db.insert(appointment).values(bookingValues(ids, slot("2030-01-14T07:20:00Z", 40))),
+      PG_ERROR.exclusionViolation,
+    );
+  });
+
+  it("frees the time of a no-show appointment", async () => {
+    const ids = await makeFixtures();
+    const missed = bookingValues(ids, slot("2030-01-15T07:00:00Z", 40));
+    await db.insert(appointment).values({ ...missed, status: "no_show" });
+    const rows = await db
+      .insert(appointment)
+      .values(bookingValues(ids, slot("2030-01-15T07:20:00Z", 40)))
+      .returning({ id: appointment.id });
+    expect(rows).toHaveLength(1);
+  });
+});
+
 describe("schema constraints", () => {
   it("round-trips tstzrange values", async () => {
     const ids = await makeFixtures();
