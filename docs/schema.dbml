@@ -166,6 +166,9 @@ Table appointment_product {
 Table settings {
   id smallint [pk, default: 1, note: 'CHECK id = 1 (single row)']
   business_name text [not null]
+  contact_phone text [note: 'Shown in the site footer and emails']
+  contact_email text
+  address text
   min_notice_hours integer [not null, default: 12]
   max_days_ahead integer [not null, default: 42]
   slot_step_min integer [not null, default: 30]

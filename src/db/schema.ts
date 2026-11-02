@@ -238,6 +238,10 @@ export const settings = pgTable(
   {
     id: smallint("id").primaryKey().default(1),
     businessName: text("business_name").notNull(),
+    /** Shown in the site footer and emails. Optional until the owner fills them in. */
+    contactPhone: text("contact_phone"),
+    contactEmail: text("contact_email"),
+    address: text("address"),
     minNoticeHours: integer("min_notice_hours").notNull().default(12),
     maxDaysAhead: integer("max_days_ahead").notNull().default(42),
     slotStepMin: integer("slot_step_min").notNull().default(30),
