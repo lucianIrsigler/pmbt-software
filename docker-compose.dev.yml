@@ -1,0 +1,22 @@
+# Local development database only. Production uses docker-compose.prod.yml (Phase 11).
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dogstuff
+      POSTGRES_PASSWORD: dogstuff
+      POSTGRES_DB: dogstuff
+      TZ: UTC
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dogstuff -d dogstuff"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  db-data:
