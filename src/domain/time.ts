@@ -90,3 +90,17 @@ export function rangesOverlap(a: TimeRange, b: TimeRange): boolean {
 export function addMinutesTo(instant: Date, minutes: number): Date {
   return new Date(instant.getTime() + minutes * 60_000);
 }
+
+/** `YYYY-MM` of a local date. */
+export function monthOf(date: LocalDate): string {
+  parseLocalDate(date);
+  return date.slice(0, 7);
+}
+
+/** Adds `n` months to a `YYYY-MM` month. */
+export function addMonthsTo(month: string, n: number): string {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) throw new RangeError(`Invalid month "${month}", expected YYYY-MM`);
+  const index = Number(match[1]) * 12 + (Number(match[2]) - 1) + n;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+}

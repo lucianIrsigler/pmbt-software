@@ -50,6 +50,16 @@ export class CancelTooLateError extends DomainError {
   }
 }
 
+/** Public spam guard: the client already has the maximum number of upcoming bookings. */
+export class TooManyBookingsError extends DomainError {
+  readonly code = "too_many_bookings";
+  constructor(readonly max: number) {
+    super(
+      `You already have ${max} upcoming bookings with us. Please phone us if you'd like to book more.`,
+    );
+  }
+}
+
 /** The booking request is inconsistent, e.g. an animal service without a pet. */
 export class InvalidBookingError extends DomainError {
   readonly code = "invalid_booking";

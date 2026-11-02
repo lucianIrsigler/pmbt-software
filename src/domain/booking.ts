@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { PG_ERROR, pgErrorCode } from "@/db/errors";
-import { appointment, appointmentProduct, client, pet, product } from "@/db/schema";
+import { appointment, appointmentProduct, client, pet, product, service } from "@/db/schema";
 import {
   loadActiveService,
   loadAvailability,
@@ -16,6 +16,7 @@ import {
   NotFoundError,
   SlotTakenError,
   SlotUnavailableError,
+  TooManyBookingsError,
 } from "./errors";
 import {
   addProductSchema,
@@ -47,6 +48,11 @@ export function generateManageToken(): string {
 export interface CreateBookingOptions extends ClockOptions {
   /** Owner bookings (phone calls) may be made at short notice. */
   ignoreMinNotice?: boolean;
+  /**
+   * Spam guard for public bookings: refuse if the client (matched by phone) already has
+   * this many upcoming `booked` appointments. Unlimited when omitted.
+   */
+  maxUpcomingPerClient?: number;
 }
 
 export interface CreatedBooking {
@@ -99,6 +105,21 @@ async function findOrCreateClient(tx: Transaction, ref: ClientRef): Promise<stri
   return created.id;
 }
 
+/** Upcoming `booked` appointments for a client. */
+async function countUpcoming(tx: Transaction, clientId: string, now: Date): Promise<number> {
+  const [row] = await tx
+    .select({ n: count() })
+    .from(appointment)
+    .where(
+      and(
+        eq(appointment.clientId, clientId),
+        eq(appointment.status, "booked"),
+        sql`upper(${appointment.during}) > ${now.toISOString()}::timestamptz`,
+      ),
+    );
+  return row?.n ?? 0;
+}
+
 /** Uses the given pet of this client, or reuses/creates one by name (case-insensitive). */
 async function findOrCreatePet(tx: Transaction, clientId: string, ref: PetRef): Promise<string> {
   if ("id" in ref) {
@@ -142,7 +163,7 @@ async function findOrCreatePet(tx: Transaction, clientId: string, ref: PetRef): 
 export async function createBooking(
   db: Database,
   rawInput: CreateBookingInput,
-  { tz, now = new Date(), ignoreMinNotice = false }: CreateBookingOptions,
+  { tz, now = new Date(), ignoreMinNotice = false, maxUpcomingPerClient }: CreateBookingOptions,
 ): Promise<CreatedBooking> {
   const input = createBookingSchema.parse(rawInput);
 
@@ -170,6 +191,10 @@ export async function createBooking(
       if (!bookable) throw new SlotUnavailableError();
 
       const clientId = await findOrCreateClient(tx, input.client);
+      if (maxUpcomingPerClient !== undefined) {
+        const upcoming = await countUpcoming(tx, clientId, now);
+        if (upcoming >= maxUpcomingPerClient) throw new TooManyBookingsError(maxUpcomingPerClient);
+      }
       const petId = input.pet ? await findOrCreatePet(tx, clientId, input.pet) : null;
       const during = appointmentRange(input.start, svc);
       const manageToken = generateManageToken();
@@ -371,4 +396,66 @@ export async function removeProductFromAppointment(
     )
     .returning({ productId: appointmentProduct.productId });
   return removed.length > 0;
+}
+
+// ---------------------------------------------------------------------------
+// Client-facing view (manage link)
+// ---------------------------------------------------------------------------
+
+export interface BookingView {
+  appointmentId: string;
+  status: AppointmentStatus;
+  serviceName: string;
+  forKind: "human" | "animal";
+  /** Session start and end, without the buffer. */
+  start: Date;
+  end: Date;
+  clientName: string;
+  petName: string | null;
+  /** Whether the client may still cancel online. */
+  canCancel: boolean;
+  cancelDeadline: Date;
+}
+
+/** The booking behind a manage link, or null if the token is unknown. */
+export async function getBookingByToken(
+  db: Database,
+  rawToken: string,
+  { now = new Date() }: { now?: Date } = {},
+): Promise<BookingView | null> {
+  const token = manageTokenSchema.safeParse(rawToken);
+  if (!token.success) return null;
+
+  const [row] = await db
+    .select({
+      appointmentId: appointment.id,
+      status: appointment.status,
+      during: appointment.during,
+      serviceName: service.name,
+      forKind: service.forKind,
+      durationMin: service.durationMin,
+      clientName: client.name,
+      petName: pet.name,
+    })
+    .from(appointment)
+    .innerJoin(service, eq(service.id, appointment.serviceId))
+    .innerJoin(client, eq(client.id, appointment.clientId))
+    .leftJoin(pet, eq(pet.id, appointment.petId))
+    .where(eq(appointment.manageToken, token.data));
+  if (!row) return null;
+
+  const { cancelCutoffHours } = await loadSettings(db);
+  const start = row.during.start;
+  return {
+    appointmentId: row.appointmentId,
+    status: row.status,
+    serviceName: row.serviceName,
+    forKind: row.forKind,
+    start,
+    end: addMinutesTo(start, row.durationMin),
+    clientName: row.clientName,
+    petName: row.petName,
+    canCancel: row.status === "booked" && canClientCancel(start, now, cancelCutoffHours),
+    cancelDeadline: cancelDeadline(start, cancelCutoffHours),
+  };
 }

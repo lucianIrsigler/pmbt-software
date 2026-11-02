@@ -18,6 +18,7 @@ import {
   cancelBookingByToken,
   cancelByOwner,
   createBooking,
+  getBookingByToken,
   markDone,
   markNoShow,
   removeProductFromAppointment,
@@ -30,6 +31,7 @@ import {
   NotFoundError,
   SlotTakenError,
   SlotUnavailableError,
+  TooManyBookingsError,
 } from "./errors";
 import { zonedInstant } from "./time";
 
@@ -409,5 +411,66 @@ describe("products sold", () => {
     await expect(
       addProductToAppointment(db, { appointmentId: a.appointmentId, productId }),
     ).rejects.toBeInstanceOf(InvalidStatusError);
+  });
+});
+
+describe("spam guard: upcoming bookings per phone", () => {
+  it("refuses a third upcoming public booking for the same phone", async () => {
+    const phone = freshPhone();
+    const opts = { ...clock, maxUpcomingPerClient: 2 };
+    await createBooking(db, webBooking(at("2030-03-26", "09:00"), phone), opts);
+    await createBooking(db, webBooking(at("2030-03-26", "10:00"), phone), opts);
+    await expect(
+      createBooking(db, webBooking(at("2030-03-26", "11:00"), phone), opts),
+    ).rejects.toBeInstanceOf(TooManyBookingsError);
+  });
+
+  it("doesn't count cancelled or past bookings", async () => {
+    const phone = freshPhone();
+    const opts = { ...clock, maxUpcomingPerClient: 1 };
+    const first = await createBooking(db, webBooking(at("2030-03-27", "09:00"), phone), opts);
+    await cancelByOwner(db, first.appointmentId);
+    await expect(
+      createBooking(db, webBooking(at("2030-03-27", "10:00"), phone), opts),
+    ).resolves.toBeDefined();
+  });
+
+  it("doesn't apply when no limit is given (owner bookings)", async () => {
+    const phone = freshPhone();
+    for (const time of ["09:00", "10:00", "11:00"]) {
+      await createBooking(db, webBooking(at("2030-03-28", time), phone), clock);
+    }
+  });
+});
+
+describe("getBookingByToken", () => {
+  it("returns the client-facing view, with the end time excluding the buffer", async () => {
+    const start = at("2030-03-29", "09:00");
+    const booking = await createBooking(db, webBooking(start), clock);
+    const view = await getBookingByToken(db, booking.manageToken, { now: NOW });
+    expect(view).toMatchObject({
+      appointmentId: booking.appointmentId,
+      status: "booked",
+      start,
+      end: at("2030-03-29", "09:30"),
+      clientName: "Test Client",
+      petName: null,
+      canCancel: true,
+    });
+    expect(view?.cancelDeadline).toEqual(at("2030-03-28", "09:00"));
+  });
+
+  it("says when it's too late to cancel", async () => {
+    const start = at("2030-03-29", "11:00");
+    const booking = await createBooking(db, webBooking(start), clock);
+    const view = await getBookingByToken(db, booking.manageToken, {
+      now: at("2030-03-28", "12:00"),
+    });
+    expect(view?.canCancel).toBe(false);
+  });
+
+  it("returns null for unknown or malformed tokens", async () => {
+    expect(await getBookingByToken(db, "x".repeat(43))).toBeNull();
+    expect(await getBookingByToken(db, "../etc")).toBeNull();
   });
 });
