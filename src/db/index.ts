@@ -1,15 +1,11 @@
 import "server-only";
-import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 import { getEnv } from "@/lib/env";
-import * as schema from "./schema";
+import { createDb, type Database } from "./client";
 
-export type Database = PostgresJsDatabase<typeof schema>;
+export type { Database } from "./client";
 
 // Reuse one connection pool across hot reloads in development.
-const globalForDb = globalThis as unknown as { pgClient?: postgres.Sql };
+const globalForDb = globalThis as unknown as { db?: Database };
 
-const client = globalForDb.pgClient ?? postgres(getEnv().DATABASE_URL, { max: 10 });
-if (getEnv().NODE_ENV !== "production") globalForDb.pgClient = client;
-
-export const db: Database = drizzle(client, { schema });
+export const db: Database = globalForDb.db ?? createDb(getEnv().DATABASE_URL);
+if (getEnv().NODE_ENV !== "production") globalForDb.db = db;
