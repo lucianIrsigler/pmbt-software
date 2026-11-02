@@ -26,6 +26,8 @@
     "user:create": "tsx --env-file=.env --conditions=react-server scripts/create-user.ts"
   },
   "dependencies": {
+    "@date-fns/tz": "1.5.0",
+    "date-fns": "4.4.0",
     "drizzle-orm": "0.45.4",
     "next": "16.4.4",
     "postgres": "3.4.9",
