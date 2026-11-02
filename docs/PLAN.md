@@ -125,9 +125,9 @@ All in `src/domain/`, fully unit tested, no Next.js imports.
 
 Follow the `/app` UX rules in CLAUDE.md strictly.
 
-- [ ] `/app` layout: bottom tab bar with **Today**, **Calendar**, **Clients** (text labels, large)
-- [ ] **Today** (`/app`): date heading ("Tuesday 3 November"), list of today's non-cancelled appointments as large cards: time, client name, pet name + species if any, service name. Empty state: "No bookings today."
-- [ ] Appointment detail (`/app/appointment/[id]`):
+- [x] `/app` layout: bottom tab bar with **Today**, **Calendar**, **Clients** (text labels, large)
+- [x] **Today** (`/app`): date heading ("Tuesday 3 November"), list of today's non-cancelled appointments as large cards: time, client name, pet name + species if any, service name. Empty state: "No bookings today."
+- [x] Appointment detail (`/app/appointment/[id]`):
   - client phone as a tap-to-call link
   - client and pet notes (read-only here)
   - previous visits for this client/pet (date, service, first line of notes)
@@ -135,7 +135,7 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
   - "Products sold" section: big "+ Add product" button → simple list to tap; shows added items with a remove button
   - two big buttons: **Done** and **Didn't come** (with confirmation); after that, the status is shown with an "Undo" option
   - smaller "Cancel booking" at the bottom, with confirmation
-- [ ] Today list refreshes when she returns to the tab (no websockets needed)
+- [x] Today list refreshes when she returns to the tab (no websockets needed)
 
 **Done when:** she can get through a full day (see appointments, take notes, mark done) with no instructions.
 
