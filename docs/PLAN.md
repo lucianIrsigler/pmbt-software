@@ -109,13 +109,13 @@ All in `src/domain/`, fully unit tested, no Next.js imports.
 
 ## Phase 4: Authentication
 
-- [ ] Password hashing with argon2; `scripts/create-user.ts` (`pnpm user:create`) prompts for email, name, password
-- [ ] `/login` page: large inputs and button, friendly error message
-- [ ] Sessions: random token in an httpOnly, secure, sameSite=lax cookie; only a hash stored in `session`; 90-day expiry, refreshed on use
-- [ ] Middleware protecting `/app/**` and `/admin/**`; server actions re-check the session
-- [ ] Logout (tucked away on a small settings screen in `/app`, not on a main tab)
-- [ ] Login rate limiting (DB-backed)
-- [ ] Tests for hash/verify, session expiry, protected route redirect
+- [x] Password hashing with argon2; `scripts/create-user.ts` (`pnpm user:create`) prompts for email, name, password
+- [x] `/login` page: large inputs and button, friendly error message
+- [x] Sessions: random token in an httpOnly, secure, sameSite=lax cookie; only a hash stored in `session`; 90-day expiry, refreshed on use
+- [x] Middleware protecting `/app/**` and `/admin/**`; server actions re-check the session
+- [x] Logout (tucked away on a small settings screen in `/app`, not on a main tab)
+- [x] Login rate limiting (DB-backed)
+- [x] Tests for hash/verify, session expiry, protected route redirect
 
 **Done when:** only logged-in users reach `/app` and `/admin`, and her session lasts for weeks.
 
