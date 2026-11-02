@@ -65,3 +65,49 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm test:int
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: dogstuff
+          POSTGRES_PASSWORD: dogstuff
+          POSTGRES_DB: dogstuff
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dogstuff -d dogstuff"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      DATABASE_URL: postgres://dogstuff:dogstuff@localhost:5432/dogstuff
+      APP_URL: http://localhost:3100
+      SESSION_SECRET: ci-only-secret-at-least-32-characters-long
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm test:e2e
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
