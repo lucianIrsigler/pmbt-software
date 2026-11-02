@@ -43,7 +43,8 @@ test("sign in, stay signed in, and log out from settings", async ({ page, contex
   expect((cookie?.expires ?? 0) - Date.now() / 1000).toBeGreaterThan(89 * 86_400);
 
   await page.goto("/app");
-  await expect(page.getByRole("heading", { name: `Hello, ${E2E_USER.name}` })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "Main" })).toContainText("Today");
+  await expect(page.getByRole("link", { name: "Settings" })).toBeVisible();
 
   // The login page sends a signed-in user straight on.
   await page.goto("/login");
