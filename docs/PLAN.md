@@ -48,11 +48,13 @@ Tasks:
       alter table appointment
         add constraint appointment_no_overlap
         exclude using gist (during with &&)
-        where (status = 'booked');
+        where (status in ('booked', 'done'));
       ```
+      A visit marked done keeps its time; cancelled and no-show free it
+      (originally `status = 'booked'`, widened in migration `0004_done_blocks_time.sql`).
 - [x] Indexes: `appointment(lower(during))`, `appointment(client_id)`, `pet(client_id)`, trigram or simple index on `client(name)`
 - [x] `src/db/seed.ts`: settings row, Mon–Fri 09:00–17:00 + Sat 09:00–13:00, 3 human and 3 animal sample services, 3 sample products. Idempotent.
-- [x] Integration test: inserting two overlapping `booked` appointments fails with `23P01`; overlapping when one is `cancelled` succeeds
+- [x] Integration test: inserting two overlapping `booked` appointments fails with `23P01` (also when one is `done`); overlapping when one is `cancelled` or `no_show` succeeds
 
 **Done when:** `pnpm db:migrate && pnpm db:seed` works on a fresh DB and the overlap test passes.
 
@@ -130,7 +132,7 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
 - [x] Appointment detail (`/app/appointment/[id]`):
   - client phone as a tap-to-call link
   - client and pet notes (read-only here)
-  - previous visits for this client/pet (date, service, first line of notes)
+  - previous visits for this client/pet (date, service, first line of notes), including "Didn't come" and cancelled ones, labelled
   - large notes textarea with autosave (debounced) and a visible "Saved" message
   - "Products sold" section: big "+ Add product" button → simple list to tap; shows added items with a remove button
   - two big buttons: **Done** and **Didn't come** (with confirmation); after that, the status is shown with an "Undo" option
