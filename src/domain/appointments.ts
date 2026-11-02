@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { PG_ERROR, pgErrorCode } from "@/db/errors";
 import { formatTstzRange } from "@/db/range";
@@ -62,6 +62,8 @@ export async function listDay(
 
 export interface PreviousVisit {
   id: string;
+  /** done, no_show (didn't come) or cancelled. */
+  status: Exclude<AppointmentStatus, "booked">;
   start: Date;
   serviceName: string;
   /** First line of the visit notes, or empty. */
@@ -96,8 +98,9 @@ export function firstLine(text: string): string {
 }
 
 /**
- * Earlier completed visits for the same client, or for the same pet when the
- * appointment is for an animal. Newest first.
+ * Earlier appointments for the same client, or for the same pet when the appointment
+ * is for an animal: done, didn't come and cancelled (so missed visits are visible
+ * too). Newest first.
  */
 async function previousVisits(
   db: Database,
@@ -106,6 +109,7 @@ async function previousVisits(
   const rows = await db
     .select({
       id: appointment.id,
+      status: appointment.status,
       during: appointment.during,
       serviceName: service.name,
       notes: appointment.notes,
@@ -116,7 +120,7 @@ async function previousVisits(
       and(
         eq(appointment.clientId, current.clientId),
         current.petId ? eq(appointment.petId, current.petId) : isNull(appointment.petId),
-        eq(appointment.status, "done"),
+        inArray(appointment.status, ["done", "no_show", "cancelled"]),
         ne(appointment.id, current.id),
         sql`lower(${appointment.during}) < ${current.start.toISOString()}::timestamptz`,
       ),
@@ -124,12 +128,19 @@ async function previousVisits(
     .orderBy(desc(sql`lower(${appointment.during})`))
     .limit(PREVIOUS_VISITS_LIMIT);
 
-  return rows.map((r) => ({
-    id: r.id,
-    start: r.during.start,
-    serviceName: r.serviceName,
-    notesFirstLine: firstLine(r.notes),
-  }));
+  return rows.flatMap((r) =>
+    r.status === "booked"
+      ? []
+      : [
+          {
+            id: r.id,
+            status: r.status,
+            start: r.during.start,
+            serviceName: r.serviceName,
+            notesFirstLine: firstLine(r.notes),
+          },
+        ],
+  );
 }
 
 export async function getAppointmentDetail(

@@ -144,7 +144,14 @@ export default async function AppointmentPage({
                   href={`/app/appointment/${v.id}`}
                   className="flex flex-col rounded-2xl border-2 border-line bg-card p-4 hover:border-accent"
                 >
-                  <span className="text-xl font-semibold">{formatDayLong(v.start, tz)}</span>
+                  <span className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="text-xl font-semibold">{formatDayLong(v.start, tz)}</span>
+                    {v.status !== "done" && (
+                      <span className="rounded-lg border-2 border-warn-ink bg-warn-soft px-2 text-base font-bold text-warn-ink">
+                        {v.status === "no_show" ? "Didn't come" : "Cancelled"}
+                      </span>
+                    )}
+                  </span>
                   <span className="text-lg text-ink-soft">{v.serviceName}</span>
                   {v.notesFirstLine && <span className="text-lg">{v.notesFirstLine}</span>}
                 </Link>

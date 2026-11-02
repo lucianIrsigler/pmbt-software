@@ -132,7 +132,7 @@ describe("getAppointmentDetail", () => {
 
     await updateNotes(db, { appointmentId: first.appointmentId, notes: "Hips, 6 min\nCalm" });
     await markDone(db, first.appointmentId);
-    await markNoShow(db, second.appointmentId); // not a visit
+    await markNoShow(db, second.appointmentId); // shown as "didn't come"
     await markDone(db, otherPet.appointmentId); // different pet
     await db
       .update(client)
@@ -154,7 +154,15 @@ describe("getAppointmentDetail", () => {
     });
     expect(detail?.previousVisits).toEqual([
       {
+        id: second.appointmentId,
+        status: "no_show",
+        start: at("2030-06-11", "10:00"),
+        serviceName: expect.any(String),
+        notesFirstLine: "",
+      },
+      {
         id: first.appointmentId,
+        status: "done",
         start: at("2030-06-10", "10:00"),
         serviceName: expect.any(String),
         notesFirstLine: "Hips, 6 min",
@@ -165,6 +173,64 @@ describe("getAppointmentDetail", () => {
   it("returns null for unknown or malformed ids", async () => {
     expect(await getAppointmentDetail(db, "00000000-0000-4000-8000-000000000000")).toBeNull();
     expect(await getAppointmentDetail(db, "nope")).toBeNull();
+  });
+});
+
+describe("previous visits", () => {
+  it("include cancelled ones but not upcoming bookings", async () => {
+    const phone = "0820000040";
+    const book = (date: string) =>
+      createBooking(
+        db,
+        {
+          serviceId: humanServiceId,
+          start: at(date, "15:00"),
+          client: { name: "History", phone },
+          source: "web",
+        },
+        clock,
+      );
+    const cancelled = await book("2030-06-19");
+    const stillBooked = await book("2030-06-20");
+    const current = await book("2030-06-21");
+    await cancelByOwner(db, cancelled.appointmentId);
+
+    const detail = await getAppointmentDetail(db, current.appointmentId);
+    expect(detail?.previousVisits.map((v) => [v.id, v.status])).toEqual([
+      [cancelled.appointmentId, "cancelled"],
+    ]);
+    expect(detail?.previousVisits.map((v) => v.id)).not.toContain(stillBooked.appointmentId);
+  });
+});
+
+describe("done keeps its time", () => {
+  it("doesn't free the slot when a visit is marked done", async () => {
+    const start = at("2030-06-24", "09:00");
+    const a = await createBooking(
+      db,
+      {
+        serviceId: humanServiceId,
+        start,
+        client: { name: "Done", phone: "0820000050" },
+        source: "app",
+      },
+      clock,
+    );
+    await markDone(db, a.appointmentId);
+    await expect(
+      createBooking(
+        db,
+        {
+          serviceId: humanServiceId,
+          start,
+          client: { name: "Other", phone: "0820000051" },
+          source: "app",
+        },
+        clock,
+      ),
+    ).rejects.toBeInstanceOf(SlotTakenError);
+    // ...so undoing "done" can never clash.
+    await undoStatus(db, a.appointmentId);
   });
 });
 
