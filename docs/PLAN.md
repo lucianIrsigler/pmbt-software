@@ -42,17 +42,17 @@ Create the Drizzle schema in `src/db/schema.ts`:
 
 Tasks:
 
-- [ ] Schema with enums or check constraints for status, source, for_kind
-- [ ] Hand-written SQL migration (Drizzle doesn't model exclusion constraints) adding:
+- [x] Schema with enums or check constraints for status, source, for_kind
+- [x] Hand-written SQL migration (Drizzle doesn't model exclusion constraints) adding:
       ```sql
       alter table appointment
         add constraint appointment_no_overlap
         exclude using gist (during with &&)
         where (status = 'booked');
       ```
-- [ ] Indexes: `appointment(lower(during))`, `appointment(client_id)`, `pet(client_id)`, trigram or simple index on `client(name)`
-- [ ] `src/db/seed.ts`: settings row, Mon–Fri 09:00–17:00 + Sat 09:00–13:00, 3 human and 3 animal sample services, 3 sample products. Idempotent.
-- [ ] Integration test: inserting two overlapping `booked` appointments fails with `23P01`; overlapping when one is `cancelled` succeeds
+- [x] Indexes: `appointment(lower(during))`, `appointment(client_id)`, `pet(client_id)`, trigram or simple index on `client(name)`
+- [x] `src/db/seed.ts`: settings row, Mon–Fri 09:00–17:00 + Sat 09:00–13:00, 3 human and 3 animal sample services, 3 sample products. Idempotent.
+- [x] Integration test: inserting two overlapping `booked` appointments fails with `23P01`; overlapping when one is `cancelled` succeeds
 
 **Done when:** `pnpm db:migrate && pnpm db:seed` works on a fresh DB and the overlap test passes.
 
