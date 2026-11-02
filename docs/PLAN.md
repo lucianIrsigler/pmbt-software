@@ -62,7 +62,7 @@ Tasks:
 
 All in `src/domain/`, fully unit tested, no Next.js imports.
 
-- [ ] `slots.ts`: pure function
+- [x] `slots.ts`: pure function
       `getAvailableSlots({ date, service, workingHours, timeOff, appointments, settings, now, tz })`
       returns start times (as Date) where `[start, start + duration + buffer)`:
   - falls inside working hours for that weekday (in business tz)
@@ -70,15 +70,15 @@ All in `src/domain/`, fully unit tested, no Next.js imports.
   - starts on a `slot_step_min` boundary
   - is at least `min_notice_hours` after `now`
   - is within `max_days_ahead`
-- [ ] `getAvailableDates(month, ...)`: which days in a month have at least one slot (for the date picker)
-- [ ] Tests for: closed days, time off spanning days, a booking in the middle of the day, a service that doesn't fit before closing, min notice, horizon, buffer handling
-- [ ] `booking.ts`:
+- [x] `getAvailableDates(month, ...)`: which days in a month have at least one slot (for the date picker)
+- [x] Tests for: closed days, time off spanning days, a booking in the middle of the day, a service that doesn't fit before closing, min notice, horizon, buffer handling
+- [x] `booking.ts`:
   - `createBooking(input)`: in one transaction, find-or-create client (match on phone, normalised), optionally create pet, insert appointment with a random `manage_token` (32 bytes, base64url). Map `23P01` to a typed `SlotTakenError`.
   - `cancelBookingByToken(token)`: respects `cancel_cutoff_hours`
   - `markDone(id)`, `markNoShow(id)`, `cancelByOwner(id)`, `updateNotes(id, notes)`
   - `addProductToAppointment(...)`, `removeProductFromAppointment(...)`
-- [ ] Zod schemas for every input in `src/domain/schemas.ts`
-- [ ] Phone normalisation helper (South African numbers to `+27...`) with tests
+- [x] Zod schemas for every input in `src/domain/schemas.ts`
+- [x] Phone normalisation helper (South African numbers to `+27...`) with tests
 
 **Done when:** `pnpm test` covers all of the above and passes.
 
