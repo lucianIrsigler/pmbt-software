@@ -225,13 +225,29 @@ export async function createBooking(
 // Cancelling
 // ---------------------------------------------------------------------------
 
-/** Last moment a client may cancel online: `cancel_cutoff_hours` before the start. */
-export function cancelDeadline(start: Date, cancelCutoffHours: number): Date {
-  return addMinutesTo(start, -cancelCutoffHours * 60);
+/**
+ * Grace period after booking during which a client can always cancel online, even
+ * inside the cutoff (e.g. a booking made tonight for tomorrow morning).
+ */
+export const CANCEL_GRACE_MINUTES = 60;
+
+/**
+ * Last moment a client may cancel online: `cancel_cutoff_hours` before the start, or
+ * `CANCEL_GRACE_MINUTES` after booking, whichever is later, but never after the start.
+ */
+export function cancelDeadline(start: Date, createdAt: Date, cancelCutoffHours: number): Date {
+  const cutoff = addMinutesTo(start, -cancelCutoffHours * 60).getTime();
+  const grace = Math.min(addMinutesTo(createdAt, CANCEL_GRACE_MINUTES).getTime(), start.getTime());
+  return new Date(Math.max(cutoff, grace));
 }
 
-export function canClientCancel(start: Date, now: Date, cancelCutoffHours: number): boolean {
-  return now.getTime() <= cancelDeadline(start, cancelCutoffHours).getTime();
+export function canClientCancel(
+  booking: { start: Date; createdAt: Date },
+  now: Date,
+  cancelCutoffHours: number,
+): boolean {
+  const deadline = cancelDeadline(booking.start, booking.createdAt, cancelCutoffHours);
+  return now.getTime() <= deadline.getTime() && now.getTime() < booking.start.getTime();
 }
 
 export interface CancelResult {
@@ -240,7 +256,7 @@ export interface CancelResult {
   alreadyCancelled: boolean;
 }
 
-/** Client cancels via their private link. Respects `cancel_cutoff_hours`. */
+/** Client cancels via their private link. Respects `cancel_cutoff_hours` and the grace period. */
 export async function cancelBookingByToken(
   db: Database,
   rawToken: string,
@@ -250,7 +266,12 @@ export async function cancelBookingByToken(
   if (!token.success) throw new NotFoundError("appointment");
 
   const [row] = await db
-    .select({ id: appointment.id, status: appointment.status, during: appointment.during })
+    .select({
+      id: appointment.id,
+      status: appointment.status,
+      during: appointment.during,
+      createdAt: appointment.createdAt,
+    })
     .from(appointment)
     .where(eq(appointment.manageToken, token.data));
   if (!row) throw new NotFoundError("appointment");
@@ -258,7 +279,9 @@ export async function cancelBookingByToken(
   if (row.status !== "booked") throw new InvalidStatusError(row.status, "cancelled");
 
   const { cancelCutoffHours } = await loadSettings(db);
-  if (!canClientCancel(row.during.start, now, cancelCutoffHours)) {
+  if (
+    !canClientCancel({ start: row.during.start, createdAt: row.createdAt }, now, cancelCutoffHours)
+  ) {
     throw new CancelTooLateError(cancelCutoffHours);
   }
 
@@ -431,6 +454,7 @@ export async function getBookingByToken(
       appointmentId: appointment.id,
       status: appointment.status,
       during: appointment.during,
+      createdAt: appointment.createdAt,
       serviceName: service.name,
       forKind: service.forKind,
       durationMin: service.durationMin,
@@ -455,7 +479,9 @@ export async function getBookingByToken(
     end: addMinutesTo(start, row.durationMin),
     clientName: row.clientName,
     petName: row.petName,
-    canCancel: row.status === "booked" && canClientCancel(start, now, cancelCutoffHours),
-    cancelDeadline: cancelDeadline(start, cancelCutoffHours),
+    canCancel:
+      row.status === "booked" &&
+      canClientCancel({ start, createdAt: row.createdAt }, now, cancelCutoffHours),
+    cancelDeadline: cancelDeadline(start, row.createdAt, cancelCutoffHours),
   };
 }

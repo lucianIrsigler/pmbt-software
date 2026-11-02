@@ -474,3 +474,32 @@ describe("getBookingByToken", () => {
     expect(await getBookingByToken(db, "../etc")).toBeNull();
   });
 });
+
+describe("cancel grace period", () => {
+  it("lets a client cancel a late booking within an hour of making it", async () => {
+    // Booked at 20:00 the evening before a 09:00 session: inside the 24 h cutoff.
+    const start = at("2030-04-01", "09:00");
+    const madeAt = at("2030-03-31", "20:00");
+    const booking = await createBooking(db, webBooking(start), {
+      tz: TZ,
+      now: new Date("2030-03-25T06:00:00Z"),
+    });
+    await db
+      .update(appointment)
+      .set({ createdAt: madeAt })
+      .where(eq(appointment.id, booking.appointmentId));
+
+    const inGrace = new Date(madeAt.getTime() + 30 * 60_000);
+    const view = await getBookingByToken(db, booking.manageToken, { now: inGrace });
+    expect(view?.canCancel).toBe(true);
+    expect(view?.cancelDeadline).toEqual(at("2030-03-31", "21:00"));
+
+    const afterGrace = new Date(madeAt.getTime() + 61 * 60_000);
+    await expect(
+      cancelBookingByToken(db, booking.manageToken, { now: afterGrace }),
+    ).rejects.toBeInstanceOf(CancelTooLateError);
+    await expect(
+      cancelBookingByToken(db, booking.manageToken, { now: inGrace }),
+    ).resolves.toMatchObject({ alreadyCancelled: false });
+  });
+});
