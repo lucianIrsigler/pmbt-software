@@ -300,20 +300,20 @@ Moved from `docs/IMPROVEMENTS.md`.
 
 Admin:
 
-- [ ] Roles with Casbin: `user.role` (`owner` | `admin`); the policy (owner → the app, admin →
+- [x] Roles with Casbin: `user.role` (`owner` | `admin`); the policy (owner → the app, admin →
       the app and admin) lives in code. `requireAccess()` guards `/app`, `/admin`, admin
       actions and CSV downloads. Owners get a plain "This area is for the administrator" page
       at `/admin`. `pnpm user:create` asks for the role. The owner's login is `owner`.
-- [ ] Products sold CSV: one row per product per month (units, revenue) for the dashboard's
+- [x] Products sold CSV: one row per product per month (units, revenue) for the dashboard's
       date range, done visits only (same rule as "Top products")
-- [ ] Hidden services and products listed in their own table below the offered ones
+- [x] Hidden services and products listed in their own table below the offered ones
 
 Operations:
 
-- [ ] Smaller tools image: scripts bundled with esbuild, production migrations through
+- [x] Smaller tools image: scripts bundled with esbuild, production migrations through
       Drizzle's migrator, only production dependencies in the image
-- [ ] Backup alerts: `backup.sh` emails `ALERT_EMAIL` (curl over SMTP) when a step fails
-- [ ] `deploy/monitor/check.sh` for the backup machine (cron): checks `/api/health` and that
+- [x] Backup alerts: `backup.sh` emails `ALERT_EMAIL` (curl over SMTP) when a step fails
+- [x] `deploy/monitor/check.sh` for the backup machine (cron): checks `/api/health` and that
       the newest backup copy is under 26 hours old; emails once on failure and once on recovery
 
 **Done when:** an owner login can't open `/admin`, the CSV matches the dashboard, the tools

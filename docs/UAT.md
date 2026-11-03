@@ -388,7 +388,7 @@ if the runbook is unclear, note where.
 - [ ] **11.7** `https://<domain>/api/health` returns OK; `/api/health/live` returns OK.
 - [ ] **11.8** Postgres is **not** reachable from outside (`nc -zv <domain> 5432` from your own computer fails).
 - [ ] **11.9** `docker compose ps` shows all containers healthy; migrations container exited successfully.
-- [ ] **11.10** Seed and create the owner's login on the server per runbook 7/11; log in from a phone.
+- [ ] **11.10** Seed and create the owner's login on the server per runbook 7/11, with the role `owner`; create your own with `admin`. Log in from a phone.
 - [ ] **11.11** Run the Phase 3 booking flow and Phase 9 email checks against the live site with a test booking, then cancel it.
 - [ ] **11.12** Run Phase 8 (PWA install) on the owner's real phone.
 
@@ -414,7 +414,7 @@ if the runbook is unclear, note where.
 
 ### Secrets and logins (runbook 11–12)
 
-- [ ] **11.24** Create a second admin login with `pnpm user:create` on the server; log in; remove/rotate per runbook.
+- [ ] **11.24** Create a second login with `dc run --rm migrate node tools/create-user.mjs` on the server; log in; change its role and password with the same command.
 - [ ] **11.25** Rotate `IP_HASH_SECRET` (or the SMTP password) per runbook 12 → app restarts and works; nobody is logged out.
 
 **Sign-off (Phase 11 "done when"):** a push to `main` deployed, HTTPS works, and a backup was restored into a scratch database.
@@ -430,6 +430,45 @@ The owner-facing parts are tested above (6.5, 6.23–6.28, 7.3, 7.13–7.18, 9.6
 - [ ] **12.3** The app refuses to start without `IP_HASH_SECRET`, with a message naming it; `SESSION_SECRET` is no longer read.
 - [ ] **12.4** Download "Add to calendar" from a manage link: the file has `ORGANIZER;CN="<business name>":mailto:<contact email>` and `SEQUENCE:0`; the cancellation email's file has the same UID and `SEQUENCE:1`.
 - [ ] **12.5** The public booking flow and the owner's "New booking" look exactly as before (shared step layout).
+
+---
+
+## Phase 13: Admin and operations
+
+### Roles
+
+- [ ] **13.1** Sign in with the owner's login (role `owner`): Today, Calendar and Clients all work.
+- [ ] **13.2** Still as the owner, open `/admin`, `/admin/services` and `/admin/settings` → each shows "This area is for the administrator" with a "Go to my bookings" button that goes to Today. No admin data is shown.
+- [ ] **13.3** As the owner, open `/admin/bookings.csv` and `/admin/products-sold.csv` → "Not allowed." (no file).
+- [ ] **13.4** Sign in with an `admin` login → the app and every admin page work, and both CSVs download.
+- [ ] **13.5** Change the owner's role to `admin` with `create-user` (answer `n` to the password reset) → her next page load opens `/admin` without signing in again. Change it back to `owner` → `/admin` is refused again.
+- [ ] **13.6** `create-user` with a new email and an empty role answer → the login is `owner` (the safe default). An answer like `boss` is refused with "Please type owner or admin".
+
+### Admin screens
+
+- [ ] **13.7** Dashboard → "Download products sold per month (CSV)" under Top products → opens in Excel/Sheets with Month, Product, Units, Revenue (R); one row per product per month.
+- [ ] **13.8** For "This month", the CSV's units and revenue add up to the dashboard's Top products and "Products" revenue. Products on visits marked "Didn't come" or cancelled are not counted.
+- [ ] **13.9** Choose "Last 3 months": the CSV covers each month separately, and its file name shows the dates.
+- [ ] **13.10** Services: offered ones under "On the website (N)"; hide one → it moves to "Hidden (N)" with the note that it can't be booked. Show it again → back on top. The "Hidden" section disappears when nothing is hidden. Same for Products.
+
+### Smaller tools image
+
+- [ ] **13.11** (Developer) `docker build --target tools .` → the image is under 300 MB (was 1.15 GB).
+- [ ] **13.12** On the server, each of these works: `dc run --rm migrate node tools/migrate.mjs`, `… tools/seed.mjs`, `… tools/create-user.mjs` (interactive, password hidden), `… tools/send-reminders.mjs`. `dc logs jobs` shows `jobs.started` and the next run time.
+
+### Backup alerts
+
+- [ ] **13.13** With `ALERT_EMAIL` set, `dc exec backup alert.sh test` arrives in your inbox within a minute, from the app's sender, subject "[dogstuff] Test alert from <domain>".
+- [ ] **13.14** Make a backup fail: `dc exec -e PGHOST=nowhere backup backup.sh` → an email "Backup FAILED on <domain>" saying it failed while dumping the database. No client data in it.
+- [ ] **13.15** With `BACKUP_REMOTE` pointing at a host that refuses (e.g. a wrong user), the nightly run (or `dc exec backup backup.sh`) still keeps the local backup and emails "failed while copying off the server".
+- [ ] **13.16** Without `ALERT_EMAIL`, backups still run; the backup log says alerts go to nobody.
+
+### Monitor on the second machine
+
+- [ ] **13.17** Set up per runbook 9 ("Watching from the second machine"). `ALERT_DRY_RUN=1 sh check.sh monitor.env` prints nothing alarming when all is well.
+- [ ] **13.18** `dc stop web` on the server: within about 10 minutes, one "Site down" email (not one every 5 minutes). `dc start web`: one "Recovered" email.
+- [ ] **13.19** Rename the newest backups on the second machine to something older (or point `BACKUP_DIR` at an empty folder): at the next check, one "No new backup" email; put them back → "Recovered".
+- [ ] **13.20** A normal deploy (site briefly restarting) does not trigger a "Site down" email.
 
 ---
 
