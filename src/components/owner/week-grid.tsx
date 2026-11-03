@@ -104,16 +104,15 @@ function FreeCell({
     >
       {compact ? (
         <>
-          <span>Free</span>
+          <span>Free</span>{" "}
           <span className="sr-only">
             {time}, book {formatLocalDate(date)}
           </span>
         </>
       ) : (
         <>
-          <span className="text-ink">{time}</span>
-          <span>Free – tap to book</span>
-          <span className="sr-only">, {formatLocalDate(date)}</span>
+          <span className="text-ink">{time}</span> <span>Free – tap to book</span>{" "}
+          <span className="sr-only">{formatLocalDate(date)}</span>
         </>
       )}
     </Link>

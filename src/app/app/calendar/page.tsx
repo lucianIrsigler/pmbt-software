@@ -22,7 +22,7 @@ const ERRORS: Record<string, string> = {
   unavailable: new SlotUnavailableError().message,
 };
 
-const navButton = `${ownerButton.secondary} text-lg`;
+const navButton = `${ownerButton.secondary} whitespace-nowrap px-2 text-lg`;
 
 function NavButtons({
   prev,

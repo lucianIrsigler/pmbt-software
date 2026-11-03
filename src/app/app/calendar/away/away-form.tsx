@@ -8,12 +8,11 @@ import { addTimeOffAction, type AwayField } from "./actions";
 
 const initial: FormState<AwayField> = { values: {}, errors: {} };
 
-const choice =
-  "flex min-h-14 cursor-pointer items-center gap-3 rounded-xl border-2 px-4 text-xl font-semibold";
+const choice = "flex min-h-14 w-full items-center rounded-xl border-2 px-4 text-xl font-semibold";
 
 export function AwayForm({ date }: { date: string }): ReactNode {
   const [state, action, pending] = useActionState(addTimeOffAction, initial);
-  const [kind, setKind] = useState(state.values.kind === "times" ? "times" : "day");
+  const [kind, setKind] = useState<"day" | "times">("day");
 
   return (
     <form action={action} className="flex flex-col gap-5" noValidate>
@@ -26,30 +25,32 @@ export function AwayForm({ date }: { date: string }): ReactNode {
         error={state.errors.date}
       />
 
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-xl font-semibold">How long?</legend>
+      {/*
+        Toggle buttons rather than radios: React resets a form after its action runs,
+        which would un-check a radio while the page still showed the old choice.
+      */}
+      <input type="hidden" name="kind" value={kind} />
+      <div role="group" aria-labelledby="away-kind" className="flex flex-col gap-3">
+        <p id="away-kind" className="text-xl font-semibold">
+          How long?
+        </p>
         {(
           [
             ["day", "The whole day"],
             ["times", "Part of the day"],
           ] as const
         ).map(([value, label]) => (
-          <label
+          <button
             key={value}
-            className={`${choice} ${kind === value ? "border-accent bg-accent-soft" : "border-line bg-card"}`}
+            type="button"
+            aria-pressed={kind === value}
+            onClick={() => setKind(value)}
+            className={`${choice} ${kind === value ? "border-accent bg-accent text-white" : "border-ink-soft bg-card text-ink"}`}
           >
-            <input
-              type="radio"
-              name="kind"
-              value={value}
-              checked={kind === value}
-              onChange={() => setKind(value)}
-              className="h-6 w-6 accent-accent"
-            />
-            {label}
-          </label>
+            {kind === value ? `${label} ✓` : label}
+          </button>
         ))}
-      </fieldset>
+      </div>
 
       {kind === "times" && (
         <div className="grid grid-cols-2 gap-3">
