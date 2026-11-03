@@ -41,3 +41,12 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
   with the client already chosen.
 - **Show archived clients.** They're only reachable through old appointments; a small
   "Archived clients" list would make bringing someone back easier.
+
+## Installed app
+
+- **Real icons.** The icons are placeholders (a white "B" on green, drawn in
+  `src/lib/app-icon.tsx`). Swap in the logo: put PNGs in `public/icons/` and point
+  `src/lib/manifest.ts` and `src/app/apple-icon.tsx` at them.
+- **Screenshots on the help page.** `/app/help` has a placeholder box for each step.
+- **"Install this app" hint.** A one-time tip on Today until the app is installed, instead of
+  only the link on Settings.

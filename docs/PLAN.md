@@ -177,11 +177,14 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
 
 ## Phase 8: PWA
 
-- [ ] Web app manifest (name, icons, `start_url: /app`, `display: standalone`, theme colour)
-- [ ] Minimal service worker: cache static assets only; show a friendly "You're offline" page. Do not cache API/data responses.
-- [ ] Install instructions page for the owner (with screenshots placeholders) at `/app/help`
+- [x] Web app manifest (name, icons, `start_url: /app`, `display: standalone`, theme colour).
+      "My bookings", with placeholder icons (a white B on green) drawn by `next/og`; linked only
+      from `/app` and `/login`.
+- [x] Minimal service worker: cache static assets only; show a friendly "You're offline" page. Do not cache API/data responses.
+- [x] Install instructions page for the owner (with screenshots placeholders) at `/app/help`
 
 **Done when:** it installs to an Android/iOS home screen and opens straight into `/app`.
+(Needs checking by hand on real phones over HTTPS, e.g. after Phase 11.)
 
 ---
 
