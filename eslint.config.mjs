@@ -13,6 +13,15 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-non-null-assertion": "error",
     },
   },
+  {
+    // Explicit return types on exported functions (CLAUDE.md). Not for tests, and not for
+    // React files: Next.js types pages, and components already say `ReactNode`.
+    files: ["**/*.ts", "**/*.mts"],
+    ignores: ["**/*.test.ts", "**/*.int.test.ts", "e2e/**"],
+    rules: {
+      "@typescript-eslint/explicit-module-boundary-types": "error",
+    },
+  },
   globalIgnores([
     ".next/**",
     "out/**",
