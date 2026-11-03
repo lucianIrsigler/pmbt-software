@@ -86,3 +86,13 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 - **Rename `SESSION_SECRET`.** It only scrambles IP addresses for the rate limits (sessions
   don't use it), so a name like `IP_HASH_SECRET` would be clearer. It changes every
   environment's `.env`, so do it together with a deploy.
+- **Split `src/domain/booking.ts`.** At about 400 lines it holds creating, cancelling, status
+  changes, products sold and the client's booking view. Files per concern (e.g.
+  `booking-create.ts`, `booking-status.ts`, `booking-products.ts`) would be easier to find
+  your way around.
+- **One "step" layout for multi-step flows.** The public booking flow and booking from the
+  calendar each have their own `Step` component (title, "Step n of 4", back link). They differ
+  only in styling and could share one.
+- **Enforce return types with a lint rule.** CLAUDE.md asks for explicit return types on
+  exported functions; turning on `@typescript-eslint/explicit-module-boundary-types` would
+  catch misses automatically (the review found one).
