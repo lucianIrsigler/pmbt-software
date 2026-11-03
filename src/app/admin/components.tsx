@@ -12,6 +12,107 @@ export const adminButton =
 export const adminButtonSecondary =
   "inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-accent bg-card px-4 font-semibold text-accent hover:bg-accent-soft";
 
+/** A simple admin table: a header row and one row per item, scrolling sideways if narrow. */
+export function AdminTable({
+  label,
+  headers,
+  rows,
+  minWidth,
+}: {
+  label: string;
+  headers: readonly string[];
+  /** One array of cells per row, keyed by `key`. */
+  rows: readonly { key: string; cells: readonly ReactNode[] }[];
+  /** e.g. `min-w-[44rem]`, so columns don't squash on a phone. */
+  minWidth: string;
+}): ReactNode {
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-line bg-card">
+      <table aria-label={label} className={`w-full ${minWidth} border-collapse text-left`}>
+        <thead className="border-b-2 border-line">
+          <tr>
+            {headers.map((h, i) => (
+              <th key={`${h}-${i}`} scope="col" className="px-3 py-2 font-semibold">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.key} className="border-b border-line last:border-0">
+              {row.cells.map((cell, i) => (
+                <td key={i} className={`px-3 py-2 ${i === 0 ? "font-semibold" : ""}`}>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/**
+ * Offered items first, then hidden ones in their own table (only if there are any), so
+ * what's live on the website is easy to see at a glance.
+ */
+export function OfferedAndHidden<T extends { id: string; active: boolean }>({
+  items,
+  noun,
+  hiddenNote,
+  headers,
+  cells,
+  minWidth,
+}: {
+  items: readonly T[];
+  /** Plural, lower case: "services", "products". */
+  noun: string;
+  /** What hiding means for these items. */
+  hiddenNote: string;
+  headers: readonly string[];
+  cells: (item: T) => readonly ReactNode[];
+  minWidth: string;
+}): ReactNode {
+  const offered = items.filter((i) => i.active);
+  const hidden = items.filter((i) => !i.active);
+  const rows = (list: readonly T[]) => list.map((item) => ({ key: item.id, cells: cells(item) }));
+  return (
+    <>
+      <section aria-labelledby="offered-heading" className="flex flex-col gap-3">
+        <h2 id="offered-heading" className="text-xl font-bold">
+          On the website ({offered.length})
+        </h2>
+        {offered.length === 0 ? (
+          <p className="text-ink-soft">No {noun} are offered at the moment.</p>
+        ) : (
+          <AdminTable
+            label={`Offered ${noun}`}
+            headers={headers}
+            rows={rows(offered)}
+            minWidth={minWidth}
+          />
+        )}
+      </section>
+      {hidden.length > 0 && (
+        <section aria-labelledby="hidden-heading" className="flex flex-col gap-3">
+          <h2 id="hidden-heading" className="text-xl font-bold">
+            Hidden ({hidden.length})
+          </h2>
+          <p className="text-ink-soft">{hiddenNote}</p>
+          <AdminTable
+            label={`Hidden ${noun}`}
+            headers={headers}
+            rows={rows(hidden)}
+            minWidth={minWidth}
+          />
+        </section>
+      )}
+    </>
+  );
+}
+
 const PRESETS = [
   ["this-month", "This month"],
   ["last-month", "Last month"],

@@ -6,7 +6,7 @@ import { listAllProducts } from "@/domain/admin";
 import { formatPrice } from "@/lib/format";
 import { adminContext } from "@/app/admin/context";
 import type { SearchParams } from "@/lib/search-params";
-import { adminButton } from "../components";
+import { adminButton, OfferedAndHidden } from "../components";
 
 export const metadata: Metadata = { title: "Products" };
 
@@ -26,38 +26,30 @@ export default async function AdminProductsPage({
         </Link>
       </div>
       {params.saved === "1" && <Notice tone="success">Saved ✓</Notice>}
-      <div className="overflow-x-auto rounded-2xl border border-line bg-card">
-        <table className="w-full min-w-[32rem] border-collapse text-left">
-          <thead className="border-b-2 border-line">
-            <tr>
-              {["Name", "Price", "Order", "Status", ""].map((h) => (
-                <th key={h} scope="col" className="px-3 py-2 font-semibold">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-b border-line last:border-0">
-                <td className="px-3 py-2 font-semibold">{p.name}</td>
-                <td className="px-3 py-2 tabular-nums">{formatPrice(p.priceCents)}</td>
-                <td className="px-3 py-2 tabular-nums">{p.sortOrder}</td>
-                <td className="px-3 py-2">{p.active ? "Shown" : "Hidden"}</td>
-                <td className="px-3 py-2">
-                  <Link
-                    href={`/admin/products/${p.id}`}
-                    className="text-accent underline"
-                    aria-label={`Edit ${p.name}`}
-                  >
-                    Edit
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <OfferedAndHidden
+        items={products}
+        noun="products"
+        hiddenNote="Not on the website and can't be added to a visit. Past sales keep them."
+        headers={["Name", "Price", "Order", ""]}
+        minWidth="min-w-[28rem]"
+        cells={(p) => [
+          p.name,
+          <span key="price" className="tabular-nums">
+            {formatPrice(p.priceCents)}
+          </span>,
+          <span key="order" className="tabular-nums">
+            {p.sortOrder}
+          </span>,
+          <Link
+            key="edit"
+            href={`/admin/products/${p.id}`}
+            className="text-accent underline"
+            aria-label={`Edit ${p.name}`}
+          >
+            Edit
+          </Link>,
+        ]}
+      />
     </div>
   );
 }

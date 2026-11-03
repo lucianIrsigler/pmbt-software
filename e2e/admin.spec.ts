@@ -112,7 +112,17 @@ test("a new service can be offered, then hidden from booking", async ({ page }) 
   await editService(page, "E2E hidden service");
   await page.getByLabel(/^Offered/).uncheck();
   await page.getByRole("button", { name: "Save changes" }).click();
-  await expect(page.getByRole("row", { name: /E2E hidden service/ })).toContainText("Hidden");
+  // Listed under "Hidden", no longer with the offered ones.
+  await expect(
+    page
+      .getByRole("table", { name: "Hidden services" })
+      .getByRole("row", { name: /E2E hidden service/ }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByRole("table", { name: "Offered services" })
+      .getByRole("row", { name: /E2E hidden service/ }),
+  ).toHaveCount(0);
 
   await page.goto("/book");
   await expect(page.getByRole("heading", { name: "Choose a service" })).toBeVisible();
