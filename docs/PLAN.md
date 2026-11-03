@@ -239,3 +239,5 @@ For the developer/son mostly; desktop-friendly is fine.
 Online payments, deposits, WhatsApp/SMS, client accounts, multiple practitioners or rooms,
 home visits, online product sales, two-way calendar sync, medical aid billing,
 native mobile apps, multi-language.
+
+Ideas for after the MVP are collected in `docs/IMPROVEMENTS.md`.
