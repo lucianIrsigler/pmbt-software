@@ -26,6 +26,8 @@ export const envSchema = z
     SMTP_USER: optionalString,
     SMTP_PASS: optionalString,
     MAIL_FROM: optionalString,
+    /** Tests only: write emails as JSON files to this folder instead of sending them. */
+    EMAIL_OUTBOX_DIR: optionalString,
     BUSINESS_TZ: z
       .string()
       .default("Africa/Johannesburg")
