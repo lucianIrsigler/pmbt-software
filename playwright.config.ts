@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import { OUTBOX_DIR } from "./e2e/outbox";
 import { e2eDatabaseUrl } from "./src/test/database";
 
 const PORT = 3100;
@@ -28,9 +29,11 @@ export default defineConfig({
       ...(process.env as Record<string, string>),
       DATABASE_URL: e2eDatabaseUrl(),
       APP_URL: BASE_URL,
-      // `next start` runs in production mode, which requires SMTP settings. No email is sent yet.
+      // `next start` runs in production mode, which requires SMTP settings (never used: see below).
       SMTP_HOST: process.env.SMTP_HOST || "localhost",
       MAIL_FROM: process.env.MAIL_FROM || "e2e@example.com",
+      // Emails are written to files here instead of being sent; tests read them.
+      EMAIL_OUTBOX_DIR: OUTBOX_DIR,
     },
   },
 });

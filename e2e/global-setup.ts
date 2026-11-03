@@ -1,5 +1,6 @@
 import { execSync } from "node:child_process";
 import { e2eDatabaseUrl, recreateDatabase } from "../src/test/database";
+import { clearOutbox } from "./outbox";
 import { E2E_USER } from "./user";
 
 /**
@@ -8,6 +9,7 @@ import { E2E_USER } from "./user";
  * so recreating the database here (after Playwright starts it) is safe.
  */
 export default async function globalSetup(): Promise<void> {
+  await clearOutbox();
   const url = e2eDatabaseUrl();
   await recreateDatabase(url, ["_e2e"]);
   const env = { ...process.env, DATABASE_URL: url };

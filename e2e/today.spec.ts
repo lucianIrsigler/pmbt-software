@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { seedTodayAppointment, signIn } from "./helpers";
+import { waitForEmail } from "./outbox";
 
 test.describe.configure({ mode: "serial" });
 
@@ -85,7 +86,12 @@ test("a full day: see today's bookings, take notes, sell a product, mark done", 
 });
 
 test("cancelling from the detail page removes it from Today", async ({ page }) => {
-  await seedTodayAppointment({ clientName: "Cancel Me", phone: "+27821119999", hour: 7 });
+  await seedTodayAppointment({
+    clientName: "Cancel Me",
+    phone: "+27821119999",
+    hour: 7,
+    email: "cancel.me@example.com",
+  });
   await signIn(page);
   await page.getByRole("link", { name: /Cancel Me/ }).click();
 
@@ -96,4 +102,9 @@ test("cancelling from the detail page removes it from Today", async ({ page }) =
 
   await page.getByRole("link", { name: "Today", exact: true }).click();
   await expect(page.getByRole("link", { name: /Cancel Me/ })).toHaveCount(0);
+
+  // The client is told by email.
+  const email = await waitForEmail((e) => e.to === "cancel.me@example.com");
+  expect(email.subject).toMatch(/is cancelled$/);
+  expect(email.text).toContain("Hi Cancel,");
 });

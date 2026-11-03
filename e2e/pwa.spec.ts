@@ -44,16 +44,23 @@ test("the owner's app links a valid manifest with icons; the public site doesn't
 test("without internet, the app shows a friendly offline page", async ({ page, context }) => {
   await signIn(page);
   // Wait for the service worker to install and take control of the page.
-  await page.waitForFunction(async () => {
-    const registration = await navigator.serviceWorker.getRegistration("/app");
-    return registration?.active?.state === "activated";
-  });
+  // expect.poll re-evaluates in whatever document is current, so it survives the
+  // page being replaced while the service worker takes over.
+  await expect
+    .poll(() =>
+      page.evaluate(
+        async () => (await navigator.serviceWorker.getRegistration("/app"))?.active?.state,
+      ),
+    )
+    .toBe("activated");
   const scope = await page.evaluate(
     async () => (await navigator.serviceWorker.getRegistration("/app"))?.scope ?? "",
   );
   expect(new URL(scope).pathname).toBe("/app");
   await page.reload();
-  await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
+  await expect
+    .poll(() => page.evaluate(() => navigator.serviceWorker.controller !== null))
+    .toBe(true);
 
   await context.setOffline(true);
   await page.goto("/app/calendar");

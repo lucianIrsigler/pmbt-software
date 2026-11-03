@@ -41,6 +41,7 @@ export async function seedTodayAppointment(opts: {
   hour: number;
   clientNotes?: string;
   lastVisitNotes?: string;
+  email?: string;
 }): Promise<{ appointmentId: string }> {
   const sql = postgres(e2eDatabaseUrl(), { max: 1, onnotice: () => {} });
   try {
@@ -51,8 +52,8 @@ export async function seedTodayAppointment(opts: {
     const minutes = svc.duration_min + svc.buffer_min;
 
     const [client] = await sql<{ id: string }[]>`
-      insert into client (name, phone, notes)
-      values (${opts.clientName}, ${opts.phone}, ${opts.clientNotes ?? ""})
+      insert into client (name, phone, notes, email)
+      values (${opts.clientName}, ${opts.phone}, ${opts.clientNotes ?? ""}, ${opts.email ?? null})
       returning id`;
     if (!client) throw new Error("insert failed");
 

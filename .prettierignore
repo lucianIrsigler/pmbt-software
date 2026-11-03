@@ -9,3 +9,4 @@ CLAUDE.md
 AGENTS.md
 docs
 pnpm-workspace.yaml
+.e2e-outbox

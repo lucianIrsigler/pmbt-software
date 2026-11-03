@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { waitForEmail } from "./outbox";
 
 /**
  * Public booking flow on a phone-sized screen, against a freshly seeded database.
@@ -68,6 +69,18 @@ test("book a service for a person", async ({ page }) => {
   await expect(details).toContainText("PBMT session (30 min)");
   await expect(details).toContainText("Thandi Test");
   await expect(page.getByRole("link", { name: "Add to calendar" })).toBeVisible();
+
+  // A confirmation email with the private link and a calendar file.
+  const email = await waitForEmail(
+    (e) => e.subject.startsWith("Your booking on") && e.text.includes(humanBookingPath),
+  );
+  expect(email.to).toBe("client@example.com");
+  expect(email.text).toContain("Hi Thandi,");
+  expect(email.text).toContain("What: PBMT session (30 min)");
+  expect(email.html).toContain(humanBookingPath);
+  const [ics] = email.attachments ?? [];
+  expect(ics?.filename).toBe("booking.ics");
+  expect(ics?.content).toContain("STATUS:CONFIRMED");
 });
 
 test("book a service for an animal", async ({ page }) => {
@@ -111,6 +124,13 @@ test("add to calendar and cancel via the private link", async ({ page, request }
   await expect(page.getByText("Your booking has been cancelled.")).toBeVisible();
   await expect(page.getByRole("link", { name: "Cancel booking" })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Add to calendar" })).toHaveCount(0);
+
+  // A cancellation email whose calendar file removes the event.
+  const email = await waitForEmail(
+    (e) => e.subject.endsWith("is cancelled") && e.to === "client@example.com",
+  );
+  expect(email.text).toContain("has been cancelled");
+  expect(email.attachments?.[0]?.content).toContain("STATUS:CANCELLED");
 });
 
 test("unknown booking links show a friendly not-found page", async ({ page }) => {
