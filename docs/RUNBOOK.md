@@ -228,6 +228,41 @@ Then in `.env`: `BACKUP_REMOTE=backup@<second machine>:dogstuff-backups/`, run
 The copy never deletes anything on the second machine, so a problem on the app server can't
 wipe it. Delete old files there now and then (e.g. keep a year).
 
+### Alerts when a backup fails
+
+Set `ALERT_EMAIL` in `.env` (your own address, not the owner's) and run `dc up -d backup`.
+A failed backup then emails you, naming the step that failed (dumping, rotating or copying
+off the server). It uses the same SMTP settings as the app.
+
+Test it: `dc exec backup alert.sh test` should arrive within a minute. To see what an alert
+looks like without sending: `dc exec -e ALERT_DRY_RUN=1 backup alert.sh test`.
+
+### Watching from the second machine (site down, backups stopped)
+
+The server can't email you if it is down, and a backup that silently stops never fails.
+`deploy/monitor/check.sh` runs on the **second machine** and checks every 5 minutes that
+`https://<domain>/api/health` answers and that a backup less than 26 hours old has arrived.
+It emails once when something breaks and once when it is fixed. It needs `sh`, `curl` and
+`find` (any Linux, macOS or most NAS boxes).
+
+As the `backup` user on the second machine:
+
+```sh
+mkdir -p ~/dogstuff-monitor && cd ~/dogstuff-monitor
+# copy deploy/monitor/check.sh, deploy/monitor/monitor.env.example and
+# deploy/backup/alert.sh from the repository into this folder, then:
+mv monitor.env.example monitor.env && chmod 600 monitor.env   # fill it in
+ALERT_DRY_RUN=1 sh check.sh monitor.env                       # runs the checks, prints any email
+(set -a; . ./monitor.env; set +a; sh alert.sh test)           # sends a real test email
+crontab -e
+# add:  */5 * * * * sh $HOME/dogstuff-monitor/check.sh $HOME/dogstuff-monitor/monitor.env >> $HOME/dogstuff-monitor/check.log 2>&1
+```
+
+`BACKUP_DIR` is the folder `BACKUP_REMOTE` copies into (e.g. `/home/backup/dogstuff-backups`).
+The site check alerts after 2 failed checks in a row (about 10 minutes), so a deploy or a
+reboot doesn't wake you. To test it, stop the app (`dc stop web`) for 10 minutes, then
+start it again: you should get "Site down" and then "Recovered".
+
 ## 10. Restoring a backup
 
 **Tested** on 2026-11-03 with this exact setup (production images and compose file, run
