@@ -1,6 +1,7 @@
-import { asc, count, sql } from "drizzle-orm";
+import { asc, count } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { testDatabaseUrl } from "@/test/database";
+import { resetBusinessTables } from "@/test/reset";
 import { createDb, type Database } from "./client";
 import { product, service, settings, workingHours } from "./schema";
 import { seed, SEED_PRODUCTS, SEED_SERVICES, SEED_WORKING_HOURS } from "./seed";
@@ -9,9 +10,7 @@ let db: Database;
 
 beforeAll(async () => {
   db = createDb(testDatabaseUrl(), { max: 1 });
-  await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
-  );
+  await resetBusinessTables(db);
 });
 
 afterAll(async () => {

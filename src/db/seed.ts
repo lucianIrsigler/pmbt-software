@@ -119,14 +119,18 @@ export async function seed(db: Database): Promise<SeedResult> {
 
     if (await isEmpty(tx, workingHours)) {
       result.workingHours = (
-        await tx.insert(workingHours).values(SEED_WORKING_HOURS).returning()
+        await tx.insert(workingHours).values(SEED_WORKING_HOURS).returning({ id: workingHours.id })
       ).length;
     }
     if (await isEmpty(tx, service)) {
-      result.services = (await tx.insert(service).values(SEED_SERVICES).returning()).length;
+      result.services = (
+        await tx.insert(service).values(SEED_SERVICES).returning({ id: service.id })
+      ).length;
     }
     if (await isEmpty(tx, product)) {
-      result.products = (await tx.insert(product).values(SEED_PRODUCTS).returning()).length;
+      result.products = (
+        await tx.insert(product).values(SEED_PRODUCTS).returning({ id: product.id })
+      ).length;
     }
     return result;
   });

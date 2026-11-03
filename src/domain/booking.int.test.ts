@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Database } from "@/db/client";
 import {
@@ -12,6 +12,7 @@ import {
 } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
+import { resetBusinessTables } from "@/test/reset";
 import { findDates, findSlots } from "./availability";
 import {
   addProductToAppointment,
@@ -68,9 +69,7 @@ function webBooking(start: Date, phone = freshPhone()) {
 
 beforeAll(async () => {
   db = createDb(testDatabaseUrl(), { max: 4 });
-  await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
-  );
+  await resetBusinessTables(db);
   await seed(db);
   const services = await db.select().from(service).orderBy(asc(service.sortOrder));
   const human = services.find((s) => s.forKind === "human" && s.durationMin === 30);

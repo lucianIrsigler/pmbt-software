@@ -1,9 +1,10 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createDb, type Database } from "@/db/client";
 import { appointment, service, settings } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
+import { resetBusinessTables } from "@/test/reset";
 import { cancelByOwner, createBooking } from "./booking";
 import { createClient, updateClient } from "./clients";
 import { getAppointmentEmailData } from "./notifications";
@@ -47,9 +48,7 @@ beforeAll(async () => {
 });
 
 beforeEach(async () => {
-  await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
-  );
+  await resetBusinessTables(db);
   await seed(db);
   const services = await db.select().from(service).orderBy(asc(service.sortOrder));
   humanServiceId = services.find((s) => s.forKind === "human" && s.durationMin === 30)?.id ?? "";

@@ -1,10 +1,11 @@
 import { randomBytes } from "node:crypto";
-import { asc, sql } from "drizzle-orm";
+import { asc } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { countAdminBookings, listAdminBookings } from "@/domain/admin-bookings";
 import { rangeInstants } from "@/domain/date-range";
 import { zonedInstant } from "@/domain/time";
 import { testDatabaseUrl } from "@/test/database";
+import { resetBusinessTables } from "@/test/reset";
 import { createDb, type Database } from "./client";
 import { appointment, appointmentProduct, client, product, service } from "./schema";
 import { seed } from "./seed";
@@ -65,9 +66,7 @@ async function visit(
 
 beforeAll(async () => {
   db = createDb(testDatabaseUrl(), { max: 2 });
-  await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
-  );
+  await resetBusinessTables(db);
   await seed(db);
   const services = await db.select().from(service).orderBy(asc(service.sortOrder));
   const products = await db.select().from(product).orderBy(asc(product.sortOrder));

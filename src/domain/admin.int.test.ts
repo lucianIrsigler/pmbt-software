@@ -1,8 +1,8 @@
-import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Database } from "@/db/client";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
+import { resetBusinessTables } from "@/test/reset";
 import {
   addHours,
   createProduct,
@@ -37,9 +37,7 @@ const serviceForm = {
 
 beforeAll(async () => {
   db = createDb(testDatabaseUrl(), { max: 2 });
-  await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
-  );
+  await resetBusinessTables(db);
   await seed(db);
 });
 

@@ -1,9 +1,10 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Database } from "@/db/client";
 import { client, service } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
+import { resetBusinessTables } from "@/test/reset";
 import { servicesBookableAt } from "./availability";
 import { createBooking } from "./booking";
 import { createClient, createPet, getClientWithPets, searchClients } from "./clients";
@@ -27,9 +28,7 @@ function at(date: string, hhmm: string): Date {
 
 beforeAll(async () => {
   db = createDb(testDatabaseUrl(), { max: 2 });
-  await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
-  );
+  await resetBusinessTables(db);
   await seed(db);
   const services = await db.select().from(service).orderBy(asc(service.sortOrder));
   humanServiceId = services.find((s) => s.forKind === "human" && s.durationMin === 30)?.id ?? "";

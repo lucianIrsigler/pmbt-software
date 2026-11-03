@@ -72,3 +72,11 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 - **Uptime alerts.** Nothing tells you if the site goes down. A cron job on the backup machine
   that checks `/api/health` and emails you would do, without any outside service.
 - **Backup alerts.** Likewise, an email when a nightly backup fails.
+
+## Code and database (from the code review)
+
+- **Case-insensitive unique login emails in the database.** Emails are lower-cased by
+  `user:create` and the login, but the unique constraint is on the raw column; a unique index
+  on `lower(email)` would enforce it.
+- **An index on `time_off.during`.** Time off is looked up by overlap (calendar, availability).
+  The table is tiny now; a GiST index would keep it fast if it grows.
