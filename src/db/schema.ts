@@ -191,6 +191,8 @@ export const appointment = pgTable(
     notes: text("notes").notNull().default(""),
     manageToken: text("manage_token").notNull().unique(),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    /** When the day-before reminder email was sent (or claimed); see scripts/send-reminders.ts. */
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     createdAt: createdAt(),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
