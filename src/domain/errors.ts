@@ -72,6 +72,14 @@ export class InvalidTimeOffError extends DomainError {
   readonly code = "invalid_time_off";
 }
 
+/** Another current client already has this phone number (no names in the message). */
+export class PhoneInUseError extends DomainError {
+  readonly code = "phone_in_use";
+  constructor() {
+    super("Another client already has this phone number.");
+  }
+}
+
 /** Settings row missing: run `pnpm db:seed`. */
 export class SettingsMissingError extends Error {
   constructor() {

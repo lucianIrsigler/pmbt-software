@@ -60,6 +60,7 @@ export const newPetSchema = z.strictObject({
 export const ownerClientSchema = z.strictObject({
   name: trimmed("the client's name", 100),
   phone: phoneSchema,
+  email: optionalEmailSchema,
 });
 export type OwnerClientInput = z.input<typeof ownerClientSchema>;
 
@@ -159,3 +160,9 @@ export const addTimeOffSchema = z
     return { kind: "times" as const, date, startTime: start.data, endTime: end.data, reason };
   });
 export type AddTimeOffInput = z.input<typeof addTimeOffSchema>;
+
+export const clientNotesSchema = z.strictObject({ clientId: idSchema, notes: notesSchema });
+export type ClientNotesInput = z.input<typeof clientNotesSchema>;
+
+export const petNotesSchema = z.strictObject({ petId: idSchema, notes: notesSchema });
+export type PetNotesInput = z.input<typeof petNotesSchema>;
