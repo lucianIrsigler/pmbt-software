@@ -23,16 +23,11 @@ import {
   formatTime,
 } from "@/lib/format";
 import { requestContext, type RequestContext } from "@/lib/request";
+import { stringParam, type SearchParams } from "@/lib/search-params";
 import { BookingForm } from "./booking-form";
 import { bookingStepUrl } from "./urls";
 
 export const metadata: Metadata = { title: "Book", robots: { index: false } };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-function one(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
 
 const backLink = "inline-block py-2 font-semibold text-accent underline underline-offset-4";
 
@@ -326,22 +321,22 @@ export default async function BookPage({
   const ctx = await requestContext();
   const services = await listActiveServices(ctx.db);
 
-  const service = services.find((s) => s.id === one(params.service));
+  const service = services.find((s) => s.id === stringParam(params.service));
   if (!service) return <ServiceStep services={services} />;
 
-  const dateParam = localDateSchema.safeParse(one(params.date));
+  const dateParam = localDateSchema.safeParse(stringParam(params.date));
   if (!dateParam.success) {
-    const monthParam = monthSchema.safeParse(one(params.month));
+    const monthParam = monthSchema.safeParse(stringParam(params.month));
     const month = monthParam.success ? monthParam.data : monthOf(localDateOf(ctx.now, ctx.tz));
     return <DateStep ctx={ctx} service={service} month={month} />;
   }
   const date = dateParam.data;
 
   const slots = await findSlots(ctx.db, { serviceId: service.id, date }, ctx);
-  const startParam = one(params.start);
+  const startParam = stringParam(params.start);
   const start = slots.find((s) => s.toISOString() === startParam);
   if (!start) {
-    const error = one(params.error) ?? (startParam ? "unavailable" : undefined);
+    const error = stringParam(params.error) ?? (startParam ? "unavailable" : undefined);
     return <TimeStep ctx={ctx} service={service} date={date} slots={slots} error={error} />;
   }
 

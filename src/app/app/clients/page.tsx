@@ -5,11 +5,10 @@ import { ownerButton } from "@/components/owner/styles";
 import { listRecentClients, searchClients, type ClientSearchResult } from "@/domain/clients";
 import { formatPhone } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { ClientSearchBox } from "./forms";
 
 export const metadata: Metadata = { title: "Clients" };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 function ClientList({
   clients,

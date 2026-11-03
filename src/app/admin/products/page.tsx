@@ -5,6 +5,7 @@ import { Notice } from "@/components/ui";
 import { listAllProducts } from "@/domain/admin";
 import { formatPrice } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { adminButton } from "../components";
 
 export const metadata: Metadata = { title: "Products" };
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Products" };
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }): Promise<ReactNode> {
   const { db } = await requestContext();
   const [products, params] = await Promise.all([listAllProducts(db), searchParams]);

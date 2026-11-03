@@ -5,6 +5,7 @@ import { Notice } from "@/components/ui";
 import { listAllServices } from "@/domain/admin";
 import { formatDuration, formatPrice } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { adminButton } from "../components";
 
 export const metadata: Metadata = { title: "Services" };
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Services" };
 export default async function AdminServicesPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }): Promise<ReactNode> {
   const { db } = await requestContext();
   const [services, params] = await Promise.all([listAllServices(db), searchParams]);

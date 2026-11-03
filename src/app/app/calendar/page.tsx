@@ -11,11 +11,10 @@ import { localDateSchema } from "@/domain/schemas";
 import { addLocalDays, localDateOf, type LocalDate } from "@/domain/time";
 import { formatDayMonth, formatLocalDate, formatWeekdayShort } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { calendarUrl } from "./urls";
 
 export const metadata: Metadata = { title: "Calendar" };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const ERRORS: Record<string, string> = {
   taken: new SlotTakenError().message,

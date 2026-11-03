@@ -8,6 +8,7 @@ import { getPublicSettings } from "@/domain/catalogue";
 import { getEnv } from "@/lib/env";
 import { formatDateTime, formatTime } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { cancelBookingAction } from "./actions";
 
 export const metadata: Metadata = {
@@ -17,8 +18,6 @@ export const metadata: Metadata = {
 };
 
 type Params = Promise<{ token: string }>;
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
 const STATUS_NOTICE: Record<BookingView["status"], ReactNode> = {
   booked: null,
   cancelled: <Notice tone="warn">This booking has been cancelled.</Notice>,

@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Notice } from "@/components/ui";
 import { listHours } from "@/domain/admin";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { removeHoursAction, saveHoursAction } from "../actions";
 import { AdminForm } from "../admin-form";
 import { adminButtonSecondary, adminCard } from "../components";
@@ -24,7 +25,7 @@ const DAYS: readonly (readonly [weekday: number, name: string])[] = [
 export default async function AdminHoursPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }): Promise<ReactNode> {
   const { db } = await requestContext();
   const [hours, params] = await Promise.all([listHours(db), searchParams]);

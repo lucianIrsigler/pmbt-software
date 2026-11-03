@@ -12,16 +12,11 @@ import { rangeInstants, rangeQuery, resolveRange } from "@/domain/date-range";
 import { localDateOf } from "@/domain/time";
 import { formatPrice, formatTime } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import { stringParam, type SearchParams } from "@/lib/search-params";
 import { adminButton, adminButtonSecondary, RangePicker } from "../components";
 import { SOURCE_LABELS, STATUS_LABELS } from "./labels";
 
 export const metadata: Metadata = { title: "Bookings" };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-function one(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
 
 function shortDate(instant: Date, tz: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -41,14 +36,18 @@ export default async function AdminBookingsPage({
   const { db, tz, now } = await requestContext();
   const params = await searchParams;
   const range = resolveRange(
-    { range: one(params.range), from: one(params.from), to: one(params.to) },
+    {
+      range: stringParam(params.range),
+      from: stringParam(params.from),
+      to: stringParam(params.to),
+    },
     localDateOf(now, tz),
   );
   const filter = bookingFilterSchema.parse({
-    status: one(params.status),
-    source: one(params.source),
+    status: stringParam(params.status),
+    source: stringParam(params.source),
   });
-  const page = Math.max(1, Math.floor(Number(one(params.page) ?? "1")) || 1);
+  const page = Math.max(1, Math.floor(Number(stringParam(params.page) ?? "1")) || 1);
   const instants = rangeInstants(range, tz);
   const [rows, total] = await Promise.all([
     listAdminBookings(db, instants, filter, { limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),

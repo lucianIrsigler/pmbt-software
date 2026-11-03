@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentUser, safeNextPath } from "@/lib/auth";
+import type { SearchParams } from "@/lib/search-params";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }): Promise<ReactNode> {
   const { next } = await searchParams;
   const target = safeNextPath(typeof next === "string" ? next : undefined);

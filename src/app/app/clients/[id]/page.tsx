@@ -14,11 +14,10 @@ import {
 } from "@/domain/clients";
 import { formatDateTime, formatPhone } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { archiveClientAction, saveClientNotesAction, unarchiveClientAction } from "../actions";
 
 export const metadata: Metadata = { title: "Client" };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 const rowLink = "flex flex-col rounded-2xl border-2 border-line bg-card p-4 hover:border-accent";
 

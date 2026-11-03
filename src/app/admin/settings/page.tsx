@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Notice } from "@/components/ui";
 import { loadSettings } from "@/domain/availability";
 import { requestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { saveSettingsAction } from "../actions";
 import { AdminForm } from "../admin-form";
 import { SETTINGS_FIELDS } from "../fields";
@@ -12,7 +13,7 @@ export const metadata: Metadata = { title: "Settings" };
 export default async function AdminSettingsPage({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string | string[] | undefined>>;
+  searchParams: SearchParams;
 }): Promise<ReactNode> {
   const { db } = await requestContext();
   const [s, params] = await Promise.all([loadSettings(db), searchParams]);

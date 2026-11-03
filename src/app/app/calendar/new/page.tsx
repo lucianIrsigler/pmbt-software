@@ -9,18 +9,13 @@ import { getClientWithPets, searchClients, type ClientWithPets } from "@/domain/
 import { localDateOf } from "@/domain/time";
 import { formatDayLong, formatDuration, formatPhone, formatPrice, formatTime } from "@/lib/format";
 import { requestContext, type RequestContext } from "@/lib/request";
+import { stringParam, type SearchParams } from "@/lib/search-params";
 import { calendarUrl } from "../urls";
 import { bookFromCalendarAction } from "./actions";
 import { NewClientForm, NewPetForm } from "./forms";
 import { newBookingStepUrl } from "./urls";
 
 export const metadata: Metadata = { title: "New booking" };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
-function one(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
 
 const rowLink =
   "flex min-h-16 flex-col justify-center rounded-2xl border-2 border-line bg-card px-5 py-3 hover:border-accent";
@@ -272,7 +267,7 @@ export default async function NewBookingPage({
   const { db, tz, now } = ctx;
   const params = await searchParams;
 
-  const parsedStart = startSchema.safeParse(one(params.start));
+  const parsedStart = startSchema.safeParse(stringParam(params.start));
   const start = parsedStart.success ? parsedStart.data : undefined;
   const backToCalendar = calendarUrl(localDateOf(start ?? now, tz));
 
@@ -307,8 +302,8 @@ export default async function NewBookingPage({
   }
 
   const iso = start.toISOString();
-  const client = await getClientWithPets(db, one(params.client) ?? "");
-  const petParam = one(params.pet);
+  const client = await getClientWithPets(db, stringParam(params.client) ?? "");
+  const petParam = stringParam(params.pet);
   const pet =
     client && (petParam === "self" || client.pets.some((p) => p.id === petParam))
       ? petParam
@@ -326,7 +321,7 @@ export default async function NewBookingPage({
           <NewClientForm start={iso} />
         </Step>
       ) : (
-        <ClientStep ctx={ctx} start={iso} q={one(params.q) ?? ""} />
+        <ClientStep ctx={ctx} start={iso} q={stringParam(params.q) ?? ""} />
       );
   } else if (!pet) {
     body =
@@ -343,7 +338,7 @@ export default async function NewBookingPage({
       );
   } else {
     const services = await servicesBookableAt(db, start, pet === "self" ? "human" : "animal", ctx);
-    const service = services.find((s) => s.id === one(params.service));
+    const service = services.find((s) => s.id === stringParam(params.service));
     body = service ? (
       <ConfirmStep
         start={start}

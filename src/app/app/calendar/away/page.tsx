@@ -9,13 +9,12 @@ import { getTimeOff, listUpcomingTimeOff, type TimeOffBlock } from "@/domain/tim
 import { localDateOf } from "@/domain/time";
 import { formatDayLong, formatTime, formatTimeOffRange } from "@/lib/format";
 import { requestContext, type RequestContext } from "@/lib/request";
+import type { SearchParams } from "@/lib/search-params";
 import { calendarUrl } from "../urls";
 import { removeTimeOffAction } from "./actions";
 import { AwayForm } from "./away-form";
 
 export const metadata: Metadata = { title: "Block time" };
-
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 /** Confirms a new block, and lists bookings inside it: they are kept, so she can call them. */
 async function Added({

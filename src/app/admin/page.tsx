@@ -5,17 +5,12 @@ import { rangeInstants, resolveRange } from "@/domain/date-range";
 import { localDateOf } from "@/domain/time";
 import { formatPrice } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import { stringParam, type SearchParams } from "@/lib/search-params";
 import { adminCard, BarList, RangePicker, Stat } from "./components";
 
 export const metadata: Metadata = { title: "Dashboard" };
 
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-
 const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
-function one(value: string | string[] | undefined): string | undefined {
-  return typeof value === "string" ? value : undefined;
-}
 
 function percent(rate: number | null): string {
   return rate === null ? "–" : `${Math.round(rate * 100)}%`;
@@ -29,7 +24,11 @@ export default async function DashboardPage({
   const { db, tz, now } = await requestContext();
   const params = await searchParams;
   const range = resolveRange(
-    { range: one(params.range), from: one(params.from), to: one(params.to) },
+    {
+      range: stringParam(params.range),
+      from: stringParam(params.from),
+      to: stringParam(params.to),
+    },
     localDateOf(now, tz),
   );
   const stats = await dashboardStats(db, rangeInstants(range, tz), tz);
