@@ -165,10 +165,11 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
 
 ## Phase 7: Owner app — Clients tab
 
-- [ ] Search box at the top (name or phone), results as large rows
-- [ ] Client page: contact details (editable), notes (autosave), pets list (add/edit), visit history (newest first) linking to appointments
-- [ ] "Add client" button
-- [ ] Archive client (with confirmation) instead of delete
+- [x] Search box at the top (name or phone), results as large rows; before searching, the 20 most recently seen clients
+- [x] Client page: contact details (editable), notes (autosave), pets list (add/edit/archive), visit history (newest first) linking to appointments
+- [x] "Add client" button
+- [x] Archive client (with confirmation) instead of delete. Archiving cancels their upcoming bookings
+      (the confirmation says how many); archived clients and animals can be brought back.
 
 **Done when:** she can find any client in seconds and see their full history.
 

@@ -27,10 +27,17 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 
 ## New booking (owner)
 
-- **Say when a "new" client already exists.** Entering a known phone number quietly uses the
-  existing client (under their saved name). An explicit "This number belongs to …" would be
-  clearer.
+- **Say when a "new" client already exists (calendar flow).** "Add client" on the Clients tab
+  now says "This phone number already belongs to …", but the calendar's "New client" step still
+  quietly uses the existing client.
 - **Notes while booking**, e.g. the reason for the visit, instead of adding them afterwards.
 - **Book outside working hours** as a one-off favour. Not possible at the moment.
 - **Typo-tolerant client search.** Search matches parts of names and phone numbers; using
   `pg_trgm` similarity (the index already exists) would also find misspellings.
+
+## Clients
+
+- **Book from the client page.** A "New booking" button there that starts the calendar flow
+  with the client already chosen.
+- **Show archived clients.** They're only reachable through old appointments; a small
+  "Archived clients" list would make bringing someone back easier.
