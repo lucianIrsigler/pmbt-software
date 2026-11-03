@@ -12,3 +12,9 @@ export const ownerButton = {
   small:
     "flex min-h-12 w-full items-center justify-center rounded-xl border-2 border-line bg-card px-4 text-lg font-semibold text-ink hover:border-danger hover:text-danger",
 } as const;
+
+/** Owner-app text inputs: tall, large text, clear border. */
+const ownerInputBase =
+  "block min-h-14 w-full rounded-xl border-2 bg-card px-4 py-2 text-xl text-ink placeholder:text-ink-soft";
+export const ownerInput = `${ownerInputBase} border-ink-soft focus:border-accent`;
+export const ownerInputInvalid = `${ownerInputBase} border-danger`;
