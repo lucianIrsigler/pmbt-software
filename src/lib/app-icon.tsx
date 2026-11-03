@@ -25,8 +25,8 @@ export function appIcon(size: number, { maskable = false } = {}): ImageResponse 
         background: THEME_COLOR,
         borderRadius: maskable ? 0 : size * 0.22,
         color: "white",
+        // next/og's built-in font has no bold weight, so none is set.
         fontSize: size * (maskable ? 0.5 : 0.62),
-        fontWeight: 700,
       }}
     >
       B
