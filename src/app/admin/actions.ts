@@ -16,7 +16,7 @@ import {
   updateSettings,
 } from "@/domain/admin";
 import { DomainError } from "@/domain/errors";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
 import { SOMETHING_WRONG } from "@/lib/owner-action";
@@ -42,7 +42,7 @@ async function save(
   write: (values: Record<string, string>) => Promise<unknown>,
   done: string,
 ): Promise<State> {
-  await requireUser();
+  await requireAccess("admin");
   const values = Object.fromEntries(fieldNames(fields).map((name) => [name, text(formData, name)]));
   try {
     await write(values);
@@ -99,7 +99,7 @@ export async function saveHoursAction(
 }
 
 export async function removeHoursAction(id: string): Promise<void> {
-  await requireUser();
+  await requireAccess("admin");
   await removeHours(getDb(), id);
   logInfo("admin.hours_removed");
   refresh();

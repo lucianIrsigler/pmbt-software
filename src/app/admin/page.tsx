@@ -4,7 +4,7 @@ import { dashboardStats } from "@/db/stats";
 import { rangeInstants, resolveRange } from "@/domain/date-range";
 import { localDateOf } from "@/domain/time";
 import { formatPrice } from "@/lib/format";
-import { requestContext } from "@/lib/request";
+import { adminContext } from "@/app/admin/context";
 import { stringParam, type SearchParams } from "@/lib/search-params";
 import { adminCard, BarList, RangePicker, Stat } from "./components";
 
@@ -21,7 +21,7 @@ export default async function DashboardPage({
 }: {
   searchParams: SearchParams;
 }): Promise<ReactNode> {
-  const { db, tz, now } = await requestContext();
+  const { db, tz, now } = await adminContext();
   const params = await searchParams;
   const range = resolveRange(
     {

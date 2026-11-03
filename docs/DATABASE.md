@@ -53,6 +53,7 @@ hand-written SQL in [`drizzle/`](../drizzle).
 | `0006_appointment_reminder_sent_at.sql` | When the day-before reminder was sent   |
 | `0007_appointment_price_cents.sql` (edited) | Price saved per booking; backfilled from the service |
 | `0008_user_email_lower_time_off_gist.sql` (edited) | Login emails unique ignoring case; GiST index on `time_off.during` |
+| `0009_user_role.sql` (edited) | `user.role` (`owner` / `admin`); existing logins become `admin` |
 
 - Change the schema: edit `src/db/schema.ts`, run `pnpm db:generate`, review the SQL, then
   `pnpm db:migrate`.

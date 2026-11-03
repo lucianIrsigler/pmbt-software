@@ -24,7 +24,7 @@ import {
 } from "@/domain/clients";
 import { DomainError, PhoneInUseError } from "@/domain/errors";
 import { ownerClientSchema, ownerPetSchema } from "@/domain/schemas";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { sendBookingEmail } from "@/lib/booking-emails";
 import { fieldErrors } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
@@ -44,7 +44,7 @@ export async function addClientAction(
   _prev: FormState<ClientField>,
   formData: FormData,
 ): Promise<FormState<ClientField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = clientFormValues(formData);
   const input = ownerClientSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
@@ -65,7 +65,7 @@ export async function updateClientAction(
   _prev: FormState<ClientField>,
   formData: FormData,
 ): Promise<FormState<ClientField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = clientFormValues(formData);
   const input = ownerClientSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
@@ -88,7 +88,7 @@ export async function saveClientNotesAction(
   clientId: string,
   notes: string,
 ): Promise<{ ok: boolean }> {
-  await requireUser();
+  await requireAccess("app");
   try {
     await updateClientNotes(getDb(), { clientId, notes });
     return { ok: true };
@@ -119,7 +119,7 @@ export async function addPetAction(
   _prev: FormState<PetField>,
   formData: FormData,
 ): Promise<FormState<PetField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = petFormValues(formData);
   const input = ownerPetSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
@@ -140,7 +140,7 @@ export async function updatePetAction(
   _prev: FormState<PetField>,
   formData: FormData,
 ): Promise<FormState<PetField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = petFormValues(formData);
   const input = ownerPetSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
@@ -156,7 +156,7 @@ export async function updatePetAction(
 }
 
 export async function savePetNotesAction(petId: string, notes: string): Promise<{ ok: boolean }> {
-  await requireUser();
+  await requireAccess("app");
   try {
     await updatePetNotes(getDb(), { petId, notes });
     return { ok: true };

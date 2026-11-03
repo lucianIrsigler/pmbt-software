@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { getService } from "@/domain/admin";
 import { centsToRands } from "@/domain/money";
-import { requestContext } from "@/lib/request";
+import { adminContext } from "@/app/admin/context";
 import { saveServiceAction } from "../../actions";
 import { AdminForm } from "../../admin-form";
 import { SERVICE_FIELDS } from "../../fields";
@@ -29,10 +29,10 @@ export default async function AdminServicePage({
   params: Promise<{ id: string }>;
 }): Promise<ReactNode> {
   const { id } = await params;
+  const { db } = await adminContext();
   const isNew = id === "new";
   let initial: Record<string, string> = NEW_SERVICE;
   if (!isNew) {
-    const { db } = await requestContext();
     const s = await getService(db, id);
     if (!s) notFound();
     initial = {

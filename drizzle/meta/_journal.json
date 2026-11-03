@@ -64,6 +64,13 @@
       "when": 1793710190491,
       "tag": "0008_user_email_lower_time_off_gist",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793713237289,
+      "tag": "0009_user_role",
+      "breakpoints": true
     }
   ]
 }

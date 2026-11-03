@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import { e2eDatabaseUrl, recreateDatabase } from "../src/test/database";
 import { clearOutbox } from "./outbox";
-import { E2E_USER } from "./user";
+import { E2E_OWNER_ONLY, E2E_USER } from "./user";
 
 /**
  * Fresh, seeded e2e database for every run. Uses the real `db:migrate` and `db:seed`
@@ -16,9 +16,11 @@ export default async function globalSetup(): Promise<void> {
   execSync("pnpm db:migrate", { env, stdio: "ignore" });
   execSync("pnpm db:seed", { env, stdio: "ignore" });
   // Exercise the real user:create script with piped answers.
-  execSync("pnpm user:create", {
-    env,
-    input: `${[E2E_USER.email, E2E_USER.name, E2E_USER.password, E2E_USER.password].join("\n")}\n`,
-    stdio: ["pipe", "ignore", "inherit"],
-  });
+  for (const u of [E2E_USER, E2E_OWNER_ONLY]) {
+    execSync("pnpm user:create", {
+      env,
+      input: `${[u.email, u.name, u.role, u.password, u.password].join("\n")}\n`,
+      stdio: ["pipe", "ignore", "inherit"],
+    });
+  }
 }

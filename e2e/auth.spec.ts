@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { E2E_USER } from "./user";
+import { E2E_OWNER_ONLY, E2E_USER } from "./user";
 
 test.describe.configure({ mode: "serial" });
 
@@ -56,4 +56,30 @@ test("sign in, stay signed in, and log out from settings", async ({ page, contex
 
   await page.goto("/app");
   await expect(page).toHaveURL(/\/login/);
+});
+
+test("an owner login uses her app but can't open admin", async ({ page, request }) => {
+  await page.goto("/login");
+  await page.getByLabel("Email").fill(E2E_OWNER_ONLY.email);
+  await page.getByLabel("Password").fill(E2E_OWNER_ONLY.password);
+  await page.getByRole("button", { name: "Sign in" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+
+  for (const path of ["/admin", "/admin/services", "/admin/settings"]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/no-access$/);
+    await expect(
+      page.getByRole("heading", { name: "This area is for the administrator" }),
+    ).toBeVisible();
+  }
+  await page.getByRole("link", { name: "Go to my bookings" }).click();
+  await expect(page).toHaveURL(/\/app$/);
+
+  // The CSV downloads refuse her too.
+  const cookies = await page.context().cookies();
+  const session = cookies.find((c) => c.name === "session")?.value ?? "";
+  const csv = await request.get("/admin/bookings.csv", {
+    headers: { cookie: `session=${session}` },
+  });
+  expect(csv.status()).toBe(403);
 });

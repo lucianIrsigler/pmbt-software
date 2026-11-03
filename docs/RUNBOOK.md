@@ -152,7 +152,7 @@ The images are private on ghcr.io; each deploy logs the server in with a short-l
 2. On the server, load the starting data and create the owner's login:
    ```sh
    dc run --rm migrate pnpm db:seed        # settings, opening hours, SAMPLE services/products
-   dc run --rm migrate pnpm user:create    # asks for email, name and password
+   dc run --rm migrate pnpm user:create    # asks for email, name, role and password
    ```
 3. Sign in at `https://<domain>/admin` and replace the sample services, products and prices,
    check the opening hours, and fill in **Settings** (business name, phone, email, address).
@@ -265,7 +265,10 @@ creates an empty database), then follow "For real" above.
 ## 11. Logins
 
 - **New login, or forgotten password**: `dc run --rm migrate pnpm user:create`. With an
-  existing email it resets that password.
+  existing email it can change the role and reset the password.
+- **Roles**: `owner` opens her app only; `admin` opens the app and `/admin` (stats, prices,
+  hours, settings). Give the owner's own login `owner`. What each role may open is decided in
+  `src/lib/permissions.ts` (Casbin). A role change applies on the next page load.
 - **Sign everyone out** (e.g. a lost phone): `dc exec db psql -U dogstuff dogstuff -c "delete from session;"`.
 
 ## 12. Changing secrets

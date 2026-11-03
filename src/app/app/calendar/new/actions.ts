@@ -16,7 +16,7 @@ import { createClient, createPet } from "@/domain/clients";
 import { SlotTakenError, SlotUnavailableError } from "@/domain/errors";
 import { idSchema, ownerClientSchema, ownerPetSchema } from "@/domain/schemas";
 import { localDateOf } from "@/domain/time";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { sendBookingEmail } from "@/lib/booking-emails";
 import { getEnv } from "@/lib/env";
 import { fieldErrors, text } from "@/lib/form-data";
@@ -36,7 +36,7 @@ export async function createClientAction(
   _prev: FormState<ClientField>,
   formData: FormData,
 ): Promise<FormState<ClientField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = clientFormValues(formData);
   if (!startSchema.safeParse(start).success)
     return { values, errors: {}, message: SOMETHING_WRONG };
@@ -62,7 +62,7 @@ export async function createPetAction(
   _prev: FormState<PetField>,
   formData: FormData,
 ): Promise<FormState<PetField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = petFormValues(formData);
   if (!startSchema.safeParse(start).success || !idSchema.safeParse(clientId).success) {
     return { values, errors: {}, message: SOMETHING_WRONG };
@@ -90,7 +90,7 @@ const bookingFields = z.object({
 
 /** Step 4: book it. Owner bookings may be at short notice or further ahead than usual. */
 export async function bookFromCalendarAction(formData: FormData): Promise<void> {
-  await requireUser();
+  await requireAccess("app");
   const fields = bookingFields.safeParse({
     start: text(formData, "start"),
     clientId: text(formData, "clientId"),

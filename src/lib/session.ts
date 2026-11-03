@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { and, eq, gt, lt } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { session, user } from "@/db/schema";
+import type { Role } from "./permissions";
 
 /**
  * DB-backed sessions. The browser holds a random token; we store only its SHA-256 hash,
@@ -20,6 +21,7 @@ export interface SessionUser {
   id: string;
   email: string;
   name: string;
+  role: Role;
 }
 
 export function generateSessionToken(): string {
@@ -63,7 +65,7 @@ export async function validateSession(
   const [row] = await db
     .select({
       expiresAt: session.expiresAt,
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
     })
     .from(session)
     .innerJoin(user, eq(user.id, session.userId))

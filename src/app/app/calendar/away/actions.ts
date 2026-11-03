@@ -6,7 +6,7 @@ import { getDb } from "@/db";
 import { DomainError } from "@/domain/errors";
 import { addTimeOffSchema } from "@/domain/schemas";
 import { addTimeOff, removeTimeOff } from "@/domain/time-off";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { getEnv } from "@/lib/env";
 import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
@@ -19,7 +19,7 @@ export async function addTimeOffAction(
   _prev: FormState<AwayField>,
   formData: FormData,
 ): Promise<FormState<AwayField>> {
-  await requireUser();
+  await requireAccess("app");
   const values = {
     date: text(formData, "date"),
     kind: text(formData, "kind"),

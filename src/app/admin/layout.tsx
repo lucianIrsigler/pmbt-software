@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { AdminNav } from "./admin-nav";
 
 export const metadata: Metadata = {
@@ -15,7 +15,7 @@ export default async function AdminLayout({
 }: {
   children: ReactNode;
 }): Promise<ReactNode> {
-  const user = await requireUser();
+  const user = await requireAccess("admin");
   return (
     <div className="flex flex-1 flex-col">
       <header className="border-b-2 border-line bg-card">

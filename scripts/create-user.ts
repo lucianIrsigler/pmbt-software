@@ -1,16 +1,34 @@
 /**
- * Creates a login for the owner/admin, or resets the password of an existing one.
- * Usage: pnpm user:create
+ * Creates a login, or changes the role or password of an existing one.
+ * Roles: `owner` (her app only) or `admin` (the app and the admin area); see
+ * src/lib/permissions.ts. Usage: pnpm user:create
  */
 import { createInterface } from "node:readline/promises";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import { createDb } from "@/db/client";
-import { session, user } from "@/db/schema";
+import { session, user, userRole } from "@/db/schema";
 import { getEnv } from "@/lib/env";
 import { hashPassword, passwordSchema } from "@/lib/password";
+import type { Role } from "@/lib/permissions";
 
 const emailSchema = z.email("That doesn't look like an email address").max(254);
+
+/** Asks for a role; an empty answer keeps `current`. */
+function roleSchema(current: Role): z.ZodType<Role, string> {
+  return z
+    .string()
+    .trim()
+    .toLowerCase()
+    .transform((answer) => answer || current)
+    .pipe(
+      z.enum(userRole.enumValues, { error: `Please type ${userRole.enumValues.join(" or ")}` }),
+    );
+}
+
+function roleQuestion(current: Role): string {
+  return `Role: owner (her app only) or admin (app and admin area)? [${current}] `;
+}
 
 const ENTER = ["\r", "\n"];
 const CTRL_C = "\u0003";
@@ -104,25 +122,36 @@ async function main(): Promise<void> {
     const email = (await askUntilValid(() => prompt.ask("Email: "), emailSchema)).toLowerCase();
 
     const [existing] = await db
-      .select({ id: user.id, name: user.name })
+      .select({ id: user.id, name: user.name, role: user.role })
       .from(user)
       .where(eq(sql`lower(${user.email})`, email));
 
-    let name = existing?.name ?? "";
     if (existing) {
-      const answer = await prompt.ask(
-        `A user with this email already exists (${existing.name}). Reset their password? (y/N) `,
+      console.log(`A user with this email already exists (${existing.name}, ${existing.role}).`);
+      const role = await askUntilValid(
+        () => prompt.ask(roleQuestion(existing.role)),
+        roleSchema(existing.role),
       );
+      if (role !== existing.role) {
+        // Takes effect on their next page load: the role is read with every session check.
+        await db.update(user).set({ role }).where(eq(user.id, existing.id));
+        console.log(`Role changed to ${role}.`);
+      }
+      const answer = await prompt.ask("Reset their password? (y/N) ");
       if (answer.trim().toLowerCase() !== "y") {
-        console.log("Nothing changed.");
+        if (role === existing.role) console.log("Nothing changed.");
         return;
       }
-    } else {
-      name = await askUntilValid(
+    }
+    const name =
+      existing?.name ??
+      (await askUntilValid(
         () => prompt.ask("Name: "),
         z.string().trim().min(1, "Please enter a name").max(100),
-      );
-    }
+      ));
+    const newRole = existing
+      ? existing.role
+      : await askUntilValid(() => prompt.ask(roleQuestion("owner")), roleSchema("owner"));
 
     let password: string;
     for (;;) {
@@ -143,8 +172,8 @@ async function main(): Promise<void> {
       });
       console.log(`Password reset for ${email}. Other devices have been signed out.`);
     } else {
-      await db.insert(user).values({ email, name, passwordHash });
-      console.log(`User ${email} created. They can now sign in at /login.`);
+      await db.insert(user).values({ email, name, passwordHash, role: newRole });
+      console.log(`User ${email} (${newRole}) created. They can now sign in at /login.`);
     }
   } finally {
     prompt.close();

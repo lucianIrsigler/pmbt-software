@@ -29,6 +29,11 @@ Enum booking_source {
   app [note: "Owner's app (phone bookings)"]
 }
 
+Enum user_role {
+  owner [note: 'Her app only']
+  admin [note: 'The app and the admin area']
+}
+
 TableGroup people {
   client
   pet
@@ -188,6 +193,7 @@ Table user {
   email text [not null, note: 'Stored lower-cased']
   name text [not null]
   password_hash text [not null, note: 'argon2']
+  role user_role [not null, default: 'owner', note: 'What each role may open: src/lib/permissions.ts (Casbin)']
   created_at timestamptz [not null, default: `now()`]
 
   indexes {

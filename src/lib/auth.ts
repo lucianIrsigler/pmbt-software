@@ -3,11 +3,12 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/db";
 import { getEnv } from "./env";
+import { can, type Area } from "./permissions";
 import { SESSION_COOKIE, sessionCookieOptions, validateSession, type SessionUser } from "./session";
 
 /**
- * Next.js glue for sessions. Pages call `requireUser()`; every server action under
- * /app or /admin must call it too (the proxy is only an optimistic check).
+ * Next.js glue for sessions. Pages and every server action under /app or /admin call
+ * `requireAccess(area)` (the proxy is only an optimistic check for a cookie).
  */
 
 /** Sets the session cookie. Only callable from server actions and route handlers. */
@@ -35,6 +36,19 @@ export async function getCurrentUser(): Promise<SessionUser | null> {
 export async function requireUser(): Promise<SessionUser> {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
+  return user;
+}
+
+/** Where a signed-in user lands when their role may not open an area. */
+export const NO_ACCESS_PATH = "/no-access";
+
+/**
+ * The signed-in user, if their role may open `area` (see `permissions.ts`). Redirects
+ * to /login without a session, and to the "no access" page without permission.
+ */
+export async function requireAccess(area: Area): Promise<SessionUser> {
+  const user = await requireUser();
+  if (!(await can(user.role, area))) redirect(NO_ACCESS_PATH);
   return user;
 }
 

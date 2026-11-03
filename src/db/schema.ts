@@ -52,6 +52,8 @@ export const appointmentStatus = pgEnum("appointment_status", [
   "cancelled",
 ]);
 export const bookingSource = pgEnum("booking_source", ["web", "app"]);
+/** Who a login is. What each role may open is decided in `src/lib/permissions.ts`. */
+export const userRole = pgEnum("user_role", ["owner", "admin"]);
 
 // ---------------------------------------------------------------------------
 // Clients and pets
@@ -283,6 +285,8 @@ export const user = pgTable(
     email: text("email").notNull(),
     name: text("name").notNull(),
     passwordHash: text("password_hash").notNull(),
+    /** Defaults to the least access; `pnpm user:create` asks which one. */
+    role: userRole("role").notNull().default("owner"),
     createdAt: createdAt(),
   },
   (t) => [uniqueIndex("user_email_lower_idx").on(sql`lower(${t.email})`)],

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Notice } from "@/components/ui";
 import { listHours } from "@/domain/admin";
-import { requestContext } from "@/lib/request";
+import { adminContext } from "@/app/admin/context";
 import type { SearchParams } from "@/lib/search-params";
 import { removeHoursAction, saveHoursAction } from "../actions";
 import { AdminForm } from "../admin-form";
@@ -27,7 +27,7 @@ export default async function AdminHoursPage({
 }: {
   searchParams: SearchParams;
 }): Promise<ReactNode> {
-  const { db } = await requestContext();
+  const { db } = await adminContext();
   const [hours, params] = await Promise.all([listHours(db), searchParams]);
 
   return (

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Notice } from "@/components/ui";
 import { loadSettings } from "@/domain/availability";
-import { requestContext } from "@/lib/request";
+import { adminContext } from "@/app/admin/context";
 import type { SearchParams } from "@/lib/search-params";
 import { saveSettingsAction } from "../actions";
 import { AdminForm } from "../admin-form";
@@ -15,7 +15,7 @@ export default async function AdminSettingsPage({
 }: {
   searchParams: SearchParams;
 }): Promise<ReactNode> {
-  const { db } = await requestContext();
+  const { db } = await adminContext();
   const [s, params] = await Promise.all([loadSettings(db), searchParams]);
   return (
     <div className="flex flex-col gap-6">

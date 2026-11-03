@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Notice } from "@/components/ui";
 import { listAllProducts } from "@/domain/admin";
 import { formatPrice } from "@/lib/format";
-import { requestContext } from "@/lib/request";
+import { adminContext } from "@/app/admin/context";
 import type { SearchParams } from "@/lib/search-params";
 import { adminButton } from "../components";
 
@@ -15,7 +15,7 @@ export default async function AdminProductsPage({
 }: {
   searchParams: SearchParams;
 }): Promise<ReactNode> {
-  const { db } = await requestContext();
+  const { db } = await adminContext();
   const [products, params] = await Promise.all([listAllProducts(db), searchParams]);
   return (
     <div className="flex flex-col gap-6">

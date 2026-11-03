@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { RegisterServiceWorker } from "@/components/owner/register-service-worker";
 import { TabBar } from "@/components/owner/tab-bar";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "My bookings",
@@ -18,7 +18,7 @@ export default async function OwnerAppLayout({
 }: {
   children: ReactNode;
 }): Promise<ReactNode> {
-  await requireUser();
+  await requireAccess("app");
   return (
     <>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 pt-6 pb-28">{children}</main>

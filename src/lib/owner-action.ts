@@ -1,7 +1,7 @@
 import "server-only";
 import { refresh } from "next/cache";
 import { DomainError } from "@/domain/errors";
-import { requireUser } from "./auth";
+import { requireAccess } from "./auth";
 import { logError } from "./log";
 
 /** Shown when something unexpected fails (details are logged, never shown). */
@@ -22,7 +22,7 @@ export async function runOwnerAction(
   ids: Record<string, string>,
   fn: () => Promise<unknown>,
 ): Promise<ActionResult> {
-  await requireUser();
+  await requireAccess("app");
   try {
     await fn();
   } catch (error) {

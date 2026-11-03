@@ -5,6 +5,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { toCsv } from "@/lib/csv";
 import { formatPhone, formatTime } from "@/lib/format";
 import { logInfo } from "@/lib/log";
+import { can } from "@/lib/permissions";
 import { requestContext } from "@/lib/request";
 import { SOURCE_LABELS, STATUS_LABELS } from "../bookings/labels";
 
@@ -20,6 +21,7 @@ function rands(cents: number): string {
 export async function GET(request: Request): Promise<Response> {
   const user = await getCurrentUser();
   if (!user) return new Response("Please sign in.", { status: 401 });
+  if (!(await can(user.role, "admin"))) return new Response("Not allowed.", { status: 403 });
 
   const { db, tz, now } = await requestContext();
   const params = new URL(request.url).searchParams;

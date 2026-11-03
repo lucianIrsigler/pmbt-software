@@ -48,7 +48,16 @@ describe("sessions", () => {
       id: userId,
       email: "owner@example.com",
       name: "Owner",
+      role: "owner",
     });
+  });
+
+  it("reads the role fresh on every check, so a change applies at once", async () => {
+    const { token } = await createSession(db, userId, t0);
+    await db.update(user).set({ role: "admin" }).where(eq(user.id, userId));
+    expect((await validateSession(db, token, t0))?.role).toBe("admin");
+    await db.update(user).set({ role: "owner" }).where(eq(user.id, userId));
+    expect((await validateSession(db, token, t0))?.role).toBe("owner");
   });
 
   it("rejects unknown, empty and expired tokens", async () => {

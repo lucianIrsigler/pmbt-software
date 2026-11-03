@@ -11,7 +11,7 @@ import {
 import { rangeInstants, rangeQuery, resolveRange } from "@/domain/date-range";
 import { localDateOf } from "@/domain/time";
 import { formatPrice, formatTime } from "@/lib/format";
-import { requestContext } from "@/lib/request";
+import { adminContext } from "@/app/admin/context";
 import { stringParam, type SearchParams } from "@/lib/search-params";
 import { adminButton, adminButtonSecondary, RangePicker } from "../components";
 import { SOURCE_LABELS, STATUS_LABELS } from "./labels";
@@ -33,7 +33,7 @@ export default async function AdminBookingsPage({
 }: {
   searchParams: SearchParams;
 }): Promise<ReactNode> {
-  const { db, tz, now } = await requestContext();
+  const { db, tz, now } = await adminContext();
   const params = await searchParams;
   const range = resolveRange(
     {

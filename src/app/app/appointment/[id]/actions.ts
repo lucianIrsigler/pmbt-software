@@ -10,7 +10,7 @@ import {
   undoStatus,
   updateAppointmentNotes,
 } from "@/domain/booking-status";
-import { requireUser } from "@/lib/auth";
+import { requireAccess } from "@/lib/auth";
 import { sendBookingEmail } from "@/lib/booking-emails";
 import { logError } from "@/lib/log";
 import { runOwnerAction, type ActionResult } from "@/lib/owner-action";
@@ -50,7 +50,7 @@ export async function removeProductAction(id: string, productId: string): Promis
 
 /** Autosave: no page refresh, so the text box isn't disturbed while she types. */
 export async function saveNotesAction(id: string, notes: string): Promise<{ ok: boolean }> {
-  await requireUser();
+  await requireAccess("app");
   try {
     await updateAppointmentNotes(getDb(), { appointmentId: id, notes });
     return { ok: true };
