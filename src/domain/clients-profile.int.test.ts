@@ -5,7 +5,13 @@ import { appointment, client, pet, service } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
-import { cancelByOwner, createBooking, markDone, markNoShow, updateNotes } from "./booking";
+import {
+  cancelByOwner,
+  createBooking,
+  markDone,
+  markNoShow,
+  updateAppointmentNotes,
+} from "./booking";
 import {
   archiveClient,
   archivePet,
@@ -107,7 +113,10 @@ describe("client profile and visits", () => {
 
     const done = await book(id, at("2030-05-06", "09:00"), { clock: PAST });
     await markDone(db, done);
-    await updateNotes(db, { appointmentId: done, notes: "Left hip, 8 min\nBetter after" });
+    await updateAppointmentNotes(db, {
+      appointmentId: done,
+      notes: "Left hip, 8 min\nBetter after",
+    });
     const missed = await book(id, at("2030-05-13", "09:00"), { petId: dog, clock: PAST });
     await markNoShow(db, missed);
     const cancelled = await book(id, at("2030-05-20", "09:00"), { clock: PAST });

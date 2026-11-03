@@ -25,11 +25,11 @@ import {
   idSchema,
   manageTokenSchema,
   removeProductSchema,
-  updateNotesSchema,
+  updateAppointmentNotesSchema,
   type AddProductInput,
   type CreateBookingInput,
   type RemoveProductInput,
-  type UpdateNotesInput,
+  type UpdateAppointmentNotesInput,
 } from "./schemas";
 import { appointmentRange, isSlotAvailable } from "./slots";
 import { addMinutesTo, localDayRange, localDateOf, type TimeRange } from "./time";
@@ -274,8 +274,12 @@ export async function cancelByOwner(
   await setStatus(db, id, ["booked"], "cancelled", "cancelled", now);
 }
 
-export async function updateNotes(db: Database, rawInput: UpdateNotesInput): Promise<void> {
-  const input = updateNotesSchema.parse(rawInput);
+/** The owner's notes for one visit (autosaved from the appointment page). */
+export async function updateAppointmentNotes(
+  db: Database,
+  rawInput: UpdateAppointmentNotesInput,
+): Promise<void> {
+  const input = updateAppointmentNotesSchema.parse(rawInput);
   const [row] = await db
     .update(appointment)
     .set({ notes: input.notes })

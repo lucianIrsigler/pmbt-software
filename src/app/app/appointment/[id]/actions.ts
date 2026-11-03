@@ -10,7 +10,7 @@ import {
   markDone,
   markNoShow,
   removeProductFromAppointment,
-  updateNotes,
+  updateAppointmentNotes,
 } from "@/domain/booking";
 import { DomainError } from "@/domain/errors";
 import { requireUser } from "@/lib/auth";
@@ -78,7 +78,7 @@ export async function removeProductAction(id: string, productId: string): Promis
 export async function saveNotesAction(id: string, notes: string): Promise<{ ok: boolean }> {
   await requireUser();
   try {
-    await updateNotes(getDb(), { appointmentId: id, notes });
+    await updateAppointmentNotes(getDb(), { appointmentId: id, notes });
     return { ok: true };
   } catch (error) {
     logError("appointment.save_notes", error, { appointmentId: id });

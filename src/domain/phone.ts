@@ -15,14 +15,15 @@ export function normalizePhone(input: string): string | null {
   // "+27 (0)82 ..." is a common way of writing SA numbers: drop the trunk "(0)".
   let digits = trimmed.replace(/\(0\)/g, "").replace(/\D/g, "");
 
-  if (hasPlus) {
-    // Already international.
-  } else if (digits.startsWith("00")) {
-    digits = digits.slice(2);
-  } else if (digits.startsWith("0")) {
-    digits = `27${digits.slice(1)}`;
-  } else if (!(digits.startsWith("27") && digits.length === 11)) {
-    return null;
+  // Written with "+": already international. Otherwise work out the country code.
+  if (!hasPlus) {
+    if (digits.startsWith("00")) {
+      digits = digits.slice(2); // 0027 82 … → 27 82 …
+    } else if (digits.startsWith("0")) {
+      digits = `27${digits.slice(1)}`; // 082 … → 27 82 …
+    } else if (!(digits.startsWith("27") && digits.length === 11)) {
+      return null; // no trunk 0, no country code: not a number we can place
+    }
   }
 
   if (digits.startsWith("27")) {

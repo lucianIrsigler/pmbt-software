@@ -23,7 +23,7 @@ import {
   markDone,
   markNoShow,
   removeProductFromAppointment,
-  updateNotes,
+  updateAppointmentNotes,
 } from "./booking";
 import {
   CancelTooLateError,
@@ -358,15 +358,18 @@ describe("owner actions", () => {
   it("raises NotFoundError for unknown appointments", async () => {
     const missing = "00000000-0000-4000-8000-000000000000";
     await expect(markDone(db, missing)).rejects.toBeInstanceOf(NotFoundError);
-    await expect(updateNotes(db, { appointmentId: missing, notes: "x" })).rejects.toBeInstanceOf(
-      NotFoundError,
-    );
+    await expect(
+      updateAppointmentNotes(db, { appointmentId: missing, notes: "x" }),
+    ).rejects.toBeInstanceOf(NotFoundError);
   });
 
   it("updates notes in any status", async () => {
     const a = await createBooking(db, webBooking(at("2030-03-22", "11:00")), clock);
     await markDone(db, a.appointmentId);
-    await updateNotes(db, { appointmentId: a.appointmentId, notes: "Left knee, 8 min." });
+    await updateAppointmentNotes(db, {
+      appointmentId: a.appointmentId,
+      notes: "Left knee, 8 min.",
+    });
     const [row] = await db.select().from(appointment).where(eq(appointment.id, a.appointmentId));
     expect(row?.notes).toBe("Left knee, 8 min.");
   });

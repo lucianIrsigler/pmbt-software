@@ -91,11 +91,11 @@ export type CreateBookingInput = z.input<typeof createBookingSchema>;
 /** 32 random bytes, base64url: 43 characters. */
 export const manageTokenSchema = z.string().regex(/^[A-Za-z0-9_-]{43}$/, "Invalid link");
 
-export const updateNotesSchema = z.strictObject({
+export const updateAppointmentNotesSchema = z.strictObject({
   appointmentId: idSchema,
   notes: notesSchema,
 });
-export type UpdateNotesInput = z.input<typeof updateNotesSchema>;
+export type UpdateAppointmentNotesInput = z.input<typeof updateAppointmentNotesSchema>;
 
 export const addProductSchema = z.strictObject({
   appointmentId: idSchema,

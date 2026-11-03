@@ -12,7 +12,7 @@ import {
   createBooking,
   markDone,
   markNoShow,
-  updateNotes,
+  updateAppointmentNotes,
 } from "./booking";
 import { InvalidStatusError, NotFoundError, SlotTakenError } from "./errors";
 import { zonedInstant } from "./time";
@@ -129,7 +129,10 @@ describe("getAppointmentDetail", () => {
     const otherPet = await book("2030-06-12", "Max");
     const current = await book("2030-06-13", "Bella");
 
-    await updateNotes(db, { appointmentId: first.appointmentId, notes: "Hips, 6 min\nCalm" });
+    await updateAppointmentNotes(db, {
+      appointmentId: first.appointmentId,
+      notes: "Hips, 6 min\nCalm",
+    });
     await markDone(db, first.appointmentId);
     await markNoShow(db, second.appointmentId); // shown as "didn't come"
     await markDone(db, otherPet.appointmentId); // different pet
