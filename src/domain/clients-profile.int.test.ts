@@ -78,11 +78,13 @@ async function book(
 
 describe("client profile and visits", () => {
   it("shows details, current and archived pets", async () => {
-    const id = await createClient(db, {
-      name: "Lindiwe Profile",
-      phone: "0831000001",
-      email: "LINDI@Example.com",
-    });
+    const id = (
+      await createClient(db, {
+        name: "Lindiwe Profile",
+        phone: "0831000001",
+        email: "LINDI@Example.com",
+      })
+    ).id;
     const rex = await createPet(db, id, { name: "Rex", species: "Dog" });
     const old = await createPet(db, id, { name: "Old Tom", species: "Cat" });
     await archivePet(db, old, NOW);
@@ -101,7 +103,7 @@ describe("client profile and visits", () => {
   });
 
   it("lists upcoming visits soonest first and the rest newest first, labelled", async () => {
-    const id = await createClient(db, { name: "History Client", phone: "0831000002" });
+    const id = (await createClient(db, { name: "History Client", phone: "0831000002" })).id;
     const dog = await createPet(db, id, { name: "Bella", species: "Dog" });
 
     const done = await book(id, at("2030-05-06", "09:00"), { clock: PAST });
@@ -128,7 +130,7 @@ describe("client profile and visits", () => {
 
 describe("editing", () => {
   it("updates details and notes", async () => {
-    const id = await createClient(db, { name: "Edit Me", phone: "0831000003" });
+    const id = (await createClient(db, { name: "Edit Me", phone: "0831000003" })).id;
     await updateClient(db, id, { name: "Edited Name", phone: "083 100 0099", email: "" });
     await updateClientNotes(db, { clientId: id, notes: "Prefers mornings" });
     expect(await getClientProfile(db, id)).toMatchObject({
@@ -140,8 +142,8 @@ describe("editing", () => {
   });
 
   it("refuses another current client's phone number, but not an archived one's", async () => {
-    const a = await createClient(db, { name: "Phone A", phone: "0831000004" });
-    const b = await createClient(db, { name: "Phone B", phone: "0831000005" });
+    const a = (await createClient(db, { name: "Phone A", phone: "0831000004" })).id;
+    const b = (await createClient(db, { name: "Phone B", phone: "0831000005" })).id;
     await expect(
       updateClient(db, b, { name: "Phone B", phone: "0831000004" }),
     ).rejects.toBeInstanceOf(PhoneInUseError);
@@ -155,8 +157,8 @@ describe("editing", () => {
   });
 
   it("updates pets and their notes, only for their own client", async () => {
-    const id = await createClient(db, { name: "Pet Editor", phone: "0831000006" });
-    const other = await createClient(db, { name: "Someone Else", phone: "0831000007" });
+    const id = (await createClient(db, { name: "Pet Editor", phone: "0831000006" })).id;
+    const other = (await createClient(db, { name: "Someone Else", phone: "0831000007" })).id;
     const petId = await createPet(db, id, { name: "Max", species: "Dog" });
     await updatePet(db, petId, { name: "Maxi", species: "Dog", breed: "Beagle" });
     await updatePetNotes(db, { petId, notes: "Nervous of the light" });
@@ -177,7 +179,7 @@ describe("editing", () => {
 
 describe("archiving", () => {
   it("archives a client, cancels upcoming bookings only, and hides them", async () => {
-    const id = await createClient(db, { name: "Zanele Archive", phone: "0831000008" });
+    const id = (await createClient(db, { name: "Zanele Archive", phone: "0831000008" })).id;
     const past = await book(id, at("2030-05-07", "09:00"), { clock: PAST });
     const future1 = await book(id, at("2030-06-17", "09:00"));
     const future2 = await book(id, at("2030-06-18", "09:00"));
@@ -204,7 +206,7 @@ describe("archiving", () => {
   });
 
   it("archives a pet and cancels only that pet's upcoming bookings", async () => {
-    const id = await createClient(db, { name: "Two Dogs", phone: "0831000009" });
+    const id = (await createClient(db, { name: "Two Dogs", phone: "0831000009" })).id;
     const gone = await createPet(db, id, { name: "Gone", species: "Dog" });
     const stays = await createPet(db, id, { name: "Stays", species: "Dog" });
     const goneBooking = await book(id, at("2030-06-19", "09:00"), { petId: gone });

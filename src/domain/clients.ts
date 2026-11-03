@@ -24,6 +24,14 @@ type PetRef = { id: string } | { name: string; species: string; breed?: string |
 
 /** Finds the client by normalised phone (reusing archived ones) or creates them. */
 export async function findOrCreateClient(tx: Transaction, ref: ClientRef): Promise<string> {
+  return (await findOrCreateClientDetailed(tx, ref)).id;
+}
+
+/** Like `findOrCreateClient`, also saying whether a new client was created. */
+async function findOrCreateClientDetailed(
+  tx: Transaction,
+  ref: ClientRef,
+): Promise<{ id: string; created: boolean }> {
   if ("id" in ref) {
     const [row] = await tx
       .update(client)
@@ -31,7 +39,7 @@ export async function findOrCreateClient(tx: Transaction, ref: ClientRef): Promi
       .where(eq(client.id, ref.id))
       .returning({ id: client.id });
     if (!row) throw new NotFoundError("client");
-    return row.id;
+    return { id: row.id, created: false };
   }
 
   // Serialise concurrent first bookings from the same phone so we don't create duplicates.
@@ -50,7 +58,7 @@ export async function findOrCreateClient(tx: Transaction, ref: ClientRef): Promi
       .update(client)
       .set({ archivedAt: null, ...(existing.email ? {} : { email: ref.email ?? null }) })
       .where(eq(client.id, existing.id));
-    return existing.id;
+    return { id: existing.id, created: false };
   }
 
   const [created] = await tx
@@ -58,7 +66,7 @@ export async function findOrCreateClient(tx: Transaction, ref: ClientRef): Promi
     .values({ name: ref.name, phone: ref.phone, email: ref.email ?? null })
     .returning({ id: client.id });
   if (!created) throw new Error("client insert returned no row");
-  return created.id;
+  return { id: created.id, created: true };
 }
 
 /** Uses the given pet of this client, or reuses/creates one by name (case-insensitive). */
@@ -99,11 +107,15 @@ export async function findOrCreatePet(
 
 /**
  * Adds a client entered by the owner. If someone already has that phone number,
- * returns them instead of creating a duplicate.
+ * returns them (`existing: true`) instead of creating a duplicate.
  */
-export async function createClient(db: Database, rawInput: OwnerClientInput): Promise<string> {
+export async function createClient(
+  db: Database,
+  rawInput: OwnerClientInput,
+): Promise<{ id: string; existing: boolean }> {
   const input = ownerClientSchema.parse(rawInput);
-  return db.transaction((tx) => findOrCreateClient(tx, input));
+  const result = await db.transaction((tx) => findOrCreateClientDetailed(tx, input));
+  return { id: result.id, existing: !result.created };
 }
 
 /** Adds a pet to a client (or returns their existing pet with that name). */

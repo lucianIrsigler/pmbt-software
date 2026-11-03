@@ -11,6 +11,7 @@ import { idSchema, ownerClientSchema, ownerPetSchema } from "@/domain/schemas";
 import { localDateOf } from "@/domain/time";
 import { requireUser } from "@/lib/auth";
 import { getEnv } from "@/lib/env";
+import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
 import { calendarUrl } from "../urls";
 import { newBookingStepUrl } from "./urls";
@@ -19,20 +20,6 @@ export type ClientField = "name" | "phone";
 export type PetField = "name" | "species" | "breed";
 
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
-
-function text(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value : "";
-}
-
-function fieldErrors<F extends string>(error: z.ZodError): Partial<Record<F, string>> {
-  const result: Partial<Record<F, string>> = {};
-  for (const issue of error.issues) {
-    const key = String(issue.path[0] ?? "") as F;
-    result[key] ??= issue.message;
-  }
-  return result;
-}
 
 const startSchema = z.iso.datetime();
 
@@ -51,7 +38,7 @@ export async function createClientAction(
 
   let clientId: string;
   try {
-    clientId = await createClient(getDb(), input.data);
+    clientId = (await createClient(getDb(), input.data)).id;
   } catch (error) {
     logError("calendar.create_client", error);
     return { values, errors: {}, message: SOMETHING_WRONG };

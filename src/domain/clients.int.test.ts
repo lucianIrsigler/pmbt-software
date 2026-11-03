@@ -41,16 +41,16 @@ afterAll(async () => {
 
 describe("createClient / createPet", () => {
   it("creates a client with a normalised phone, and reuses them by phone", async () => {
-    const id = await createClient(db, { name: "Annelie Botha", phone: "082 300 0001" });
+    const id = (await createClient(db, { name: "Annelie Botha", phone: "082 300 0001" })).id;
     const [row] = await db.select().from(client).where(eq(client.id, id));
     expect(row).toMatchObject({ name: "Annelie Botha", phone: "+27823000001" });
 
     const again = await createClient(db, { name: "A. Botha", phone: "+27 82 300 0001" });
-    expect(again).toBe(id);
+    expect(again).toEqual({ id, existing: true });
   });
 
   it("adds pets, reusing one with the same name", async () => {
-    const clientId = await createClient(db, { name: "Pet Owner", phone: "0823000002" });
+    const clientId = (await createClient(db, { name: "Pet Owner", phone: "0823000002" })).id;
     const rex = await createPet(db, clientId, { name: "Rex", species: "Dog", breed: "" });
     expect(await createPet(db, clientId, { name: "rex", species: "Dog" })).toBe(rex);
     await createPet(db, clientId, { name: "Bella", species: "Cat", breed: "Siamese" });
@@ -75,7 +75,7 @@ describe("searchClients", () => {
   beforeAll(async () => {
     await createClient(db, { name: "Thandi Mokoena", phone: "0824441111" });
     await createClient(db, { name: "Thandeka Dlamini", phone: "0835552222" });
-    const archived = await createClient(db, { name: "Thandi Archived", phone: "0846663333" });
+    const archived = (await createClient(db, { name: "Thandi Archived", phone: "0846663333" })).id;
     await db.update(client).set({ archivedAt: new Date() }).where(eq(client.id, archived));
   });
 
@@ -105,7 +105,7 @@ describe("owner bookings", () => {
   const TUESDAY = "2030-06-04";
 
   it("can be made at short notice", async () => {
-    const clientId = await createClient(db, { name: "Short Notice", phone: "0827770001" });
+    const clientId = (await createClient(db, { name: "Short Notice", phone: "0827770001" })).id;
     const booking = await createBooking(
       db,
       {
@@ -132,7 +132,7 @@ describe("owner bookings", () => {
   });
 
   it("can be made beyond the public booking horizon", async () => {
-    const clientId = await createClient(db, { name: "Far Ahead", phone: "0827770002" });
+    const clientId = (await createClient(db, { name: "Far Ahead", phone: "0827770002" })).id;
     const start = at("2030-09-02", "09:00"); // 91 days ahead
     await expect(
       createBooking(
@@ -151,7 +151,7 @@ describe("owner bookings", () => {
   });
 
   it("only offers services that fit before the next booking, closing or time off", async () => {
-    const clientId = await createClient(db, { name: "Fit Check", phone: "0827770003" });
+    const clientId = (await createClient(db, { name: "Fit Check", phone: "0827770003" })).id;
     await createBooking(
       db,
       {
