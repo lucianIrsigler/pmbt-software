@@ -99,12 +99,17 @@ jobs:
             set -eu
             cd '$DEPLOY_PATH'
             docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+            # Never leave registry credentials on the server, even if a step fails.
+            trap 'docker logout ghcr.io >/dev/null' EXIT
             # Record the deployed version, so manual commands and rollbacks use it.
-            sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' .env
+            if grep -q '^IMAGE_TAG=' .env; then
+              sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' .env
+            else
+              echo 'IMAGE_TAG=$TAG' >> .env
+            fi
             docker compose -f docker-compose.prod.yml pull
             # 'migrate' runs first (web waits for it); a failed migration stops the deploy.
             docker compose -f docker-compose.prod.yml up -d --remove-orphans --wait
-            docker logout ghcr.io
             docker image prune -f
           "
 
