@@ -1,11 +1,13 @@
-import { and, asc, desc, eq, inArray, isNull, ne, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne, sql, type SQL } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { PG_ERROR, pgErrorCode } from "@/db/errors";
 import { formatTstzRange } from "@/db/range";
 import { appointment, appointmentProduct, client, pet, product, service } from "@/db/schema";
+import type { Queryable } from "./availability";
 import { InvalidStatusError, NotFoundError, SlotTakenError } from "./errors";
 import { idSchema } from "./schemas";
-import { addMinutesTo, localDayRange, type LocalDate } from "./time";
+import { BLOCKING_STATUSES } from "./slots";
+import { addMinutesTo, localDayRange, type LocalDate, type TimeRange } from "./time";
 
 /** Owner-facing reads (Today list, appointment detail) and the "Undo" status change. */
 
@@ -17,19 +19,16 @@ export interface DayAppointment {
   /** Session start and end, without the buffer. */
   start: Date;
   end: Date;
+  /** The time it occupies, including the buffer. */
+  during: TimeRange;
   clientName: string;
   petName: string | null;
   petSpecies: string | null;
   serviceName: string;
 }
 
-/** Non-cancelled appointments starting on `date` (business tz), earliest first. */
-export async function listDay(
-  db: Database,
-  date: LocalDate,
-  tz: string,
-): Promise<DayAppointment[]> {
-  const day = localDayRange(date, tz);
+/** Appointments with client, pet and service names, earliest first. */
+async function listAppointments(db: Queryable, where: SQL | undefined): Promise<DayAppointment[]> {
   const rows = await db
     .select({
       id: appointment.id,
@@ -45,19 +44,48 @@ export async function listDay(
     .innerJoin(service, eq(service.id, appointment.serviceId))
     .innerJoin(client, eq(client.id, appointment.clientId))
     .leftJoin(pet, eq(pet.id, appointment.petId))
-    .where(
-      and(
-        ne(appointment.status, "cancelled"),
-        sql`lower(${appointment.during}) <@ ${formatTstzRange(day)}::tstzrange`,
-      ),
-    )
+    .where(where)
     .orderBy(sql`lower(${appointment.during})`);
 
-  return rows.map(({ during, durationMin, ...row }) => ({
+  return rows.map(({ durationMin, ...row }) => ({
     ...row,
-    start: during.start,
-    end: addMinutesTo(during.start, durationMin),
+    start: row.during.start,
+    end: addMinutesTo(row.during.start, durationMin),
   }));
+}
+
+/** Non-cancelled appointments starting on `date` (business tz), earliest first. */
+export async function listDay(
+  db: Queryable,
+  date: LocalDate,
+  tz: string,
+): Promise<DayAppointment[]> {
+  const day = localDayRange(date, tz);
+  return listAppointments(
+    db,
+    and(
+      ne(appointment.status, "cancelled"),
+      sql`lower(${appointment.during}) <@ ${formatTstzRange(day)}::tstzrange`,
+    ),
+  );
+}
+
+/**
+ * Appointments in the given statuses whose time (including buffer) overlaps `range`.
+ * Defaults to those that occupy time (booked and done), for the calendar.
+ */
+export async function listOverlapping(
+  db: Queryable,
+  range: TimeRange,
+  statuses: readonly AppointmentStatus[] = BLOCKING_STATUSES,
+): Promise<DayAppointment[]> {
+  return listAppointments(
+    db,
+    and(
+      inArray(appointment.status, [...statuses]),
+      sql`${appointment.during} && ${formatTstzRange(range)}::tstzrange`,
+    ),
+  );
 }
 
 export interface PreviousVisit {

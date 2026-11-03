@@ -101,3 +101,44 @@ export const datesQuerySchema = z.strictObject({
   serviceId: idSchema,
   month: monthSchema,
 });
+
+/** `HH:MM`, as an `<input type="time">` sends it. */
+export const timeOfDaySchema = z
+  .string()
+  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Please choose a time");
+
+/** Time off: a whole day, or part of one (`startTime` to `endTime`, business tz). */
+export const addTimeOffSchema = z
+  .strictObject({
+    date: localDateSchema,
+    kind: z.enum(["day", "times"]),
+    startTime: z.string().optional(),
+    endTime: z.string().optional(),
+    reason: z
+      .string()
+      .trim()
+      .max(200, "The reason is too long")
+      .transform((value) => (value === "" ? undefined : value))
+      .optional(),
+  })
+  .transform((value, ctx) => {
+    const { date, reason } = value;
+    if (value.kind === "day") return { kind: "day" as const, date, reason };
+    const start = timeOfDaySchema.safeParse(value.startTime ?? "");
+    const end = timeOfDaySchema.safeParse(value.endTime ?? "");
+    if (!start.success)
+      ctx.addIssue({ code: "custom", path: ["startTime"], message: "Please choose a start time" });
+    if (!end.success)
+      ctx.addIssue({ code: "custom", path: ["endTime"], message: "Please choose an end time" });
+    if (!start.success || !end.success) return z.NEVER;
+    if (end.data <= start.data) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["endTime"],
+        message: "The end time must be after the start time",
+      });
+      return z.NEVER;
+    }
+    return { kind: "times" as const, date, startTime: start.data, endTime: end.data, reason };
+  });
+export type AddTimeOffInput = z.input<typeof addTimeOffSchema>;

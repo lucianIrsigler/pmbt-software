@@ -24,7 +24,9 @@ export class SlotUnavailableError extends DomainError {
 
 export class NotFoundError extends DomainError {
   readonly code = "not_found";
-  constructor(readonly entity: "appointment" | "client" | "pet" | "service" | "product") {
+  constructor(
+    readonly entity: "appointment" | "client" | "pet" | "service" | "product" | "time off",
+  ) {
     super(`That ${entity} could not be found.`);
   }
 }
@@ -63,6 +65,11 @@ export class TooManyBookingsError extends DomainError {
 /** The booking request is inconsistent, e.g. an animal service without a pet. */
 export class InvalidBookingError extends DomainError {
   readonly code = "invalid_booking";
+}
+
+/** A time-off block that can't be added, e.g. one that has already passed. */
+export class InvalidTimeOffError extends DomainError {
+  readonly code = "invalid_time_off";
 }
 
 /** Settings row missing: run `pnpm db:seed`. */
