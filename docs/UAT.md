@@ -397,7 +397,7 @@ if the runbook is unclear, note where.
 ### Secrets and logins (runbook 11–12)
 
 - [ ] **11.24** Create a second admin login with `pnpm user:create` on the server; log in; remove/rotate per runbook.
-- [ ] **11.25** Rotate `SESSION_SECRET` (or the SMTP password) per runbook 12 → app restarts and works; note whether users must log in again.
+- [ ] **11.25** Rotate `IP_HASH_SECRET` (or the SMTP password) per runbook 12 → app restarts and works; nobody is logged out.
 
 **Sign-off (Phase 11 "done when"):** a push to `main` deployed, HTTPS works, and a backup was restored into a scratch database.
 

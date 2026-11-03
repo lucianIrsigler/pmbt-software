@@ -96,7 +96,7 @@ export async function bookAction(
     return { values, errors };
   }
 
-  const key = `booking:${ipKey(clientIp(await headers()), env.SESSION_SECRET)}`;
+  const key = `booking:${ipKey(clientIp(await headers()), env.IP_HASH_SECRET)}`;
   const limit = await consumeRateLimit(db, key, BOOKING_RATE_LIMIT);
   if (!limit.allowed) {
     return fail(

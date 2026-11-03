@@ -4,7 +4,7 @@ import { parseEnv } from "./env";
 const valid = {
   DATABASE_URL: "postgres://dogstuff:dogstuff@localhost:5432/dogstuff",
   APP_URL: "http://localhost:3000",
-  SESSION_SECRET: "x".repeat(32),
+  IP_HASH_SECRET: "x".repeat(32),
 };
 
 describe("parseEnv", () => {
@@ -25,7 +25,7 @@ describe("parseEnv", () => {
   });
 
   it("rejects missing required variables, naming them", () => {
-    expect(() => parseEnv({})).toThrow(/DATABASE_URL[\s\S]*APP_URL[\s\S]*SESSION_SECRET/);
+    expect(() => parseEnv({})).toThrow(/DATABASE_URL[\s\S]*APP_URL[\s\S]*IP_HASH_SECRET/);
   });
 
   it("rejects a non-postgres DATABASE_URL", () => {
@@ -34,8 +34,8 @@ describe("parseEnv", () => {
     );
   });
 
-  it("rejects a short SESSION_SECRET", () => {
-    expect(() => parseEnv({ ...valid, SESSION_SECRET: "short" })).toThrow(/SESSION_SECRET/);
+  it("rejects a short IP_HASH_SECRET", () => {
+    expect(() => parseEnv({ ...valid, IP_HASH_SECRET: "short" })).toThrow(/IP_HASH_SECRET/);
   });
 
   it("rejects an unknown time zone", () => {
@@ -57,7 +57,7 @@ describe("parseEnv", () => {
 
   it("never includes values in the error message", () => {
     const secret = "very-secret-but-short";
-    expect(() => parseEnv({ ...valid, SESSION_SECRET: secret })).toThrow(
+    expect(() => parseEnv({ ...valid, IP_HASH_SECRET: secret })).toThrow(
       expect.not.objectContaining({ message: expect.stringContaining(secret) }),
     );
   });

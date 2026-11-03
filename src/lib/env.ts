@@ -20,7 +20,7 @@ export const envSchema = z
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     DATABASE_URL: z.url({ protocol: /^postgres(ql)?$/ }),
     APP_URL: z.url({ protocol: /^https?$/ }),
-    SESSION_SECRET: z.string().min(32, "must be at least 32 characters"),
+    IP_HASH_SECRET: z.string().min(32, "must be at least 32 characters"),
     SMTP_HOST: optionalString,
     SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
     SMTP_USER: optionalString,

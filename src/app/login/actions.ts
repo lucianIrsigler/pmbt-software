@@ -24,7 +24,7 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     result = await attemptLogin(getDb(), {
       email,
       password: text(formData, "password"),
-      ipKey: ipKey(clientIp(await headers()), getEnv().SESSION_SECRET),
+      ipKey: ipKey(clientIp(await headers()), getEnv().IP_HASH_SECRET),
     });
   } catch (error) {
     logError("auth.login", error);

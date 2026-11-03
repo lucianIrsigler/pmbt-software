@@ -103,7 +103,7 @@ Fill in every value. Generate the secrets on the server:
 
 ```sh
 openssl rand -hex 24      # POSTGRES_PASSWORD (letters and digits only: it goes into a URL)
-openssl rand -base64 48   # SESSION_SECRET
+openssl rand -base64 48   # IP_HASH_SECRET
 ```
 
 `IMAGE_PREFIX` is `ghcr.io/<github owner>/<repository>`, all lower case. `IMAGE_TAG` is set by
@@ -273,7 +273,7 @@ creates an empty database), then follow "For real" above.
 | Secret | How |
 |---|---|
 | Google app password | Create a new app password, put it in `SMTP_PASS`, `dc up -d`, then revoke the old one in Google. |
-| `SESSION_SECRET` | Only scrambles IP addresses for the rate limits; changing it just resets those counts (it does **not** sign anyone out). New value in `.env`, `dc up -d`. |
+| `IP_HASH_SECRET` | Only scrambles IP addresses for the rate limits; changing it just resets those counts (it does **not** sign anyone out). New value in `.env`, `dc up -d`. |
 | `POSTGRES_PASSWORD` | `dc exec db psql -U dogstuff dogstuff -c "alter user dogstuff password '<new>';"`, put the same value in `.env`, `dc up -d`. |
 | GitHub deploy key | Make a new key (section 6), add it to `authorized_keys`, update `DEPLOY_SSH_KEY`, then remove the old line from `authorized_keys`. |
 | Backup key | New key in `secrets/` (section 9), update the second machine's `authorized_keys`, remove the old line. |

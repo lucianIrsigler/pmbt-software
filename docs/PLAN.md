@@ -11,7 +11,7 @@ See `CLAUDE.md` for rules, stack and conventions.
 - [x] Add Prettier, Vitest, Playwright
 - [x] `docker-compose.dev.yml` with Postgres 16 (named volume, port 5432)
 - [x] Drizzle + drizzle-kit configured; `src/db/index.ts` exports a db client
-- [x] `.env.example` with `DATABASE_URL`, `APP_URL`, `SESSION_SECRET`, `SMTP_HOST`,
+- [x] `.env.example` with `DATABASE_URL`, `APP_URL`, `IP_HASH_SECRET`, `SMTP_HOST`,
       `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM`, `BUSINESS_TZ=Africa/Johannesburg`
 - [x] Env vars parsed and validated with Zod at startup (`src/lib/env.ts`)
 - [x] All scripts from CLAUDE.md "Commands" exist in `package.json` (placeholders OK)
