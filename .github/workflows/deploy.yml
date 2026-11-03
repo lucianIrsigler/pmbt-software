@@ -1,0 +1,118 @@
+name: Deploy
+
+# Runs after CI passes on main: builds the images, pushes them to GitHub's container
+# registry (ghcr.io), then updates the server over SSH. Switched off until the
+# repository variable DEPLOY_ENABLED is "true". Setup: docs/RUNBOOK.md, "Automatic deploys".
+#
+# Repository variables:  DEPLOY_ENABLED, APP_URL, DEPLOY_PATH (default /opt/dogstuff)
+# Repository secrets:    DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_KNOWN_HOSTS
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  # Deploy exactly the commit CI checked (or the current one when started by hand).
+  SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+jobs:
+  images:
+    if: >-
+      vars.DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      prefix: ${{ steps.names.outputs.prefix }}
+      tag: ${{ steps.names.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+
+      - id: names
+        run: |
+          # Image names must be lower case.
+          echo "prefix=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "tag=sha-${SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to ghcr.io
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build and push
+        env:
+          PREFIX: ${{ steps.names.outputs.prefix }}
+          TAG: ${{ steps.names.outputs.tag }}
+        run: |
+          docker build --target web -t "$PREFIX/web:$TAG" -t "$PREFIX/web:latest" .
+          docker build --target tools -t "$PREFIX/tools:$TAG" -t "$PREFIX/tools:latest" .
+          docker build -t "$PREFIX/backup:$TAG" -t "$PREFIX/backup:latest" deploy/backup
+          for image in web tools backup; do
+            docker push "$PREFIX/$image:$TAG"
+            docker push "$PREFIX/$image:latest"
+          done
+
+  server:
+    needs: images
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      HOST: ${{ secrets.DEPLOY_HOST }}
+      USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/dogstuff' }}
+      TAG: ${{ needs.images.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+
+      - name: Set up SSH
+        run: |
+          install -m 700 -d ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          printf 'Host server\n  HostName %s\n  User %s\n  IdentityFile ~/.ssh/deploy_key\n  StrictHostKeyChecking yes\n  BatchMode yes\n' \
+            "$HOST" "$USER" > ~/.ssh/config
+
+      - name: Copy compose file and Caddyfile
+        run: scp deploy/docker-compose.prod.yml deploy/Caddyfile "server:$DEPLOY_PATH/"
+
+      - name: Pull images, migrate and restart
+        run: |
+          # $DEPLOY_PATH and $TAG are meant to expand here, on the runner.
+          # shellcheck disable=SC2029
+          # The registry token is passed on stdin so it never appears in a command line.
+          echo "${{ secrets.GITHUB_TOKEN }}" | ssh server "
+            set -eu
+            cd '$DEPLOY_PATH'
+            docker login ghcr.io -u '${{ github.actor }}' --password-stdin
+            # Record the deployed version, so manual commands and rollbacks use it.
+            sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=$TAG/' .env
+            docker compose -f docker-compose.prod.yml pull
+            # 'migrate' runs first (web waits for it); a failed migration stops the deploy.
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans --wait
+            docker logout ghcr.io
+            docker image prune -f
+          "
+
+      - name: Check the live site
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -fsS "${{ vars.APP_URL }}/api/health"; then echo; exit 0; fi
+            sleep 5
+          done
+          echo "The site did not report healthy after deploying $TAG" >&2
+          exit 1
