@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { z } from "zod";
 import type { FormState } from "@/components/owner/field";
 import { getDb } from "@/db";
@@ -10,6 +11,7 @@ import { SlotTakenError, SlotUnavailableError } from "@/domain/errors";
 import { idSchema, ownerClientSchema, ownerPetSchema } from "@/domain/schemas";
 import { localDateOf } from "@/domain/time";
 import { requireUser } from "@/lib/auth";
+import { sendBookingEmail } from "@/lib/booking-emails";
 import { getEnv } from "@/lib/env";
 import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
@@ -110,6 +112,7 @@ export async function bookFromCalendarAction(formData: FormData): Promise<void> 
       { tz, ignoreMinNotice: true, ignoreHorizon: true },
     );
     logInfo("calendar.booked", { appointmentId: booking.appointmentId });
+    after(() => sendBookingEmail("confirmation", booking.appointmentId));
     outcome = calendarUrl(date, { booked: true });
   } catch (error) {
     if (error instanceof SlotTakenError) outcome = calendarUrl(date, { error: "taken" });

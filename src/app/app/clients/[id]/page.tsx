@@ -70,11 +70,14 @@ function VisitList({
   );
 }
 
-function archiveQuestion(name: string, upcoming: number): string {
+function archiveQuestion(name: string, upcoming: number, hasEmail: boolean): string {
   const base = `Archive ${name}? They will be hidden from your client list.`;
   if (upcoming === 0) return base;
   const bookings = upcoming === 1 ? "1 upcoming booking" : `${upcoming} upcoming bookings`;
-  return `${base} This will also cancel ${bookings}. Please phone them to let them know.`;
+  const tell = hasEmail
+    ? "They will get an email to let them know."
+    : "Please phone them to let them know.";
+  return `${base} This will also cancel ${bookings}. ${tell}`;
 }
 
 export default async function ClientPage({
@@ -209,7 +212,7 @@ export default async function ClientPage({
           <ConfirmButton
             label="Archive client"
             variant="small"
-            question={archiveQuestion(c.name, upcomingCount)}
+            question={archiveQuestion(c.name, upcomingCount, c.email !== null)}
             yesLabel="Yes, archive"
             noLabel="No, keep"
             yesVariant="danger"

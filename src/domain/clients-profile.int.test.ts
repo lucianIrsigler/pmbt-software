@@ -185,7 +185,7 @@ describe("archiving", () => {
     const future2 = await book(id, at("2030-06-18", "09:00"));
 
     expect(await countUpcomingBookings(db, { clientId: id }, NOW)).toBe(2);
-    expect(await archiveClient(db, id, NOW)).toBe(2);
+    expect((await archiveClient(db, id, NOW)).sort()).toEqual([future1, future2].sort());
 
     const statuses = await db
       .select({ id: appointment.id, status: appointment.status })
@@ -213,7 +213,7 @@ describe("archiving", () => {
     const staysBooking = await book(id, at("2030-06-19", "10:00"), { petId: stays });
 
     expect(await countUpcomingBookings(db, { petId: gone }, NOW)).toBe(1);
-    expect(await archivePet(db, gone, NOW)).toBe(1);
+    expect(await archivePet(db, gone, NOW)).toEqual([goneBooking]);
     const rows = await db
       .select({ id: appointment.id, status: appointment.status })
       .from(appointment)

@@ -417,24 +417,25 @@ export async function countUpcomingBookings(
   return row?.n ?? 0;
 }
 
-async function cancelUpcoming(tx: Transaction, owner: Owner, now: Date): Promise<number> {
+/** Cancels `owner`'s upcoming bookings; returns their ids (to email the client). */
+async function cancelUpcoming(tx: Transaction, owner: Owner, now: Date): Promise<string[]> {
   const cancelled = await tx
     .update(appointment)
     .set({ status: "cancelled", cancelledAt: now })
     .where(upcomingBooked(owner, now))
     .returning({ id: appointment.id });
-  return cancelled.length;
+  return cancelled.map((row) => row.id);
 }
 
 /**
  * Archives a client (hidden from search and lists, never deleted) and cancels their
- * upcoming bookings. Returns how many bookings were cancelled.
+ * upcoming bookings. Returns the ids of the cancelled bookings.
  */
 export async function archiveClient(
   db: Database,
   rawId: string,
   now: Date = new Date(),
-): Promise<number> {
+): Promise<string[]> {
   const clientId = idSchema.parse(rawId);
   return db.transaction(async (tx) => {
     const [row] = await tx
@@ -461,6 +462,7 @@ export async function unarchiveClient(db: Database, rawId: string): Promise<void
 export interface PetProfile extends ClientPet {
   clientId: string;
   clientName: string;
+  clientEmail: string | null;
   notes: string;
   archivedAt: Date | null;
 }
@@ -484,6 +486,7 @@ export async function getPet(
       archivedAt: pet.archivedAt,
       clientId: pet.clientId,
       clientName: client.name,
+      clientEmail: client.email,
     })
     .from(pet)
     .innerJoin(client, eq(client.id, pet.clientId))
@@ -518,13 +521,13 @@ export async function updatePetNotes(db: Database, rawInput: PetNotesInput): Pro
 
 /**
  * Archives a pet (e.g. one that has passed away) and cancels its upcoming bookings.
- * Returns how many bookings were cancelled.
+ * Returns the ids of the cancelled bookings.
  */
 export async function archivePet(
   db: Database,
   rawPetId: string,
   now: Date = new Date(),
-): Promise<number> {
+): Promise<string[]> {
   const petId = idSchema.parse(rawPetId);
   return db.transaction(async (tx) => {
     const [row] = await tx

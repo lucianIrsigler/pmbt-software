@@ -1,7 +1,7 @@
 import { getBookingByToken } from "@/domain/booking";
 import { getPublicSettings } from "@/domain/catalogue";
+import { bookingIcs } from "@/lib/booking-ics";
 import { getEnv } from "@/lib/env";
-import { buildIcs } from "@/lib/ics";
 import { requestContext } from "@/lib/request";
 
 /** `.ics` download for "Add to calendar". */
@@ -15,16 +15,18 @@ export async function GET(
   if (!booking) return new Response("Not found", { status: 404 });
 
   const settings = await getPublicSettings(ctx.db);
-  const appUrl = new URL(getEnv().APP_URL);
-  const body = buildIcs({
-    uid: `${booking.appointmentId}@${appUrl.host}`,
+  const appUrl = getEnv().APP_URL;
+  const body = bookingIcs({
+    appointmentId: booking.appointmentId,
     start: booking.start,
     end: booking.end,
-    summary: `${booking.serviceName} – ${settings.businessName}`,
-    location: settings.address ?? undefined,
-    url: new URL(`/booking/${token}`, appUrl).toString(),
-    stamp: ctx.now,
-    status: booking.status === "cancelled" ? "CANCELLED" : "CONFIRMED",
+    serviceName: booking.serviceName,
+    businessName: settings.businessName,
+    address: settings.address,
+    manageUrl: new URL(`/booking/${token}`, appUrl).toString(),
+    appUrl,
+    cancelled: booking.status === "cancelled",
+    now: ctx.now,
   });
 
   return new Response(body, {

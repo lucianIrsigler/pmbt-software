@@ -1,6 +1,7 @@
 "use server";
 
 import { refresh } from "next/cache";
+import { after } from "next/server";
 import { getDb } from "@/db";
 import { undoStatus } from "@/domain/appointments";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/domain/booking";
 import { DomainError } from "@/domain/errors";
 import { requireUser } from "@/lib/auth";
+import { sendBookingEmail } from "@/lib/booking-emails";
 import { logError } from "@/lib/log";
 
 /** Result shown by the button that triggered the action. */
@@ -54,7 +56,10 @@ export async function undoStatusAction(id: string): Promise<ActionResult> {
 }
 
 export async function cancelAppointmentAction(id: string): Promise<ActionResult> {
-  return run("appointment.cancel_by_owner", id, () => cancelByOwner(getDb(), id));
+  return run("appointment.cancel_by_owner", id, async () => {
+    await cancelByOwner(getDb(), id);
+    after(() => sendBookingEmail("cancellation", id));
+  });
 }
 
 export async function addProductAction(id: string, productId: string): Promise<ActionResult> {

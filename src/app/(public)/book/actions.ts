@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { getDb } from "@/db";
@@ -8,6 +9,7 @@ import { loadActiveService } from "@/domain/availability";
 import { createBooking } from "@/domain/booking";
 import { DomainError, SlotTakenError, SlotUnavailableError } from "@/domain/errors";
 import { idSchema, localDateSchema, newClientSchema, newPetSchema } from "@/domain/schemas";
+import { sendBookingEmail } from "@/lib/booking-emails";
 import { clientIp, ipKey } from "@/lib/client-ip";
 import { getEnv } from "@/lib/env";
 import { logError, logInfo } from "@/lib/log";
@@ -134,6 +136,8 @@ export async function bookAction(
     );
     token = booking.manageToken;
     logInfo("booking.created", { appointmentId: booking.appointmentId });
+    // After the response: a slow or failing mail server never affects the booking.
+    after(() => sendBookingEmail("confirmation", booking.appointmentId));
   } catch (error) {
     if (error instanceof SlotTakenError || error instanceof SlotUnavailableError) {
       const reason = error instanceof SlotTakenError ? "taken" : "unavailable";

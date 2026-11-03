@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import type { FormState } from "@/components/owner/field";
 import { getDb } from "@/db";
 import {
@@ -19,6 +20,7 @@ import {
 import { DomainError, PhoneInUseError } from "@/domain/errors";
 import { ownerClientSchema, ownerPetSchema } from "@/domain/schemas";
 import { requireUser } from "@/lib/auth";
+import { sendBookingEmail } from "@/lib/booking-emails";
 import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
 
@@ -62,6 +64,14 @@ async function run(
   }
   refresh();
   return {};
+}
+
+/** After the response, emails each client whose booking was cancelled by archiving. */
+function emailCancellations(appointmentIds: string[]): void {
+  if (appointmentIds.length === 0) return;
+  after(async () => {
+    for (const id of appointmentIds) await sendBookingEmail("cancellation", id);
+  });
 }
 
 // --- Clients ---------------------------------------------------------------
@@ -127,7 +137,8 @@ export async function saveClientNotesAction(
 export async function archiveClientAction(clientId: string): Promise<ActionResult> {
   return run("clients.archive", { clientId }, async () => {
     const cancelled = await archiveClient(getDb(), clientId);
-    logInfo("clients.archived", { clientId, cancelledBookings: String(cancelled) });
+    logInfo("clients.archived", { clientId, cancelledBookings: String(cancelled.length) });
+    emailCancellations(cancelled);
   });
 }
 
@@ -192,7 +203,8 @@ export async function savePetNotesAction(petId: string, notes: string): Promise<
 export async function archivePetAction(petId: string): Promise<ActionResult> {
   return run("pets.archive", { petId }, async () => {
     const cancelled = await archivePet(getDb(), petId);
-    logInfo("pets.archived", { petId, cancelledBookings: String(cancelled) });
+    logInfo("pets.archived", { petId, cancelledBookings: String(cancelled.length) });
+    emailCancellations(cancelled);
   });
 }
 

@@ -17,11 +17,14 @@ import { PetDetailsForm } from "../../../forms";
 
 export const metadata: Metadata = { title: "Animal" };
 
-function archiveQuestion(name: string, upcoming: number): string {
+function archiveQuestion(name: string, upcoming: number, ownerHasEmail: boolean): string {
   const base = `Archive ${name}? Their past visits are kept.`;
   if (upcoming === 0) return base;
   const bookings = upcoming === 1 ? "1 upcoming booking" : `${upcoming} upcoming bookings`;
-  return `${base} This will also cancel ${bookings}. Please phone the owner to let them know.`;
+  const tell = ownerHasEmail
+    ? "The owner will get an email to let them know."
+    : "Please phone the owner to let them know.";
+  return `${base} This will also cancel ${bookings}. ${tell}`;
 }
 
 export default async function PetPage({
@@ -78,7 +81,7 @@ export default async function PetPage({
           <ConfirmButton
             label={`Archive ${p.name}`}
             variant="small"
-            question={archiveQuestion(p.name, upcoming)}
+            question={archiveQuestion(p.name, upcoming, p.clientEmail !== null)}
             yesLabel="Yes, archive"
             noLabel="No, keep"
             yesVariant="danger"
