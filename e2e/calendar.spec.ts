@@ -1,35 +1,11 @@
 import { expect, test, type Page } from "@playwright/test";
+import { longDate, nextWeekday } from "./dates";
 import { signIn } from "./helpers";
 
 /**
  * Owner calendar on a phone-sized screen (one day at a time). Dates depend on the real
  * clock, so we pick weekdays a few weeks ahead, inside the public booking horizon.
  */
-
-const TZ = "Africa/Johannesburg";
-
-/** Today's date in the business time zone, `YYYY-MM-DD`. */
-function today(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
-}
-
-/** The first date at least `minDays` after today that falls on `weekday` (0 = Sunday). */
-function nextWeekday(minDays: number, weekday: number): string {
-  const [y, m, d] = today().split("-").map(Number) as [number, number, number];
-  const date = new Date(Date.UTC(y, m - 1, d + minDays));
-  while (date.getUTCDay() !== weekday) date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-}
-
-/** `Thursday 19 November`, as the app writes dates. */
-function longDate(date: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "UTC",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date(`${date}T12:00:00Z`));
-}
 
 async function openDay(page: Page, date: string): Promise<void> {
   await page.goto(`/app/calendar?date=${date}`);

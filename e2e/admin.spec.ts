@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { longDate, nextWeekday } from "./dates";
 import { seedTodayAppointment, signIn } from "./helpers";
 
 /**
@@ -7,29 +8,6 @@ import { seedTodayAppointment, signIn } from "./helpers";
  */
 
 test.describe.configure({ mode: "serial" });
-
-const TZ = "Africa/Johannesburg";
-
-function today(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
-}
-
-/** The first date at least `minDays` after today that falls on `weekday` (0 = Sunday). */
-function nextWeekday(minDays: number, weekday: number): string {
-  const [y, m, d] = today().split("-").map(Number) as [number, number, number];
-  const date = new Date(Date.UTC(y, m - 1, d + minDays));
-  while (date.getUTCDay() !== weekday) date.setUTCDate(date.getUTCDate() + 1);
-  return date.toISOString().slice(0, 10);
-}
-
-function longDate(date: string): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    timeZone: "UTC",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(new Date(`${date}T12:00:00Z`));
-}
 
 async function editService(page: Page, name: string): Promise<void> {
   await page.goto("/admin/services");

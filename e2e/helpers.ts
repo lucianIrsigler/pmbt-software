@@ -2,9 +2,8 @@ import { randomBytes } from "node:crypto";
 import { expect, type BrowserContext, type Page } from "@playwright/test";
 import postgres from "postgres";
 import { e2eDatabaseUrl } from "../src/test/database";
+import { TZ } from "./dates";
 import { E2E_USER } from "./user";
-
-const TZ = "Africa/Johannesburg";
 
 type Cookies = Awaited<ReturnType<BrowserContext["cookies"]>>;
 
