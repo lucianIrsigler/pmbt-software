@@ -35,20 +35,3 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 
 - **Tell the owner about online changes.** Email her when a client books or cancels through the
   website. Left out for now: she sees every change on the Today and Calendar tabs.
-
-## Admin
-
-- **Separate admin logins.** Any login can open `/admin` (there are no roles). Fine while the
-  only logins are the owner and the developer.
-- **Products sold per month in the bookings CSV.** The export has a total per booking; a
-  separate product-line export would help with stock.
-- **Show hidden services and products separately.** They're listed with the others, marked
-  "Hidden".
-
-## Operations
-
-- **Smaller tools image.** The `tools` image (migrations, scripts, jobs) carries every
-  dependency, about 1.2 GB. Pruning dev-only packages would make deploys faster.
-- **Uptime alerts.** Nothing tells you if the site goes down. A cron job on the backup machine
-  that checks `/api/health` and emails you would do, without any outside service.
-- **Backup alerts.** Likewise, an email when a nightly backup fails.
