@@ -55,3 +55,12 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 
 - **Tell the owner about online changes.** Email her when a client books or cancels through the
   website. Left out for now: she sees every change on the Today and Calendar tabs.
+
+## Admin
+
+- **Separate admin logins.** Any login can open `/admin` (there are no roles). Fine while the
+  only logins are the owner and the developer.
+- **Products sold per month in the bookings CSV.** The export has a total per booking; a
+  separate product-line export would help with stock.
+- **Show hidden services and products separately.** They're listed with the others, marked
+  "Hidden".

@@ -33,7 +33,7 @@ Create the Drizzle schema in `src/db/schema.ts`:
 | `product` | id, name, description, price_cents, sort_order, active |
 | `working_hours` | id, weekday (0–6, 0 = Sunday), start_time, end_time |
 | `time_off` | id, during (tstzrange), reason, removed_at (set on removal; the row is kept) |
-| `appointment` | id, client_id, pet_id (nullable: null = client is treated), service_id, during (tstzrange, includes buffer), status (`booked` \| `done` \| `no_show` \| `cancelled`), source (`web` \| `app`), notes, manage_token (unique), cancelled_at, reminder_sent_at, created_at, updated_at |
+| `appointment` | id, client_id, pet_id (nullable: null = client is treated), service_id, during (tstzrange, includes buffer), status (`booked` \| `done` \| `no_show` \| `cancelled`), source (`web` \| `app`), notes, manage_token (unique), price_cents (price when booked), cancelled_at, reminder_sent_at, created_at, updated_at |
 | `appointment_product` | appointment_id, product_id, qty, price_cents (PK on both ids) |
 | `settings` | single row: business_name, min_notice_hours (12), max_days_ahead (42), slot_step_min (30), cancel_cutoff_hours (24) |
 | `user` | id, email (unique), name, password_hash, created_at |
@@ -208,17 +208,19 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
 
 For the developer/son mostly; desktop-friendly is fine.
 
-- [ ] `/admin` dashboard with a date range picker (this month / last month / last 3 months / custom):
+- [x] `/admin` dashboard with a date range picker (this month / last month / last 3 months / custom):
   - bookings total, done, no-shows, cancelled, no-show rate
   - new vs returning clients
   - human vs animal split
-  - estimated revenue (services done + products sold)
+  - estimated revenue (services done + products sold), at the prices saved at booking/sale time
+    (`appointment.price_cents`, added in this phase)
   - top services and top products
   - busiest weekdays
-- [ ] Implement stats as SQL queries/views in `src/db/stats.ts` with integration tests on seeded data
-- [ ] Simple bar charts as plain SVG/CSS (no chart library)
-- [ ] CRUD screens: services, products, working hours, settings
-- [ ] Recent bookings table with filters (status, source) and CSV export
+- [x] Implement stats as SQL queries/views in `src/db/stats.ts` with integration tests on seeded data
+- [x] Simple bar charts as plain SVG/CSS (no chart library)
+- [x] CRUD screens: services, products, working hours, settings. Services and products are hidden,
+      never deleted.
+- [x] Recent bookings table with filters (status, source) and CSV export
 
 **Done when:** you can change prices/hours without touching code and see monthly stats.
 

@@ -51,6 +51,7 @@ hand-written SQL in [`drizzle/`](../drizzle).
 | `0004_done_blocks_time.sql` (custom) | `done` appointments also block their time |
 | `0005_time_off_removed_at.sql`     | Removed time off is kept as a record         |
 | `0006_appointment_reminder_sent_at.sql` | When the day-before reminder was sent   |
+| `0007_appointment_price_cents.sql` (edited) | Price saved per booking; backfilled from the service |
 
 - Change the schema: edit `src/db/schema.ts`, run `pnpm db:generate`, review the SQL, then
   `pnpm db:migrate`.
