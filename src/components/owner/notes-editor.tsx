@@ -18,10 +18,13 @@ const STATUS_TEXT: Record<SaveState, string> = {
  * leaves the box, and when she switches away from the app. Shows a clear status.
  */
 export function NotesEditor({
+  id = "visit-notes",
   label,
   initialNotes,
   save,
 }: {
+  /** Needed when a page has more than one notes box. */
+  id?: string;
   label: string;
   initialNotes: string;
   save: (notes: string) => Promise<{ ok: boolean }>;
@@ -77,7 +80,7 @@ export function NotesEditor({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-3">
-        <label htmlFor="visit-notes" className="text-2xl font-bold">
+        <label htmlFor={id} className="text-2xl font-bold">
           {label}
         </label>
         <span
@@ -89,7 +92,7 @@ export function NotesEditor({
         </span>
       </div>
       <textarea
-        id="visit-notes"
+        id={id}
         defaultValue={initialNotes}
         rows={8}
         className="block w-full rounded-xl border-2 border-line bg-card p-4 text-xl leading-relaxed focus:border-accent"
