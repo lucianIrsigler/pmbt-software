@@ -25,6 +25,10 @@ const ERRORS: Record<string, string> = {
 
 const navButton = `${ownerButton.secondary} whitespace-nowrap px-2 text-lg`;
 
+/** Like `ownerButton.secondary`, but only as wide as its label. */
+const goButton =
+  "flex min-h-14 items-center justify-center rounded-xl border-2 border-accent bg-card px-6 text-xl font-bold text-accent hover:bg-accent-soft";
+
 /** What every view needs: the week, the day shown, and who free times book for. */
 interface ViewProps {
   week: CalendarWeek;
@@ -72,17 +76,18 @@ function GoToDate({ date, bookFor }: { date: LocalDate; bookFor: string | undefi
       <label htmlFor="go-to-date" className="text-xl font-semibold">
         Go to date
       </label>
-      <div className="flex gap-3">
+      {/* The date box takes the room left; "Go" keeps its own width, always on screen. */}
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
         <input
           id="go-to-date"
           name="date"
           type="date"
           required
           defaultValue={date}
-          className={ownerInput}
+          className={`${ownerInput} min-w-0`}
         />
         {bookFor && <input type="hidden" name="client" value={bookFor} />}
-        <button type="submit" className={`${ownerButton.secondary} w-auto shrink-0`}>
+        <button type="submit" className={goButton}>
           Go
         </button>
       </div>

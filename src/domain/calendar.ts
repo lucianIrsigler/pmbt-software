@@ -84,7 +84,7 @@ export function gridWindow(
 
 /**
  * An item placed in a day column: `top` and `height` in minutes, relative to the window.
- * `narrow` items share their time with a "didn't come" visit, which takes the right third
+ * `narrow` items share their time with a "didn't come" visit, which takes the right half
  * of the column, so they only use the left part.
  */
 export interface Placed<T> {

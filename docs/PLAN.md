@@ -266,7 +266,7 @@ Calendar:
 - [ ] Calmer week view: empty times in the week grid are plain, highlighted with "Book" on
       hover/focus only. The one-day (phone) view is unchanged.
 - [ ] "Didn't come" visits shown faded on the calendar; where they overlap something else they
-      take the right third of the column.
+      take the right half of the column.
 - [ ] "Go to date": jump to any date with the phone's date picker (plain form, no JS needed).
 - [ ] A "Now" line on today's column; on first open, scroll it into view if it is off screen.
 - [ ] Back link from an appointment goes back where it came from ("← Calendar" to that day,

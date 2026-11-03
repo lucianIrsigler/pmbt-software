@@ -110,8 +110,12 @@ test("add a client, spot a known number, archive and bring back", async ({ page 
   await page.goto("/app/clients?q=Archie");
   await expect(page.getByText("No clients found.")).toBeVisible();
 
-  // Bring back.
-  await page.goto(clientUrl);
+  // Bring back, found through the archived clients list.
+  await page.goto("/app/clients");
+  await page.getByRole("link", { name: /^Archived clients \(\d+\)$/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Archived clients" })).toBeVisible();
+  await page.getByRole("link", { name: /Archie Archive/ }).click();
+  await expect(page).toHaveURL(clientUrl);
   await page.getByRole("button", { name: "Bring back" }).click();
   await expect(page.getByText("This client is archived.")).toHaveCount(0);
   await page.goto("/app/clients?q=Archie");

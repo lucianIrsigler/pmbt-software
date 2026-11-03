@@ -73,6 +73,37 @@ test("add a phone booking for a new client, then for the same client found by se
   await expect(page.getByRole("link", { name: /Call Nomsa/ })).toBeVisible();
 });
 
+test("book from a client's page, and get back to the calendar day from the booking", async ({
+  page,
+}) => {
+  const date = nextWeekday(14, 4); // the Thursday used above
+  await signIn(page);
+  await page.goto("/app/clients?q=Nomsa");
+  await page.getByRole("link", { name: /Nomsa Phonecall/ }).click();
+  await page.getByRole("link", { name: "New booking" }).click();
+  await expect(page.getByText("Booking for Nomsa Phonecall. Tap a free time.")).toBeVisible();
+
+  // Go to the day with the date box; the booking-for banner stays.
+  await page.getByLabel("Go to date").fill(date);
+  await page.getByRole("button", { name: "Go", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 2, name: longDate(date) })).toBeVisible();
+  await expect(page.getByText("Booking for Nomsa Phonecall. Tap a free time.")).toBeVisible();
+
+  // Tapping a free time skips choosing the client.
+  await page.getByRole("link", { name: /^14:00 Free/ }).click();
+  await expect(page.getByRole("heading", { name: "Who is being treated?" })).toBeVisible();
+  await page.getByRole("link", { name: "Nomsa Phonecall (the person)" }).click();
+  await page.getByRole("link", { name: /PBMT session \(30 min\)/ }).click();
+  await page.getByRole("button", { name: "Book it" }).click();
+  await expect(page.getByText("Booked ✓")).toBeVisible();
+  await expect(page.getByText(/Booking for Nomsa/)).toHaveCount(0);
+
+  // The booking's back link returns to this day, not to Today.
+  await page.getByRole("link", { name: /14:00\s*Nomsa Phonecall/ }).click();
+  await page.getByRole("link", { name: "← Calendar" }).click();
+  await expect(page.getByRole("heading", { level: 2, name: longDate(date) })).toBeVisible();
+});
+
 test("block a whole day: it disappears from the public booking page until removed", async ({
   page,
 }) => {

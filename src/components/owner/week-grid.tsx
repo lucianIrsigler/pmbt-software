@@ -37,9 +37,9 @@ export function newBookingUrl(start: Date, clientId?: string): string {
   return `/app/calendar/new?${search.toString()}`;
 }
 
-/** Full width, or the left part when a "didn't come" visit sits in the right third. */
+/** Full width, or the left part when a "didn't come" visit sits in the right half. */
 function lane(narrow: boolean): string {
-  return narrow ? "left-1 right-1/3 mr-1" : "inset-x-1";
+  return narrow ? "left-1 right-1/2 mr-1" : "inset-x-1";
 }
 
 function AppointmentBlock({
@@ -81,7 +81,7 @@ function AppointmentBlock({
   );
 }
 
-/** A "didn't come" visit: its time is free again, so it is drawn faded in the right third. */
+/** A "didn't come" visit: its time is free again, so it is drawn faded in the right half. */
 function NoShowBlock({
   a,
   date,
@@ -99,9 +99,10 @@ function NoShowBlock({
     <Link
       href={appointmentUrl(a.id, { calendar: date })}
       style={{ top: px(top), height: px(height) }}
-      className="absolute left-2/3 right-1 z-20 flex flex-col overflow-hidden rounded-lg border-2 border-dashed border-warn-ink bg-warn-soft px-1 py-1 leading-tight text-warn-ink hover:bg-card"
+      className="absolute left-1/2 right-1 z-20 flex flex-col overflow-hidden rounded-lg border-2 border-dashed border-warn-ink bg-warn-soft px-2 py-1 leading-tight text-warn-ink hover:bg-card"
     >
-      <span className="truncate font-bold">Didn&apos;t come</span>
+      {/* Wraps rather than truncates: half a week column is narrow. */}
+      <span className="break-words font-bold">Didn&apos;t come</span>
       <span className="truncate">
         {formatTime(a.start, tz)} {a.clientName}
       </span>
@@ -175,8 +176,13 @@ function FreeCell({
         </>
       ) : (
         <>
-          <span className="text-ink">{time}</span> <span>Free – tap to book</span>{" "}
-          <span className="sr-only">{formatLocalDate(date)}</span>
+          {/* Half width beside a "didn't come" visit: the short label fits on one line. */}
+          <span className="text-ink">{time}</span>{" "}
+          <span>{narrow ? "Free" : "Free – tap to book"}</span>{" "}
+          <span className="sr-only">
+            {narrow ? "tap to book " : ""}
+            {formatLocalDate(date)}
+          </span>
         </>
       )}
     </Link>
