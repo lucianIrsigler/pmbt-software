@@ -20,6 +20,7 @@ import { DomainError } from "@/domain/errors";
 import { requireUser } from "@/lib/auth";
 import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
+import { SOMETHING_WRONG } from "@/lib/owner-action";
 import {
   fieldNames,
   HOURS_FIELDS,
@@ -52,7 +53,7 @@ async function save(
       return { values, errors: {}, message: error.message };
     }
     logError(context, error);
-    return { values, errors: {}, message: "Something went wrong. Please try again." };
+    return { values, errors: {}, message: SOMETHING_WRONG };
   }
   logInfo(context);
   redirect(done);

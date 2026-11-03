@@ -21,10 +21,9 @@ import { sendBookingEmail } from "@/lib/booking-emails";
 import { getEnv } from "@/lib/env";
 import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
+import { SOMETHING_WRONG } from "@/lib/owner-action";
 import { calendarUrl } from "../urls";
 import { newBookingStepUrl } from "./urls";
-
-const SOMETHING_WRONG = "Something went wrong. Please try again.";
 
 const startSchema = z.iso.datetime();
 

@@ -1,6 +1,5 @@
 "use server";
 
-import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import {
@@ -29,30 +28,7 @@ import { requireUser } from "@/lib/auth";
 import { sendBookingEmail } from "@/lib/booking-emails";
 import { fieldErrors } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
-
-export interface ActionResult {
-  error?: string;
-}
-
-const SOMETHING_WRONG = "Something went wrong. Please try again.";
-
-/** Runs a button action: checks the session, maps errors to friendly text, refreshes. */
-async function run(
-  context: string,
-  ids: Record<string, string>,
-  fn: () => Promise<unknown>,
-): Promise<ActionResult> {
-  await requireUser();
-  try {
-    await fn();
-  } catch (error) {
-    if (error instanceof DomainError) return { error: error.message };
-    logError(context, error, ids);
-    return { error: SOMETHING_WRONG };
-  }
-  refresh();
-  return {};
-}
+import { runOwnerAction, SOMETHING_WRONG, type ActionResult } from "@/lib/owner-action";
 
 /** After the response, emails each client whose booking was cancelled by archiving. */
 function emailCancellations(appointmentIds: string[]): void {
@@ -123,7 +99,7 @@ export async function saveClientNotesAction(
 }
 
 export async function archiveClientAction(clientId: string): Promise<ActionResult> {
-  return run("clients.archive", { clientId }, async () => {
+  return runOwnerAction("clients.archive", { clientId }, async () => {
     const cancelled = await archiveClient(getDb(), clientId);
     logInfo("clients.archived", { clientId, cancelledBookings: String(cancelled.length) });
     emailCancellations(cancelled);
@@ -131,7 +107,9 @@ export async function archiveClientAction(clientId: string): Promise<ActionResul
 }
 
 export async function unarchiveClientAction(clientId: string): Promise<ActionResult> {
-  return run("clients.unarchive", { clientId }, () => unarchiveClient(getDb(), clientId));
+  return runOwnerAction("clients.unarchive", { clientId }, () =>
+    unarchiveClient(getDb(), clientId),
+  );
 }
 
 // --- Animals ---------------------------------------------------------------
@@ -189,7 +167,7 @@ export async function savePetNotesAction(petId: string, notes: string): Promise<
 }
 
 export async function archivePetAction(petId: string): Promise<ActionResult> {
-  return run("pets.archive", { petId }, async () => {
+  return runOwnerAction("pets.archive", { petId }, async () => {
     const cancelled = await archivePet(getDb(), petId);
     logInfo("pets.archived", { petId, cancelledBookings: String(cancelled.length) });
     emailCancellations(cancelled);
@@ -197,5 +175,5 @@ export async function archivePetAction(petId: string): Promise<ActionResult> {
 }
 
 export async function unarchivePetAction(petId: string): Promise<ActionResult> {
-  return run("pets.unarchive", { petId }, () => unarchivePet(getDb(), petId));
+  return runOwnerAction("pets.unarchive", { petId }, () => unarchivePet(getDb(), petId));
 }
