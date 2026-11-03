@@ -19,6 +19,9 @@ export default async function SettingsPage(): Promise<ReactNode> {
       <p className="text-lg">
         Signed in as <strong>{user.name}</strong> ({user.email})
       </p>
+      <Link href="/app/help" className={`${buttonSecondary} sm:w-full`}>
+        How to install the app
+      </Link>
       <form action={logoutAction}>
         <button type="submit" className={`${buttonSecondary} sm:w-full`}>
           Log out
