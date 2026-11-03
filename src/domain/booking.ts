@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
-import type { Database } from "@/db/client";
+import type { Database, Transaction } from "@/db/client";
 import { PG_ERROR, pgErrorCode } from "@/db/errors";
 import { appointment, appointmentProduct, client, pet, product, service } from "@/db/schema";
 import {
@@ -9,6 +9,7 @@ import {
   loadSettings,
   type ClockOptions,
 } from "./availability";
+import { findOrCreateClient, findOrCreatePet } from "./clients";
 import {
   CancelTooLateError,
   InvalidBookingError,
@@ -33,7 +34,6 @@ import {
 import { appointmentRange, isSlotAvailable } from "./slots";
 import { addMinutesTo, localDayRange, localDateOf, type TimeRange } from "./time";
 
-type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0];
 type AppointmentStatus = (typeof appointment.$inferSelect)["status"];
 
 /** 32 random bytes, base64url (43 characters). */
@@ -65,48 +65,6 @@ export interface CreatedBooking {
   during: TimeRange;
 }
 
-type ClientRef = { id: string } | { name: string; phone: string; email?: string | undefined };
-type PetRef = { id: string } | { name: string; species: string; breed?: string | undefined };
-
-/** Finds the client by normalised phone (reusing archived ones) or creates them. */
-async function findOrCreateClient(tx: Transaction, ref: ClientRef): Promise<string> {
-  if ("id" in ref) {
-    const [row] = await tx
-      .update(client)
-      .set({ archivedAt: null })
-      .where(eq(client.id, ref.id))
-      .returning({ id: client.id });
-    if (!row) throw new NotFoundError("client");
-    return row.id;
-  }
-
-  // Serialise concurrent first bookings from the same phone so we don't create duplicates.
-  await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`client:${ref.phone}`}))`);
-
-  const [existing] = await tx
-    .select({ id: client.id, email: client.email })
-    .from(client)
-    .where(eq(client.phone, ref.phone))
-    .orderBy(sql`${client.archivedAt} is not null`, desc(client.createdAt))
-    .limit(1);
-
-  if (existing) {
-    // Keep the name the owner knows them by; only fill in a missing email.
-    await tx
-      .update(client)
-      .set({ archivedAt: null, ...(existing.email ? {} : { email: ref.email ?? null }) })
-      .where(eq(client.id, existing.id));
-    return existing.id;
-  }
-
-  const [created] = await tx
-    .insert(client)
-    .values({ name: ref.name, phone: ref.phone, email: ref.email ?? null })
-    .returning({ id: client.id });
-  if (!created) throw new Error("client insert returned no row");
-  return created.id;
-}
-
 /** Upcoming `booked` appointments for a client. */
 async function countUpcoming(tx: Transaction, clientId: string, now: Date): Promise<number> {
   const [row] = await tx
@@ -120,38 +78,6 @@ async function countUpcoming(tx: Transaction, clientId: string, now: Date): Prom
       ),
     );
   return row?.n ?? 0;
-}
-
-/** Uses the given pet of this client, or reuses/creates one by name (case-insensitive). */
-async function findOrCreatePet(tx: Transaction, clientId: string, ref: PetRef): Promise<string> {
-  if ("id" in ref) {
-    const [row] = await tx
-      .select({ id: pet.id })
-      .from(pet)
-      .where(and(eq(pet.id, ref.id), eq(pet.clientId, clientId)));
-    if (!row) throw new NotFoundError("pet");
-    return row.id;
-  }
-
-  const [existing] = await tx
-    .select({ id: pet.id })
-    .from(pet)
-    .where(
-      and(
-        eq(pet.clientId, clientId),
-        isNull(pet.archivedAt),
-        sql`lower(${pet.name}) = lower(${ref.name})`,
-      ),
-    )
-    .limit(1);
-  if (existing) return existing.id;
-
-  const [created] = await tx
-    .insert(pet)
-    .values({ clientId, name: ref.name, species: ref.species, breed: ref.breed ?? null })
-    .returning({ id: pet.id });
-  if (!created) throw new Error("pet insert returned no row");
-  return created.id;
 }
 
 /**

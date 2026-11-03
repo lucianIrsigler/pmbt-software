@@ -56,6 +56,23 @@ export const newPetSchema = z.strictObject({
     .optional(),
 });
 
+/** A new client entered by the owner (e.g. during a phone call). */
+export const ownerClientSchema = z.strictObject({
+  name: trimmed("the client's name", 100),
+  phone: phoneSchema,
+});
+export type OwnerClientInput = z.input<typeof ownerClientSchema>;
+
+/** A new pet entered by the owner. */
+export const ownerPetSchema = z.strictObject({
+  name: trimmed("the animal's name", 60),
+  species: newPetSchema.shape.species,
+  breed: newPetSchema.shape.breed,
+});
+export type OwnerPetInput = z.input<typeof ownerPetSchema>;
+
+export const clientSearchSchema = z.string().trim().max(100);
+
 const existingRef = z.strictObject({ id: idSchema });
 
 export const createBookingSchema = z.strictObject({

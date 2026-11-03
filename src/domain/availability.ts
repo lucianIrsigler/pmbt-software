@@ -5,8 +5,14 @@ import { formatTstzRange } from "@/db/range";
 import { appointment, service, settings, timeOff, workingHours } from "@/db/schema";
 import { NotFoundError, SettingsMissingError } from "./errors";
 import { datesQuerySchema, slotsQuerySchema } from "./schemas";
-import { BLOCKING_STATUSES, getAvailableDates, getAvailableSlots, type SlotQuery } from "./slots";
-import { daysInMonth, localDayRange, type LocalDate, type TimeRange } from "./time";
+import {
+  BLOCKING_STATUSES,
+  getAvailableDates,
+  getAvailableSlots,
+  isSlotAvailable,
+  type SlotQuery,
+} from "./slots";
+import { daysInMonth, localDateOf, localDayRange, type LocalDate, type TimeRange } from "./time";
 
 /** Anything we can run a select on: the db or a transaction. */
 export type Queryable = Pick<Database, "select">;
@@ -88,4 +94,35 @@ export async function findDates(
   const range = { start: localDayRange(first, tz).start, end: localDayRange(last, tz).end };
   const data = await loadAvailability(db, range);
   return getAvailableDates(month, { ...data, service: svc, now, tz });
+}
+
+/**
+ * Owner bookings: the active services of `forKind` that fit at `start` without clashing
+ * with working hours, time off or other bookings. Short notice and far-ahead dates are
+ * allowed (see `createBooking`'s `ignoreMinNotice` / `ignoreHorizon`).
+ */
+export async function servicesBookableAt(
+  db: Queryable,
+  start: Date,
+  forKind: Service["forKind"],
+  { tz, now = new Date() }: ClockOptions,
+): Promise<Service[]> {
+  const [services, data] = await Promise.all([
+    db
+      .select()
+      .from(service)
+      .where(and(eq(service.active, true), eq(service.forKind, forKind)))
+      .orderBy(asc(service.sortOrder), asc(service.name)),
+    loadAvailability(db, localDayRange(localDateOf(start, tz), tz)),
+  ]);
+  return services.filter((svc) =>
+    isSlotAvailable(start, {
+      ...data,
+      service: svc,
+      now,
+      tz,
+      ignoreMinNotice: true,
+      ignoreHorizon: true,
+    }),
+  );
 }
