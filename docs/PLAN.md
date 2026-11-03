@@ -145,16 +145,18 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
 
 ## Phase 6: Owner app — Calendar tab
 
-- [ ] Week view (`/app/calendar`), defaulting to this week; big "← Previous week" / "Next week →" buttons. On narrow screens show one day at a time with prev/next day buttons instead of a cramped grid.
-- [ ] Appointments shown as blocks with time and name; tapping opens the appointment detail
-- [ ] Time off shown as a grey "Away" block
-- [ ] Tap an empty slot → "New booking" screen:
+- [x] Week view (`/app/calendar`), defaulting to this week; big "← Previous week" / "Next week →" buttons. On narrow screens show one day at a time with prev/next day buttons instead of a cramped grid.
+- [x] Appointments shown as blocks with time and name; tapping opens the appointment detail
+- [x] Time off shown as a grey "Away" block
+- [x] Tap an empty slot → "New booking" screen:
   1. Search existing client by name/phone, or "New client" (name, phone)
   2. Choose pet (or "for the client") or add a new pet
   3. Choose service
-  4. Confirm (uses `createBooking` with `source = 'app'`; she may override min notice)
-- [ ] "Block time" button: whole day or a time range, with optional reason; list of upcoming blocks with remove option
-- [ ] Shared week-grid component built in-house (no calendar library)
+  4. Confirm (uses `createBooking` with `source = 'app'`; she may override min notice
+     and book beyond `max_days_ahead`)
+- [x] "Block time" button: whole day or a time range, with optional reason; list of upcoming blocks with remove option.
+      Bookings already inside a new block are kept and listed so she can call them.
+- [x] Shared week-grid component built in-house (no calendar library)
 
 **Done when:** she can add a phone booking and block a day off in a few taps, and those times disappear from the public booking page.
 
