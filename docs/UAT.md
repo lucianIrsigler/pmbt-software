@@ -56,25 +56,25 @@ inbox you control for the email tests.
 
 ## Phase 0: Scaffold
 
-- [ ] **0.1** `pnpm install` finishes with no errors.
-- [ ] **0.2** `pnpm db:up` starts Postgres; `pnpm db:down` stops it; after `db:up` again, data is still there.
-- [ ] **0.3** `pnpm dev` starts and `http://localhost:3000` shows the home page.
-- [ ] **0.4** Remove `DATABASE_URL` from `.env` and run `pnpm dev`: startup fails with a clear message naming the missing variable. Put it back.
-- [ ] **0.5** Set `BUSINESS_TZ` to nonsense (e.g. `Mars/Base`): startup fails with a clear message. Put it back.
-- [ ] **0.6** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check` all pass.
-- [ ] **0.7** Every command listed in `CLAUDE.md` "Commands" exists in `package.json`.
-- [ ] **0.8** GitHub Actions CI is green on the latest commit (once pushed).
+- [x] **0.1** `pnpm install` finishes with no errors.
+- [x] **0.2** `pnpm db:up` starts Postgres; `pnpm db:down` stops it; after `db:up` again, data is still there.
+- [x] **0.3** `pnpm dev` starts and `http://localhost:3000` shows the home page.
+- [x] **0.4** Remove `DATABASE_URL` from `.env` and run `pnpm dev`: startup fails with a clear message naming the missing variable. Put it back.
+- [x] **0.5** Set `BUSINESS_TZ` to nonsense (e.g. `Mars/Base`): startup fails with a clear message. Put it back.
+- [x] **0.6** `pnpm typecheck`, `pnpm lint`, `pnpm test`, `pnpm format:check` all pass.
+- [x] **0.7** Every command listed in `CLAUDE.md` "Commands" exists in `package.json`.
+- [x] **0.8** GitHub Actions CI is green on the latest commit (once pushed).
 
 ---
 
 ## Phase 1: Database schema
 
-- [ ] **1.1** On an empty database, `pnpm db:migrate` runs without errors.
-- [ ] **1.2** `pnpm db:seed` runs without errors. Run it a **second time**: no errors and no duplicate services, products or hours.
-- [ ] **1.3** Seeded data is visible on the site: 3 human services, 3 animal services, 3 products, opening hours Mon–Fri 09:00–17:00 and Sat 09:00–13:00 (check in `/admin/hours`).
-- [ ] **1.4** Settings defaults (in `/admin/settings`): min notice 12 h, max 42 days ahead, slot step 30 min, cancel cutoff 24 h.
-- [ ] **1.5** Double-booking guard at the database level (psql): insert two overlapping `booked` appointments → second fails with `23P01`. Same when the first is `done`. Overlap with a `cancelled` or `no_show` one succeeds. (Also covered by `pnpm test:int`.)
-- [ ] **1.6** `pnpm test:int` passes.
+- [x] **1.1** On an empty database, `pnpm db:migrate` runs without errors.
+- [x] **1.2** `pnpm db:seed` runs without errors. Run it a **second time**: no errors and no duplicate services, products or hours.
+- [x] **1.3** Seeded data is visible on the site: 3 human services, 3 animal services, 3 products, opening hours Mon–Fri 09:00–17:00 and Sat 09:00–13:00 (check in `/admin/hours`).
+- [x] **1.4** Settings defaults (in `/admin/settings`): min notice 12 h, max 42 days ahead, slot step 30 min, cancel cutoff 24 h.
+- [x] **1.5** Double-booking guard at the database level (psql): insert two overlapping `booked` appointments → second fails with `23P01`. Same when the first is `done`. Overlap with a `cancelled` or `no_show` one succeeds. (Also covered by `pnpm test:int`.)
+- [x] **1.6** `pnpm test:int` passes.
 
 ---
 
@@ -82,16 +82,16 @@ inbox you control for the email tests.
 
 Mostly covered by unit tests. Check the rules hold in the real UI:
 
-- [ ] **2.1** `pnpm test` passes.
-- [ ] **2.2** Sunday shows no available times on `/book` (closed day).
-- [ ] **2.3** Saturday shows times only from 09:00, and the last time leaves room for the service + 10 min buffer before 13:00.
-- [ ] **2.4** A long service (e.g. 60 min) does not offer 16:30 on a weekday (it would run past 17:00).
-- [ ] **2.5** Times are on 30-minute boundaries (09:00, 09:30…).
-- [ ] **2.6** Min notice: times less than 12 hours from now are not offered (test late in the evening: tomorrow early morning should be missing).
-- [ ] **2.7** Horizon: days more than 42 days ahead are disabled in the date picker.
-- [ ] **2.8** After booking 10:00, the slots that would overlap it (including the 10-minute buffer) disappear for other services too.
-- [ ] **2.9** Phone normalisation: book once with `082 555 0101`, then with `+27 82 555 0101`. In `/app/clients` there is only **one** "Test Person", with both visits.
-- [ ] **2.10** All times shown are South African time, even if your computer/phone is set to another timezone (change the device timezone to e.g. London and reload `/book` and `/app`).
+- [x] **2.1** `pnpm test` passes.
+- [x] **2.2** Sunday shows no available times on `/book` (closed day).
+- [x] **2.3** Saturday shows times only from 09:00, and the last time leaves room for the service + 10 min buffer before 13:00.
+- [x] **2.4** A long service (e.g. 60 min) does not offer 16:30 on a weekday (it would run past 17:00).
+- [x] **2.5** Times are on 30-minute boundaries (09:00, 09:30…).
+- [x] **2.6** Min notice: times less than 12 hours from now are not offered (test late in the evening: tomorrow early morning should be missing).
+- [x] **2.7** Horizon: days more than 42 days ahead are disabled in the date picker.
+- [x] **2.8** After booking 10:00, the slots that would overlap it (including the 10-minute buffer) disappear for other services too.
+- [x] **2.9** Phone normalisation: book once with `082 555 0101`, then with `+27 82 555 0101`. In `/app/clients` there is only **one** "Test Person", with both visits.
+- [x] **2.10** All times shown are South African time, even if your computer/phone is set to another timezone (change the device timezone to e.g. London and reload `/book` and `/app`).
 
 ---
 
