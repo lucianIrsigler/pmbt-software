@@ -159,6 +159,8 @@ export const timeOff = pgTable(
     during: tstzrange("during").notNull(),
     reason: text("reason"),
     createdAt: createdAt(),
+    /** Set when the owner removes the block. Kept as a record; removed blocks don't block. */
+    removedAt: timestamp("removed_at", { withTimezone: true }),
   },
   () => [boundedRange("time_off_during_bounded", "during")],
 );

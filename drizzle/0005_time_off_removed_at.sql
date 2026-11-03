@@ -1,0 +1,1 @@
+ALTER TABLE "time_off" ADD COLUMN "removed_at" timestamp with time zone;

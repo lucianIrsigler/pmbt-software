@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { z } from "zod";
 import type { Database } from "@/db/client";
 import { formatTstzRange } from "@/db/range";
@@ -43,7 +43,7 @@ export async function loadAvailability(
     db
       .select({ during: timeOff.during })
       .from(timeOff)
-      .where(sql`${timeOff.during} && ${overlaps}`),
+      .where(and(isNull(timeOff.removedAt), sql`${timeOff.during} && ${overlaps}`)),
     db
       .select({ during: appointment.during })
       .from(appointment)

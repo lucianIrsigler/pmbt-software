@@ -32,7 +32,7 @@ Create the Drizzle schema in `src/db/schema.ts`:
 | `service` | id, name, description, for_kind (`human` \| `animal`), duration_min, buffer_min (default 10), price_cents, sort_order, active |
 | `product` | id, name, description, price_cents, sort_order, active |
 | `working_hours` | id, weekday (0–6, 0 = Sunday), start_time, end_time |
-| `time_off` | id, during (tstzrange), reason |
+| `time_off` | id, during (tstzrange), reason, removed_at (set on removal; the row is kept) |
 | `appointment` | id, client_id, pet_id (nullable: null = client is treated), service_id, during (tstzrange, includes buffer), status (`booked` \| `done` \| `no_show` \| `cancelled`), source (`web` \| `app`), notes, manage_token (unique), cancelled_at, created_at, updated_at |
 | `appointment_product` | appointment_id, product_id, qty, price_cents (PK on both ids) |
 | `settings` | single row: business_name, min_notice_hours (12), max_days_ahead (42), slot_step_min (30), cancel_cutoff_hours (24) |
@@ -156,6 +156,7 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
      and book beyond `max_days_ahead`)
 - [x] "Block time" button: whole day or a time range, with optional reason; list of upcoming blocks with remove option.
       Bookings already inside a new block are kept and listed so she can call them.
+      Removing a block keeps it as a record (`removed_at`) rather than deleting it.
 - [x] Shared week-grid component built in-house (no calendar library)
 
 **Done when:** she can add a phone booking and block a day off in a few taps, and those times disappear from the public booking page.

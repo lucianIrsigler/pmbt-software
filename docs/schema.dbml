@@ -123,6 +123,7 @@ Table time_off {
   during tstzrange [not null, note: 'Bounded, non-empty']
   reason text
   created_at timestamptz [not null, default: `now()`]
+  removed_at timestamptz [note: 'Set when removed; kept as a record, no longer blocks']
 }
 
 Table appointment {

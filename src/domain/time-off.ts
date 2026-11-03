@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Database } from "@/db/client";
 import { formatTstzRange } from "@/db/range";
 import { timeOff } from "@/db/schema";
@@ -48,19 +48,37 @@ export async function addTimeOff(
   return row.id;
 }
 
-/** Removes a block, so that time can be booked again. */
-export async function removeTimeOff(db: Database, rawId: string): Promise<void> {
+/**
+ * Removes a block so that time can be booked again. The row is kept as a record
+ * (`removed_at` is set) and is ignored everywhere from then on.
+ */
+export async function removeTimeOff(
+  db: Database,
+  rawId: string,
+  now: Date = new Date(),
+): Promise<void> {
   const id = idSchema.parse(rawId);
-  const deleted = await db.delete(timeOff).where(eq(timeOff.id, id)).returning({ id: timeOff.id });
-  if (deleted.length === 0) throw new NotFoundError("time off");
+  const removed = await db
+    .update(timeOff)
+    .set({ removedAt: now })
+    .where(and(eq(timeOff.id, id), isNull(timeOff.removedAt)))
+    .returning({ id: timeOff.id });
+  if (removed.length === 0) throw new NotFoundError("time off");
 }
+
+/** Blocks the owner hasn't removed. */
+const active = isNull(timeOff.removedAt);
 
 const columns = { id: timeOff.id, during: timeOff.during, reason: timeOff.reason };
 
+/** An active (not removed) block, or null. */
 export async function getTimeOff(db: Queryable, rawId: string): Promise<TimeOffBlock | null> {
   const id = idSchema.safeParse(rawId);
   if (!id.success) return null;
-  const [row] = await db.select(columns).from(timeOff).where(eq(timeOff.id, id.data));
+  const [row] = await db
+    .select(columns)
+    .from(timeOff)
+    .where(and(eq(timeOff.id, id.data), active));
   return row ?? null;
 }
 
@@ -69,7 +87,7 @@ export async function listUpcomingTimeOff(db: Queryable, now: Date): Promise<Tim
   return db
     .select(columns)
     .from(timeOff)
-    .where(sql`upper(${timeOff.during}) > ${now.toISOString()}::timestamptz`)
+    .where(and(active, sql`upper(${timeOff.during}) > ${now.toISOString()}::timestamptz`))
     .orderBy(asc(sql`lower(${timeOff.during})`));
 }
 
@@ -78,6 +96,6 @@ export async function listTimeOffDuring(db: Queryable, range: TimeRange): Promis
   return db
     .select(columns)
     .from(timeOff)
-    .where(sql`${timeOff.during} && ${formatTstzRange(range)}::tstzrange`)
+    .where(and(active, sql`${timeOff.during} && ${formatTstzRange(range)}::tstzrange`))
     .orderBy(asc(sql`lower(${timeOff.during})`));
 }

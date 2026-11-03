@@ -1,4 +1,4 @@
-import { asc, sql } from "drizzle-orm";
+import { asc, eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Database } from "@/db/client";
 import { service, timeOff } from "@/db/schema";
@@ -130,13 +130,28 @@ describe("time off", () => {
     const week = { start: at("2030-06-03", "00:00"), end: at("2030-06-10", "00:00") };
     const [first] = await listTimeOffDuring(db, week);
     if (!first) throw new Error("expected a block");
-    await removeTimeOff(db, first.id);
+    await removeTimeOff(db, first.id, NOW);
     expect(await getTimeOff(db, first.id)).toBeNull();
+    expect((await listTimeOffDuring(db, week)).map((b) => b.id)).not.toContain(first.id);
+    expect((await listUpcomingTimeOff(db, NOW)).map((b) => b.id)).not.toContain(first.id);
     await expect(removeTimeOff(db, first.id)).rejects.toBeInstanceOf(NotFoundError);
+
+    // Kept as a record.
+    const [row] = await db.select().from(timeOff).where(eq(timeOff.id, first.id));
+    expect(row?.removedAt).toEqual(NOW);
+  });
+
+  it("frees the time again once removed", async () => {
+    const date = "2030-06-11";
+    const id = await addTimeOff(db, { date, kind: "day" }, clock);
+    expect(await findSlots(db, { serviceId: humanServiceId, date }, clock)).toEqual([]);
+    await removeTimeOff(db, id);
+    expect(
+      (await findSlots(db, { serviceId: humanServiceId, date }, clock)).length,
+    ).toBeGreaterThan(0);
   });
 
   it("returns null for unknown or malformed ids", async () => {
     expect(await getTimeOff(db, "not-a-uuid")).toBeNull();
-    expect(await db.select().from(timeOff).limit(1)).toHaveLength(1);
   });
 });

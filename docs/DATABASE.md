@@ -37,7 +37,8 @@ hand-written SQL in [`drizzle/`](../drizzle).
 - Prices are non-negative integer cents (ZAR); durations positive; weekday 0–6 (0 = Sunday);
   working hours end after they start.
 - Nothing cascades on delete except a user's sessions: clients, pets and appointments are
-  archived or cancelled, never deleted.
+  archived or cancelled, never deleted. Removed time off is kept too (`time_off.removed_at`)
+  and ignored by every query.
 
 ## Migrations
 
@@ -48,6 +49,7 @@ hand-written SQL in [`drizzle/`](../drizzle).
 | `0002_appointment_no_overlap.sql` (custom) | The exclusion constraint (Drizzle can't model it) |
 | `0003_settings_contact.sql`        | Contact phone, email and address on `settings` |
 | `0004_done_blocks_time.sql` (custom) | `done` appointments also block their time |
+| `0005_time_off_removed_at.sql`     | Removed time off is kept as a record         |
 
 - Change the schema: edit `src/db/schema.ts`, run `pnpm db:generate`, review the SQL, then
   `pnpm db:migrate`.
