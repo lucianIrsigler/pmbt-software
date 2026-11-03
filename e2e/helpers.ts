@@ -1,17 +1,34 @@
 import { randomBytes } from "node:crypto";
-import { expect, type Page } from "@playwright/test";
+import { expect, type BrowserContext, type Page } from "@playwright/test";
 import postgres from "postgres";
 import { e2eDatabaseUrl } from "../src/test/database";
 import { E2E_USER } from "./user";
 
 const TZ = "Africa/Johannesburg";
 
+type Cookies = Awaited<ReturnType<BrowserContext["cookies"]>>;
+
+/** Session cookies from the first sign-in, reused by later tests in this worker. */
+let savedSession: Cookies | null = null;
+
+/**
+ * Signs in through the login form once, then reuses that session. The app limits
+ * sign-ins to 10 per email per 15 minutes, which the whole suite would exceed.
+ * (e2e/auth.spec.ts tests the login form itself.)
+ */
 export async function signIn(page: Page, next = "/app"): Promise<void> {
+  if (savedSession) {
+    await page.context().addCookies(savedSession);
+    await page.goto(next);
+    if (new URL(page.url()).pathname === next) return;
+    savedSession = null; // the session ended (e.g. expired); sign in again below
+  }
   await page.goto(`/login?next=${encodeURIComponent(next)}`);
   await page.getByLabel("Email").fill(E2E_USER.email);
   await page.getByLabel("Password").fill(E2E_USER.password);
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page).toHaveURL(new RegExp(`${next}$`));
+  savedSession = await page.context().cookies();
 }
 
 /**
