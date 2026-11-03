@@ -2,12 +2,15 @@ import { describe, expect, it } from "vitest";
 import {
   formatDateTime,
   formatDayLong,
+  formatDayMonth,
   formatDuration,
   formatLocalDate,
   formatMonth,
   formatPhone,
   formatPrice,
   formatTime,
+  formatTimeOffRange,
+  formatWeekdayShort,
 } from "./format";
 
 const TZ = "Africa/Johannesburg";
@@ -63,5 +66,38 @@ describe("formatPhone", () => {
 
   it("leaves other numbers alone", () => {
     expect(formatPhone("+442079460958")).toBe("+442079460958");
+  });
+});
+
+describe("calendar labels", () => {
+  it("formats short weekdays and day-month", () => {
+    expect(formatWeekdayShort("2026-11-02")).toBe("Mon");
+    expect(formatDayMonth("2026-11-02")).toBe("2 November");
+  });
+});
+
+describe("formatTimeOffRange", () => {
+  const local = (iso: string): Date => new Date(`${iso}+02:00`);
+
+  it("describes a whole day", () => {
+    const range = { start: local("2026-11-03T00:00:00"), end: local("2026-11-04T00:00:00") };
+    expect(formatTimeOffRange(range, TZ)).toBe("Tuesday 3 November, whole day");
+  });
+
+  it("describes several whole days", () => {
+    const range = { start: local("2026-11-03T00:00:00"), end: local("2026-11-06T00:00:00") };
+    expect(formatTimeOffRange(range, TZ)).toBe("Tuesday 3 November to Thursday 5 November");
+  });
+
+  it("describes part of a day", () => {
+    const range = { start: local("2026-11-03T13:00:00"), end: local("2026-11-03T15:30:00") };
+    expect(formatTimeOffRange(range, TZ)).toBe("Tuesday 3 November, 13:00 – 15:30");
+  });
+
+  it("describes a range across days", () => {
+    const range = { start: local("2026-11-03T16:00:00"), end: local("2026-11-04T10:00:00") };
+    expect(formatTimeOffRange(range, TZ)).toBe(
+      "Tuesday 3 November 16:00 to Wednesday 4 November 10:00",
+    );
   });
 });

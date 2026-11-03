@@ -14,6 +14,8 @@
   --color-warn-ink: #6b4400;
   --color-danger: #a12a1f;
   --color-danger-soft: #fbe7e4;
+  /* Blocked time on the calendar: grey, with ink text on it. */
+  --color-away: #e2ddd6;
 
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }

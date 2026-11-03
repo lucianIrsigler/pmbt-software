@@ -1,3 +1,5 @@
+import { localDateOf, minutesOfDay, type TimeRange } from "@/domain/time";
+
 /** Display helpers. Every date/time is shown in the business time zone, never the viewer's. */
 
 /** ZAR cents to `R450` or `R450.50`. */
@@ -64,4 +66,49 @@ export function formatLocalDate(date: string): string {
 export function formatPhone(e164: string): string {
   const match = /^\+27(\d{2})(\d{3})(\d{4})$/.exec(e164);
   return match ? `0${match[1]} ${match[2]} ${match[3]}` : e164;
+}
+
+function utcNoon(date: string): Date {
+  const [year, month, day] = date.split("-").map(Number) as [number, number, number];
+  return new Date(Date.UTC(year, month - 1, day, 12));
+}
+
+/** `Mon` for a `YYYY-MM-DD` calendar date. */
+export function formatWeekdayShort(date: string): string {
+  return new Intl.DateTimeFormat("en-GB", { timeZone: "UTC", weekday: "short" }).format(
+    utcNoon(date),
+  );
+}
+
+/** `3 November` for a `YYYY-MM-DD` calendar date. */
+export function formatDayMonth(date: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "UTC",
+    day: "numeric",
+    month: "long",
+  }).format(utcNoon(date));
+}
+
+/**
+ * A blocked time, in plain words:
+ * `Tuesday 3 November, whole day`, `Tuesday 3 November to Thursday 5 November`,
+ * `Tuesday 3 November, 13:00 – 15:30`.
+ */
+export function formatTimeOffRange(range: TimeRange, tz: string): string {
+  const startsAtMidnight = minutesOfDay(range.start, tz) === 0;
+  const endsAtMidnight = minutesOfDay(range.end, tz) === 0;
+  const firstDay = localDateOf(range.start, tz);
+  // A range ending at midnight belongs to the day before.
+  const lastDay = localDateOf(new Date(range.end.getTime() - 1), tz);
+
+  if (startsAtMidnight && endsAtMidnight) {
+    return firstDay === lastDay
+      ? `${formatLocalDate(firstDay)}, whole day`
+      : `${formatLocalDate(firstDay)} to ${formatLocalDate(lastDay)}`;
+  }
+  if (firstDay === lastDay) {
+    const end = endsAtMidnight ? "24:00" : formatTime(range.end, tz);
+    return `${formatLocalDate(firstDay)}, ${formatTime(range.start, tz)} – ${end}`;
+  }
+  return `${formatDayLong(range.start, tz)} ${formatTime(range.start, tz)} to ${formatDayLong(range.end, tz)} ${formatTime(range.end, tz)}`;
 }

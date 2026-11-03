@@ -63,6 +63,18 @@ export async function loadAvailability(
   };
 }
 
+/** All working-hours blocks, by weekday. */
+export async function loadWorkingHours(db: Queryable): Promise<SlotQuery["workingHours"]> {
+  return db
+    .select({
+      weekday: workingHours.weekday,
+      startTime: workingHours.startTime,
+      endTime: workingHours.endTime,
+    })
+    .from(workingHours)
+    .orderBy(asc(workingHours.weekday), asc(workingHours.startTime));
+}
+
 export interface ClockOptions {
   tz: string;
   now?: Date;
