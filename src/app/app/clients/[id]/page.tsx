@@ -12,9 +12,12 @@ import {
   listClientVisits,
   type ClientVisit,
 } from "@/domain/clients";
+import { localDateOf } from "@/domain/time";
 import { formatDateTime, formatPhone } from "@/lib/format";
 import { requestContext } from "@/lib/request";
 import type { SearchParams } from "@/lib/search-params";
+import { appointmentUrl } from "../../appointment/urls";
+import { calendarUrl } from "../../calendar/urls";
 import { archiveClientAction, saveClientNotesAction, unarchiveClientAction } from "../actions";
 
 export const metadata: Metadata = { title: "Client" };
@@ -47,7 +50,7 @@ function VisitList({
         const badge = statusBadge(v, upcoming);
         return (
           <li key={v.id}>
-            <Link href={`/app/appointment/${v.id}`} className={rowLink}>
+            <Link href={appointmentUrl(v.id, "client")} className={rowLink}>
               <span className="flex flex-wrap items-center justify-between gap-2">
                 <span className="text-xl font-semibold">{formatDateTime(v.start, tz)}</span>
                 {badge && (
@@ -130,6 +133,14 @@ export default async function ClientPage({
         <a href={`tel:${c.phone}`} className={ownerButton.primary}>
           Call {firstName}
         </a>
+        {!c.archivedAt && (
+          <Link
+            href={calendarUrl(localDateOf(now, tz), { client: c.id })}
+            className={ownerButton.secondary}
+          >
+            New booking
+          </Link>
+        )}
         <Link href={`/app/clients/${c.id}/edit`} className={ownerButton.secondary}>
           Edit details
         </Link>

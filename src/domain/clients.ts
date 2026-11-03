@@ -1,4 +1,17 @@
-import { and, asc, count, desc, eq, isNull, like, ne, or, sql, type SQL } from "drizzle-orm";
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  isNotNull,
+  isNull,
+  like,
+  ne,
+  or,
+  sql,
+  type SQL,
+} from "drizzle-orm";
 import type { Database, Transaction } from "@/db/client";
 import { appointment, client, pet, service } from "@/db/schema";
 import type { Queryable } from "./availability";
@@ -197,6 +210,7 @@ export interface ClientWithPets {
   id: string;
   name: string;
   phone: string;
+  archived: boolean;
   pets: ClientPet[];
 }
 
@@ -208,7 +222,12 @@ export async function getClientWithPets(
   const id = idSchema.safeParse(rawId);
   if (!id.success) return null;
   const [row] = await db
-    .select({ id: client.id, name: client.name, phone: client.phone })
+    .select({
+      id: client.id,
+      name: client.name,
+      phone: client.phone,
+      archived: sql<boolean>`${client.archivedAt} is not null`,
+    })
     .from(client)
     .where(eq(client.id, id.data));
   if (!row) return null;
@@ -237,6 +256,23 @@ export async function listRecentClients(db: Queryable): Promise<ClientSearchResu
       desc(client.createdAt),
     )
     .limit(RECENT_CLIENTS);
+}
+
+const ARCHIVED_CLIENTS = 200;
+
+/** Archived clients, most recently archived first, so she can bring someone back. */
+export async function listArchivedClients(db: Queryable): Promise<ClientSearchResult[]> {
+  return db
+    .select({ id: client.id, name: client.name, phone: client.phone, petNames: petNamesSql })
+    .from(client)
+    .where(isNotNull(client.archivedAt))
+    .orderBy(desc(client.archivedAt), asc(client.name))
+    .limit(ARCHIVED_CLIENTS);
+}
+
+export async function countArchivedClients(db: Queryable): Promise<number> {
+  const [row] = await db.select({ n: count() }).from(client).where(isNotNull(client.archivedAt));
+  return row?.n ?? 0;
 }
 
 export interface ClientProfile {

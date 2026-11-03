@@ -82,11 +82,16 @@ export function gridWindow(
   return { from: Math.floor(from / 60) * 60, to: Math.min(24 * 60, Math.ceil(to / 60) * 60) };
 }
 
-/** An item placed in a day column: `top` and `height` in minutes, relative to the window. */
+/**
+ * An item placed in a day column: `top` and `height` in minutes, relative to the window.
+ * `narrow` items share their time with a "didn't come" visit, which takes the right third
+ * of the column, so they only use the left part.
+ */
 export interface Placed<T> {
   item: T;
   top: number;
   height: number;
+  narrow: boolean;
 }
 
 /** An empty, bookable cell. */
@@ -94,6 +99,7 @@ export interface FreeCell {
   start: Date;
   top: number;
   height: number;
+  narrow: boolean;
 }
 
 export interface DayColumn<A extends HasRange, O extends HasRange> {
@@ -101,6 +107,8 @@ export interface DayColumn<A extends HasRange, O extends HasRange> {
   /** Whether the business has working hours on this weekday. */
   open: boolean;
   appointments: Placed<A>[];
+  /** "Didn't come" visits: their time is free again, so they are shown beside, not instead. */
+  noShows: Placed<A>[];
   away: Placed<O>[];
   free: FreeCell[];
 }
@@ -111,6 +119,8 @@ export interface DayColumnInput<A extends HasRange, O extends HasRange> {
   workingHours: readonly SlotWorkingHours[];
   /** Appointments that occupy time (booked or done); `during` includes the buffer. */
   appointments: readonly A[];
+  /** "Didn't come" visits. They don't block time. */
+  noShows?: readonly A[];
   timeOff: readonly O[];
   /** Cell size, usually `slot_step_min`. */
   stepMin: number;
@@ -130,7 +140,9 @@ function place<T extends HasRange>(
     if (!m) continue;
     const top = Math.max(m.from, window.from);
     const bottom = Math.min(m.to, window.to);
-    if (bottom > top) placed.push({ item, top: top - window.from, height: bottom - top });
+    if (bottom > top) {
+      placed.push({ item, top: top - window.from, height: bottom - top, narrow: false });
+    }
   }
   return placed.sort((a, b) => a.top - b.top);
 }
@@ -162,16 +174,40 @@ export function buildDayColumn<A extends HasRange, O extends HasRange>(
         const cell = { start, end: addMinutesTo(start, stepMin) };
         if (start.getTime() < input.now.getTime()) continue;
         if (busy.some((b) => rangesOverlap(cell, b))) continue;
-        free.push({ start, top: m - window.from, height: stepMin });
+        free.push({ start, top: m - window.from, height: stepMin, narrow: false });
       }
     }
   }
 
+  const noShows = place(input.noShows ?? [], date, window, tz);
+  const besideNoShow = <T extends { top: number; height: number }>(
+    x: T,
+  ): T & { narrow: boolean } => ({
+    ...x,
+    narrow: noShows.some((n) => n.top < x.top + x.height && x.top < n.top + n.height),
+  });
+
   return {
     date,
     open: hours.length > 0,
-    appointments: place(input.appointments, date, window, tz),
+    appointments: place(input.appointments, date, window, tz).map(besideNoShow),
+    noShows,
     away: place(input.timeOff, date, window, tz),
-    free: free.sort((a, b) => a.top - b.top),
+    free: free.sort((a, b) => a.top - b.top).map(besideNoShow),
   };
+}
+
+/**
+ * Where the "now" line goes on `date`, in minutes relative to the window; null unless
+ * `date` is today (business tz) and now falls inside the window.
+ */
+export function nowOffset(
+  date: LocalDate,
+  window: GridWindow,
+  now: Date,
+  tz: string,
+): number | null {
+  const m = minutesWithin({ start: now, end: new Date(now.getTime() + 60_000) }, date, tz);
+  if (!m || m.from < window.from || m.from >= window.to) return null;
+  return m.from - window.from;
 }

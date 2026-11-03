@@ -7,7 +7,14 @@ import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
 import { servicesBookableAt } from "./availability";
 import { createBooking } from "./booking";
-import { createClient, createPet, getClientWithPets, searchClients } from "./clients";
+import {
+  countArchivedClients,
+  createClient,
+  createPet,
+  getClientWithPets,
+  listArchivedClients,
+  searchClients,
+} from "./clients";
 import { NotFoundError, SlotUnavailableError } from "./errors";
 import { addTimeOff } from "./time-off";
 import { zonedInstant } from "./time";
@@ -97,6 +104,19 @@ describe("searchClients", () => {
     expect(await searchClients(db, "t")).toEqual([]);
     expect(await searchClients(db, "%%")).toEqual([]);
     expect(await searchClients(db, "__")).toEqual([]);
+  });
+});
+
+describe("archived clients", () => {
+  it("lists only archived clients, and says who is archived", async () => {
+    const archived = await listArchivedClients(db);
+    expect(archived.map((c) => c.name)).toEqual(["Thandi Archived"]);
+    expect(await countArchivedClients(db)).toBe(1);
+
+    const [one] = archived;
+    expect((await getClientWithPets(db, one?.id ?? ""))?.archived).toBe(true);
+    const [current] = await searchClients(db, "Thandi Mokoena");
+    expect((await getClientWithPets(db, current?.id ?? ""))?.archived).toBe(false);
   });
 });
 

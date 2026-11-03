@@ -10,6 +10,8 @@ import { getAppointmentDetail, type AppointmentDetail } from "@/domain/appointme
 import { listActiveProducts } from "@/domain/catalogue";
 import { formatDayLong, formatPhone, formatTime } from "@/lib/format";
 import { requestContext } from "@/lib/request";
+import { stringParam, type SearchParams } from "@/lib/search-params";
+import { appointmentBackLink } from "../urls";
 import {
   addProductAction,
   cancelAppointmentAction,
@@ -76,20 +78,27 @@ function StatusSection({ a }: { a: AppointmentDetail }): ReactNode {
 
 export default async function AppointmentPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: SearchParams;
 }): Promise<ReactNode> {
   const { id } = await params;
+  const query = await searchParams;
   const { db, tz } = await requestContext();
   const [a, products] = await Promise.all([getAppointmentDetail(db, id), listActiveProducts(db)]);
   if (!a) notFound();
 
+  const back = appointmentBackLink(
+    { from: stringParam(query.from), date: stringParam(query.date) },
+    a.client,
+  );
   const who = a.pet ? `${a.pet.name} (${a.pet.species})` : a.client.name;
 
   return (
     <div className="flex flex-col gap-6">
-      <Link href="/app" className="py-1 text-xl font-semibold text-accent underline">
-        ← Today
+      <Link href={back.href} className="py-1 text-xl font-semibold text-accent underline">
+        ← {back.label}
       </Link>
 
       <header className="flex flex-col gap-1">

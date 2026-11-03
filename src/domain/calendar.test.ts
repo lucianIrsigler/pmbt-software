@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { buildDayColumn, gridWindow, weekDates, weekStart, type DayColumnInput } from "./calendar";
+import {
+  buildDayColumn,
+  gridWindow,
+  nowOffset,
+  weekDates,
+  weekStart,
+  type DayColumnInput,
+} from "./calendar";
 import type { SlotWorkingHours } from "./slots";
 import { minutesOfDay, zonedInstant, type TimeRange } from "./time";
 
@@ -113,7 +120,7 @@ describe("buildDayColumn", () => {
   it("places an appointment (with its buffer) and frees cells around it", () => {
     const appt = range(MONDAY, "10:00", "10:40");
     const col = column({ appointments: [appt] });
-    expect(col.appointments).toEqual([{ item: appt, top: 60, height: 40 }]);
+    expect(col.appointments).toEqual([{ item: appt, top: 60, height: 40, narrow: false }]);
     expect(freeTimes(col)).not.toContain("10:00");
     expect(freeTimes(col)).not.toContain("10:30"); // the buffer runs to 10:40
     expect(freeTimes(col)).toContain("09:30");
@@ -123,7 +130,7 @@ describe("buildDayColumn", () => {
   it("shows time off and offers no cells inside it", () => {
     const away = range(MONDAY, "13:00", "15:00");
     const col = column({ timeOff: [away] });
-    expect(col.away).toEqual([{ item: away, top: 240, height: 120 }]);
+    expect(col.away).toEqual([{ item: away, top: 240, height: 120, narrow: false }]);
     expect(freeTimes(col)).not.toContain("13:00");
     expect(freeTimes(col)).not.toContain("14:30");
     expect(freeTimes(col)).toContain("15:00");
@@ -132,7 +139,7 @@ describe("buildDayColumn", () => {
   it("clips time off spanning several days to the window", () => {
     const away = { during: { start: at("2030-03-03", "12:00"), end: at("2030-03-06", "00:00") } };
     const col = column({ timeOff: [away] });
-    expect(col.away).toEqual([{ item: away, top: 0, height: 480 }]);
+    expect(col.away).toEqual([{ item: away, top: 0, height: 480, narrow: false }]);
     expect(col.free).toEqual([]);
   });
 
@@ -159,5 +166,54 @@ describe("buildDayColumn", () => {
       "12:00",
       "12:30",
     ]);
+  });
+});
+
+describe("buildDayColumn: didn't come", () => {
+  it("places no-shows without blocking the time they were booked for", () => {
+    const col = column({ noShows: [range(MONDAY, "10:00", "11:00")] });
+    expect(col.noShows).toHaveLength(1);
+    expect(col.noShows[0]).toMatchObject({ top: 60, height: 60 });
+    expect(freeTimes(col)).toContain("10:00");
+    expect(freeTimes(col)).toContain("10:30");
+  });
+
+  it("narrows only what overlaps a no-show", () => {
+    const col = column({
+      appointments: [range(MONDAY, "10:30", "11:30"), range(MONDAY, "14:00", "15:00")],
+      noShows: [range(MONDAY, "10:00", "11:00")],
+    });
+    expect(col.appointments.map((a) => a.narrow)).toEqual([true, false]);
+    const narrowFree = col.free.filter((c) => c.narrow).map((c) => hhmm(minutesOfDay(c.start, TZ)));
+    expect(narrowFree).toEqual(["10:00"]);
+  });
+
+  it("treats touching blocks as not overlapping", () => {
+    const col = column({
+      appointments: [range(MONDAY, "11:00", "12:00")],
+      noShows: [range(MONDAY, "10:00", "11:00")],
+    });
+    expect(col.appointments[0]?.narrow).toBe(false);
+  });
+
+  it("widens the grid window for a no-show outside working hours", () => {
+    expect(gridWindow([MONDAY], HOURS, [range(MONDAY, "17:00", "18:10")], TZ)).toEqual({
+      from: 9 * 60,
+      to: 19 * 60,
+    });
+  });
+});
+
+describe("nowOffset", () => {
+  const window = { from: 9 * 60, to: 17 * 60 };
+
+  it("places now on today's column", () => {
+    expect(nowOffset(MONDAY, window, at(MONDAY, "10:15"), TZ)).toBe(75);
+  });
+
+  it("is null on other days and outside the window", () => {
+    expect(nowOffset(MONDAY, window, at("2030-03-05", "10:15"), TZ)).toBeNull();
+    expect(nowOffset(MONDAY, window, at(MONDAY, "08:59"), TZ)).toBeNull();
+    expect(nowOffset(MONDAY, window, at(MONDAY, "17:00"), TZ)).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import { ownerBackLink, ownerButton, ownerRow } from "@/components/owner/styles"
 import { Notice } from "@/components/ui";
 import { servicesBookableAt, type Service } from "@/domain/availability";
 import { getClientWithPets, searchClients, type ClientWithPets } from "@/domain/clients";
+import { idSchema } from "@/domain/schemas";
 import { localDateOf } from "@/domain/time";
 import { formatDayLong, formatDuration, formatPhone, formatPrice, formatTime } from "@/lib/format";
 import { requestContext, type RequestContext } from "@/lib/request";
@@ -265,7 +266,11 @@ export default async function NewBookingPage({
 
   const parsedStart = startSchema.safeParse(stringParam(params.start));
   const start = parsedStart.success ? parsedStart.data : undefined;
-  const backToCalendar = calendarUrl(localDateOf(start ?? now, tz));
+  // Keep "booking for <client>" when going back, if this booking started from their page.
+  const clientId = idSchema.safeParse(stringParam(params.client));
+  const backToCalendar = calendarUrl(localDateOf(start ?? now, tz), {
+    client: clientId.success ? clientId.data : undefined,
+  });
 
   const header = (
     <div className="flex flex-col gap-1">

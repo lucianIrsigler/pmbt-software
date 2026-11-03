@@ -1,36 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ownerButton, ownerRow } from "@/components/owner/styles";
-import { listRecentClients, searchClients, type ClientSearchResult } from "@/domain/clients";
-import { formatPhone } from "@/lib/format";
+import { ownerButton } from "@/components/owner/styles";
+import { countArchivedClients, listRecentClients, searchClients } from "@/domain/clients";
 import { requestContext } from "@/lib/request";
 import type { SearchParams } from "@/lib/search-params";
+import { ClientList } from "./client-list";
 import { ClientSearchBox } from "./forms";
 
 export const metadata: Metadata = { title: "Clients" };
-
-function ClientList({
-  clients,
-  label,
-}: {
-  clients: ClientSearchResult[];
-  label: string;
-}): ReactNode {
-  return (
-    <ul className="flex flex-col gap-3" aria-label={label}>
-      {clients.map((c) => (
-        <li key={c.id}>
-          <Link href={`/app/clients/${c.id}`} className={ownerRow}>
-            <span className="text-xl font-bold">{c.name}</span>
-            <span className="text-lg">{formatPhone(c.phone)}</span>
-            {c.petNames && <span className="text-lg text-ink-soft">{c.petNames}</span>}
-          </Link>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export default async function ClientsPage({
   searchParams,
@@ -41,6 +19,7 @@ export default async function ClientsPage({
   const params = await searchParams;
   const q = (typeof params.q === "string" ? params.q : "").slice(0, 100);
   const searching = q.trim().length > 0;
+  const archivedCount = await countArchivedClients(db);
 
   let results: ReactNode;
   if (!searching) {
@@ -75,6 +54,14 @@ export default async function ClientsPage({
         Add client
       </Link>
       {results}
+      {archivedCount > 0 && (
+        <Link
+          href="/app/clients/archived"
+          className="mt-4 self-start py-2 text-lg font-semibold text-accent underline"
+        >
+          Archived clients ({archivedCount})
+        </Link>
+      )}
     </div>
   );
 }
