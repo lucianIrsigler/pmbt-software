@@ -1,0 +1,17 @@
+# HTTPS for the app. Caddy gets and renews a Let's Encrypt certificate for {$DOMAIN}
+# automatically (the domain's DNS must point at this server, ports 80 and 443 open).
+# For a local test, DOMAIN=localhost uses Caddy's own local certificate instead.
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	reverse_proxy web:3000
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		X-Frame-Options "DENY"
+		-Server
+	}
+}

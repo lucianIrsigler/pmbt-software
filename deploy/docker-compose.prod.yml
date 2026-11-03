@@ -1,0 +1,105 @@
+# Production: one VPS. Copy this folder to the server (e.g. /opt/dogstuff), add a .env
+# (see .env.example) and run: docker compose -f docker-compose.prod.yml up -d
+# Full instructions: docs/RUNBOOK.md
+
+name: dogstuff
+
+# Settings shared by the app and the tools containers.
+x-app: &app
+  env_file: .env
+  environment:
+    NODE_ENV: production
+    DATABASE_URL: postgres://dogstuff:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/dogstuff
+
+services:
+  # HTTPS front door: gets and renews certificates for $DOMAIN automatically.
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+      - "${HTTPS_PORT:-443}:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?Set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+
+  # The app. Its image health check calls /api/health/live.
+  web:
+    <<: *app
+    image: ${IMAGE_PREFIX:?Set IMAGE_PREFIX in .env}/web:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # One-off: applies database migrations, then exits. Runs before every start of `web`.
+  migrate:
+    <<: *app
+    image: ${IMAGE_PREFIX}/tools:${IMAGE_TAG:-latest}
+    command: ["pnpm", "db:migrate"]
+    restart: "no"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Daily reminder emails at REMINDER_TIME (business time zone).
+  jobs:
+    <<: *app
+    image: ${IMAGE_PREFIX}/tools:${IMAGE_TAG:-latest}
+    command: ["pnpm", "jobs:run"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  # Postgres. Not published on any host port: only reachable by the containers above.
+  db:
+    image: postgres:16.11-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: dogstuff
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: dogstuff
+      TZ: UTC
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dogstuff -d dogstuff"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  # Nightly pg_dump into ./backups (14 daily + 8 weekly), copied off the server if
+  # BACKUP_REMOTE is set. See deploy/backup/.
+  backup:
+    image: ${IMAGE_PREFIX}/backup:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: dogstuff
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: dogstuff
+      TZ: ${BUSINESS_TZ:-Africa/Johannesburg}
+      BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
+      BACKUP_REMOTE: ${BACKUP_REMOTE:-}
+    volumes:
+      - ./backups:/backups
+      # Optional: backup_ssh_key and known_hosts for the off-server copy.
+      - ./secrets:/run/secrets:ro
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
