@@ -14,6 +14,7 @@ import {
   time,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 import { formatTstzRange, parseTstzRange, type TimeRange } from "./range";
@@ -162,7 +163,11 @@ export const timeOff = pgTable(
     /** Set when the owner removes the block. Kept as a record; removed blocks don't block. */
     removedAt: timestamp("removed_at", { withTimezone: true }),
   },
-  () => [boundedRange("time_off_during_bounded", "during")],
+  (t) => [
+    boundedRange("time_off_during_bounded", "during"),
+    // Time off is looked up by overlap (calendar, availability).
+    index("time_off_during_idx").using("gist", t.during),
+  ],
 );
 
 // ---------------------------------------------------------------------------
@@ -270,13 +275,18 @@ export const settings = pgTable(
 // Auth
 // ---------------------------------------------------------------------------
 
-export const user = pgTable("user", {
-  id: id(),
-  email: text("email").notNull().unique(),
-  name: text("name").notNull(),
-  passwordHash: text("password_hash").notNull(),
-  createdAt: createdAt(),
-});
+export const user = pgTable(
+  "user",
+  {
+    id: id(),
+    /** Stored lower-cased by `user:create`; unique regardless of case. */
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    passwordHash: text("password_hash").notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex("user_email_lower_idx").on(sql`lower(${t.email})`)],
+);
 
 export const session = pgTable(
   "session",

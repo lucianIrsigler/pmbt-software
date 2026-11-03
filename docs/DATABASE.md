@@ -52,6 +52,7 @@ hand-written SQL in [`drizzle/`](../drizzle).
 | `0005_time_off_removed_at.sql`     | Removed time off is kept as a record         |
 | `0006_appointment_reminder_sent_at.sql` | When the day-before reminder was sent   |
 | `0007_appointment_price_cents.sql` (edited) | Price saved per booking; backfilled from the service |
+| `0008_user_email_lower_time_off_gist.sql` (edited) | Login emails unique ignoring case; GiST index on `time_off.during` |
 
 - Change the schema: edit `src/db/schema.ts`, run `pnpm db:generate`, review the SQL, then
   `pnpm db:migrate`.

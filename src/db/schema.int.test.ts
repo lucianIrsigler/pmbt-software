@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { testDatabaseUrl } from "@/test/database";
 import { createDb, type Database } from "./client";
 import { PG_ERROR, pgErrorCode } from "./errors";
-import { appointment, client, pet, service, settings, workingHours } from "./schema";
+import { appointment, client, pet, service, settings, user, workingHours } from "./schema";
 
 let db: Database;
 
@@ -136,6 +136,15 @@ describe("appointment_no_overlap: done and no-show", () => {
 });
 
 describe("schema constraints", () => {
+  it("keeps login emails unique regardless of case", async () => {
+    const email = `owner-${randomBytes(4).toString("hex")}@example.com`;
+    await db.insert(user).values({ email, name: "Owner", passwordHash: "x" });
+    await expectPgError(
+      db.insert(user).values({ email: email.toUpperCase(), name: "Owner", passwordHash: "x" }),
+      PG_ERROR.uniqueViolation,
+    );
+  });
+
   it("round-trips tstzrange values", async () => {
     const ids = await makeFixtures();
     const during = slot("2030-02-04T07:00:00Z", 70);

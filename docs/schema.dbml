@@ -124,6 +124,10 @@ Table time_off {
   reason text
   created_at timestamptz [not null, default: `now()`]
   removed_at timestamptz [note: 'Set when removed; kept as a record, no longer blocks']
+
+  indexes {
+    during [type: gist, name: 'time_off_during_idx', note: 'Overlap lookups']
+  }
 }
 
 Table appointment {
@@ -181,10 +185,14 @@ Table settings {
 
 Table user {
   id uuid [pk, default: `gen_random_uuid()`]
-  email text [not null, unique]
+  email text [not null, note: 'Stored lower-cased']
   name text [not null]
   password_hash text [not null, note: 'argon2']
   created_at timestamptz [not null, default: `now()`]
+
+  indexes {
+    `lower(email)` [unique, name: 'user_email_lower_idx', note: 'Unique regardless of case']
+  }
 }
 
 Table session {
