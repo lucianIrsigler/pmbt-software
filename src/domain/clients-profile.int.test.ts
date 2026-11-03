@@ -5,13 +5,8 @@ import { appointment, client, pet, service } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
-import {
-  cancelByOwner,
-  createBooking,
-  markDone,
-  markNoShow,
-  updateAppointmentNotes,
-} from "./booking";
+import { createBooking } from "./booking";
+import { cancelByOwner, markDone, markNoShow, updateAppointmentNotes } from "./booking-status";
 import {
   archiveClient,
   archivePet,

@@ -1,8 +1,8 @@
 import { randomBytes } from "node:crypto";
-import { and, count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, sql } from "drizzle-orm";
 import type { Database, Transaction } from "@/db/client";
 import { PG_ERROR, pgErrorCode } from "@/db/errors";
-import { appointment, appointmentProduct, client, pet, product, service } from "@/db/schema";
+import { appointment, client, pet, service } from "@/db/schema";
 import {
   loadActiveService,
   loadAvailability,
@@ -10,6 +10,7 @@ import {
   type ClockOptions,
 } from "./availability";
 import { findOrCreateClient, findOrCreatePet } from "./clients";
+import { setStatus } from "./booking-status";
 import {
   CancelTooLateError,
   InvalidBookingError,
@@ -19,20 +20,15 @@ import {
   SlotUnavailableError,
   TooManyBookingsError,
 } from "./errors";
-import {
-  addProductSchema,
-  createBookingSchema,
-  idSchema,
-  manageTokenSchema,
-  removeProductSchema,
-  updateAppointmentNotesSchema,
-  type AddProductInput,
-  type CreateBookingInput,
-  type RemoveProductInput,
-  type UpdateAppointmentNotesInput,
-} from "./schemas";
+import { createBookingSchema, manageTokenSchema, type CreateBookingInput } from "./schemas";
 import { appointmentRange, isSlotAvailable } from "./slots";
 import { addMinutesTo, localDayRange, localDateOf, type TimeRange } from "./time";
+
+/**
+ * The client side of a booking: creating it, cancelling by the private link, and what
+ * that link shows. The owner's changes are in `booking-status.ts` and
+ * `booking-products.ts`.
+ */
 
 type AppointmentStatus = (typeof appointment.$inferSelect)["status"];
 
@@ -223,155 +219,6 @@ export async function cancelBookingByToken(
 
   await setStatus(db, row.id, ["booked"], "cancelled", "cancelled", now);
   return { appointmentId: row.id, alreadyCancelled: false };
-}
-
-// ---------------------------------------------------------------------------
-// Owner actions
-// ---------------------------------------------------------------------------
-
-/**
- * Moves an appointment from one of `from` to `to`, atomically.
- * Throws NotFoundError / InvalidStatusError if it can't.
- */
-async function setStatus(
-  db: Database,
-  rawId: string,
-  from: AppointmentStatus[],
-  to: AppointmentStatus,
-  action: string,
-  now: Date = new Date(),
-): Promise<void> {
-  const id = idSchema.parse(rawId);
-  const [updated] = await db
-    .update(appointment)
-    .set({ status: to, cancelledAt: to === "cancelled" ? now : null })
-    .where(and(eq(appointment.id, id), inArray(appointment.status, from)))
-    .returning({ id: appointment.id });
-  if (updated) return;
-
-  const [current] = await db
-    .select({ status: appointment.status })
-    .from(appointment)
-    .where(eq(appointment.id, id));
-  if (!current) throw new NotFoundError("appointment");
-  throw new InvalidStatusError(current.status, action);
-}
-
-export async function markDone(db: Database, id: string): Promise<void> {
-  await setStatus(db, id, ["booked"], "done", "marked done");
-}
-
-export async function markNoShow(db: Database, id: string): Promise<void> {
-  await setStatus(db, id, ["booked"], "no_show", "marked as didn't come");
-}
-
-/**
- * Undo "Done" or "Didn't come": back to booked. If someone has since booked an
- * overlapping time (possible once a "didn't come" slot was freed), raises `SlotTakenError`.
- */
-export async function undoStatus(db: Database, id: string): Promise<void> {
-  try {
-    await setStatus(db, id, ["done", "no_show"], "booked", "undone");
-  } catch (error) {
-    if (pgErrorCode(error) === PG_ERROR.exclusionViolation) throw new SlotTakenError();
-    throw error;
-  }
-}
-
-/** Owner cancels: no cutoff applies. */
-export async function cancelByOwner(
-  db: Database,
-  id: string,
-  { now = new Date() }: { now?: Date } = {},
-): Promise<void> {
-  await setStatus(db, id, ["booked"], "cancelled", "cancelled", now);
-}
-
-/** The owner's notes for one visit (autosaved from the appointment page). */
-export async function updateAppointmentNotes(
-  db: Database,
-  rawInput: UpdateAppointmentNotesInput,
-): Promise<void> {
-  const input = updateAppointmentNotesSchema.parse(rawInput);
-  const [row] = await db
-    .update(appointment)
-    .set({ notes: input.notes })
-    .where(eq(appointment.id, input.appointmentId))
-    .returning({ id: appointment.id });
-  if (!row) throw new NotFoundError("appointment");
-}
-
-// ---------------------------------------------------------------------------
-// Products sold in a session
-// ---------------------------------------------------------------------------
-
-export interface AppointmentProductLine {
-  productId: string;
-  qty: number;
-  priceCents: number;
-}
-
-/**
- * Records a product sold during an appointment, at its current price.
- * Adding the same product again increases the quantity (keeping the first price).
- */
-export async function addProductToAppointment(
-  db: Database,
-  rawInput: AddProductInput,
-): Promise<AppointmentProductLine> {
-  const input = addProductSchema.parse(rawInput);
-  return db.transaction(async (tx) => {
-    const [appt] = await tx
-      .select({ status: appointment.status })
-      .from(appointment)
-      .where(eq(appointment.id, input.appointmentId));
-    if (!appt) throw new NotFoundError("appointment");
-    if (appt.status === "cancelled") throw new InvalidStatusError(appt.status, "given products");
-
-    const [prod] = await tx
-      .select({ priceCents: product.priceCents, active: product.active })
-      .from(product)
-      .where(eq(product.id, input.productId));
-    if (!prod || !prod.active) throw new NotFoundError("product");
-
-    const [line] = await tx
-      .insert(appointmentProduct)
-      .values({
-        appointmentId: input.appointmentId,
-        productId: input.productId,
-        qty: input.qty,
-        priceCents: prod.priceCents,
-      })
-      .onConflictDoUpdate({
-        target: [appointmentProduct.appointmentId, appointmentProduct.productId],
-        set: { qty: sql`${appointmentProduct.qty} + excluded.qty` },
-      })
-      .returning({
-        productId: appointmentProduct.productId,
-        qty: appointmentProduct.qty,
-        priceCents: appointmentProduct.priceCents,
-      });
-    if (!line) throw new Error("appointment_product upsert returned no row");
-    return line;
-  });
-}
-
-/** Removes a product line from an appointment. Returns false if it wasn't there. */
-export async function removeProductFromAppointment(
-  db: Database,
-  rawInput: RemoveProductInput,
-): Promise<boolean> {
-  const input = removeProductSchema.parse(rawInput);
-  const removed = await db
-    .delete(appointmentProduct)
-    .where(
-      and(
-        eq(appointmentProduct.appointmentId, input.appointmentId),
-        eq(appointmentProduct.productId, input.productId),
-      ),
-    )
-    .returning({ productId: appointmentProduct.productId });
-  return removed.length > 0;
 }
 
 // ---------------------------------------------------------------------------

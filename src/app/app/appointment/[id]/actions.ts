@@ -2,15 +2,14 @@
 
 import { after } from "next/server";
 import { getDb } from "@/db";
+import { addProductToAppointment, removeProductFromAppointment } from "@/domain/booking-products";
 import {
-  addProductToAppointment,
   cancelByOwner,
   markDone,
   markNoShow,
-  removeProductFromAppointment,
   undoStatus,
   updateAppointmentNotes,
-} from "@/domain/booking";
+} from "@/domain/booking-status";
 import { requireUser } from "@/lib/auth";
 import { sendBookingEmail } from "@/lib/booking-emails";
 import { logError } from "@/lib/log";

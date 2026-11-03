@@ -6,15 +6,15 @@ import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
 import { firstLine, getAppointmentDetail, listDay } from "./appointments";
+import { createBooking } from "./booking";
+import { addProductToAppointment } from "./booking-products";
 import {
-  addProductToAppointment,
   cancelByOwner,
-  createBooking,
   markDone,
   markNoShow,
   updateAppointmentNotes,
   undoStatus,
-} from "./booking";
+} from "./booking-status";
 import { InvalidStatusError, NotFoundError, SlotTakenError } from "./errors";
 import { zonedInstant } from "./time";
 

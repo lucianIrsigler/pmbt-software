@@ -1,30 +1,13 @@
 import { asc, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, type Database } from "@/db/client";
-import {
-  appointment,
-  appointmentProduct,
-  client,
-  pet,
-  product,
-  service,
-  timeOff,
-} from "@/db/schema";
+import { appointment, client, pet, service, timeOff } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
 import { findDates, findSlots } from "./availability";
-import {
-  addProductToAppointment,
-  cancelBookingByToken,
-  cancelByOwner,
-  createBooking,
-  getBookingByToken,
-  markDone,
-  markNoShow,
-  removeProductFromAppointment,
-  updateAppointmentNotes,
-} from "./booking";
+import { cancelBookingByToken, createBooking, getBookingByToken } from "./booking";
+import { cancelByOwner, markDone } from "./booking-status";
 import {
   CancelTooLateError,
   InvalidBookingError,
@@ -44,7 +27,6 @@ const clock = { tz: TZ, now: NOW };
 let db: Database;
 let humanServiceId: string; // 30 min + 10 buffer
 let animalServiceId: string;
-let productId: string;
 
 function at(date: string, hhmm: string): Date {
   const [h, m] = hhmm.split(":").map(Number) as [number, number];
@@ -74,11 +56,9 @@ beforeAll(async () => {
   const services = await db.select().from(service).orderBy(asc(service.sortOrder));
   const human = services.find((s) => s.forKind === "human" && s.durationMin === 30);
   const animal = services.find((s) => s.forKind === "animal");
-  const [prod] = await db.select().from(product).orderBy(asc(product.sortOrder)).limit(1);
-  if (!human || !animal || !prod) throw new Error("seed data missing");
+  if (!human || !animal) throw new Error("seed data missing");
   humanServiceId = human.id;
   animalServiceId = animal.id;
-  productId = prod.id;
 });
 
 afterAll(async () => {
@@ -323,95 +303,6 @@ describe("cancelBookingByToken", () => {
     await markDone(db, booking.appointmentId);
     await expect(
       cancelBookingByToken(db, booking.manageToken, { now: NOW }),
-    ).rejects.toBeInstanceOf(InvalidStatusError);
-  });
-});
-
-describe("owner actions", () => {
-  async function status(id: string): Promise<string | undefined> {
-    const [row] = await db
-      .select({ status: appointment.status })
-      .from(appointment)
-      .where(eq(appointment.id, id));
-    return row?.status;
-  }
-
-  it("marks done and no-show only from booked", async () => {
-    const a = await createBooking(db, webBooking(at("2030-03-21", "09:00")), clock);
-    const b = await createBooking(db, webBooking(at("2030-03-21", "10:00")), clock);
-    await markDone(db, a.appointmentId);
-    await markNoShow(db, b.appointmentId);
-    expect(await status(a.appointmentId)).toBe("done");
-    expect(await status(b.appointmentId)).toBe("no_show");
-
-    await expect(markNoShow(db, a.appointmentId)).rejects.toBeInstanceOf(InvalidStatusError);
-    await expect(cancelByOwner(db, b.appointmentId)).rejects.toBeInstanceOf(InvalidStatusError);
-  });
-
-  it("cancels without a cutoff", async () => {
-    const start = at("2030-03-22", "09:00");
-    const a = await createBooking(db, webBooking(start), clock);
-    await cancelByOwner(db, a.appointmentId, { now: start });
-    expect(await status(a.appointmentId)).toBe("cancelled");
-  });
-
-  it("raises NotFoundError for unknown appointments", async () => {
-    const missing = "00000000-0000-4000-8000-000000000000";
-    await expect(markDone(db, missing)).rejects.toBeInstanceOf(NotFoundError);
-    await expect(
-      updateAppointmentNotes(db, { appointmentId: missing, notes: "x" }),
-    ).rejects.toBeInstanceOf(NotFoundError);
-  });
-
-  it("updates notes in any status", async () => {
-    const a = await createBooking(db, webBooking(at("2030-03-22", "11:00")), clock);
-    await markDone(db, a.appointmentId);
-    await updateAppointmentNotes(db, {
-      appointmentId: a.appointmentId,
-      notes: "Left knee, 8 min.",
-    });
-    const [row] = await db.select().from(appointment).where(eq(appointment.id, a.appointmentId));
-    expect(row?.notes).toBe("Left knee, 8 min.");
-  });
-});
-
-describe("products sold", () => {
-  it("adds at the current price, increments qty, and removes", async () => {
-    const a = await createBooking(db, webBooking(at("2030-03-25", "09:00")), clock);
-    const ids = { appointmentId: a.appointmentId, productId };
-
-    const first = await addProductToAppointment(db, ids);
-    expect(first.qty).toBe(1);
-
-    // A later price change doesn't affect the recorded sale.
-    await db.update(product).set({ priceCents: 1 }).where(eq(product.id, productId));
-    const second = await addProductToAppointment(db, { ...ids, qty: 2 });
-    expect(second).toEqual({ productId, qty: 3, priceCents: first.priceCents });
-
-    expect(await removeProductFromAppointment(db, ids)).toBe(true);
-    expect(await removeProductFromAppointment(db, ids)).toBe(false);
-    const lines = await db
-      .select()
-      .from(appointmentProduct)
-      .where(eq(appointmentProduct.appointmentId, a.appointmentId));
-    expect(lines).toEqual([]);
-  });
-
-  it("refuses cancelled appointments and inactive products", async () => {
-    const a = await createBooking(db, webBooking(at("2030-03-25", "11:00")), clock);
-    const [inactive] = await db
-      .insert(product)
-      .values({ name: "Old cream", priceCents: 100, active: false })
-      .returning();
-    if (!inactive) throw new Error("insert failed");
-
-    await expect(
-      addProductToAppointment(db, { appointmentId: a.appointmentId, productId: inactive.id }),
-    ).rejects.toBeInstanceOf(NotFoundError);
-
-    await cancelByOwner(db, a.appointmentId);
-    await expect(
-      addProductToAppointment(db, { appointmentId: a.appointmentId, productId }),
     ).rejects.toBeInstanceOf(InvalidStatusError);
   });
 });

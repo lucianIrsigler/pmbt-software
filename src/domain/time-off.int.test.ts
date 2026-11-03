@@ -7,7 +7,8 @@ import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
 import { listOverlapping } from "./appointments";
 import { findSlots } from "./availability";
-import { cancelByOwner, createBooking } from "./booking";
+import { createBooking } from "./booking";
+import { cancelByOwner } from "./booking-status";
 import { InvalidTimeOffError, NotFoundError } from "./errors";
 import {
   addTimeOff,

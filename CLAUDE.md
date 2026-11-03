@@ -68,7 +68,9 @@ src/
     seed.ts
   domain/              pure business logic, no Next.js imports
     slots.ts           slot generation
-    booking.ts         create / cancel / complete bookings
+    booking.ts         create bookings, cancel by token, the manage-link view
+    booking-status.ts  owner: done / didn't come / undo / cancel / notes
+    booking-products.ts products sold in a session
     ...
   lib/                 auth, email, ics, rate-limit, utils
   components/
