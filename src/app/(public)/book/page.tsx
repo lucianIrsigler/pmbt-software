@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { card, Notice, PageTitle } from "@/components/ui";
+import { Step } from "@/components/step";
+import { card, Notice } from "@/components/ui";
 import { findDates, findSlots, loadSettings, type Service } from "@/domain/availability";
 import { listActiveServices } from "@/domain/catalogue";
 import { localDateSchema, monthSchema } from "@/domain/schemas";
@@ -29,35 +30,6 @@ import { bookingStepUrl } from "./urls";
 
 export const metadata: Metadata = { title: "Book", robots: { index: false } };
 
-const backLink = "inline-block py-2 font-semibold text-accent underline underline-offset-4";
-
-function Step({
-  n,
-  title,
-  back,
-  children,
-}: {
-  n: number;
-  title: string;
-  back?: { href: string; label: string };
-  children: ReactNode;
-}): ReactNode {
-  return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <p className="font-semibold text-ink-soft">Step {n} of 4</p>
-        <PageTitle>{title}</PageTitle>
-      </div>
-      {back && (
-        <Link href={back.href} className={backLink}>
-          ← {back.label}
-        </Link>
-      )}
-      {children}
-    </div>
-  );
-}
-
 function ServiceSummary({ service }: { service: Service }): ReactNode {
   return (
     <p className="text-lg">
@@ -75,7 +47,7 @@ function ServiceStep({ services }: { services: Service[] }): ReactNode {
     { title: "For your animals", items: services.filter((s) => s.forKind === "animal") },
   ];
   return (
-    <Step n={1} title="Choose a service">
+    <Step variant="public" n={1} title="Choose a service">
       {groups.map(
         (group) =>
           group.items.length > 0 && (
@@ -133,6 +105,7 @@ async function DateStep({
 
   return (
     <Step
+      variant="public"
       n={2}
       title="Choose a date"
       back={{ href: bookingStepUrl({}), label: "Choose a different service" }}
@@ -239,6 +212,7 @@ function TimeStep({
 }): ReactNode {
   return (
     <Step
+      variant="public"
       n={3}
       title="Choose a time"
       back={{
@@ -284,6 +258,7 @@ function DetailsStep({
 }): ReactNode {
   return (
     <Step
+      variant="public"
       n={4}
       title="Your details"
       back={{

@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { z } from "zod";
 import { ClientDetailsForm, PetDetailsForm } from "@/components/owner/client-forms";
 import { ownerBackLink, ownerButton, ownerRow } from "@/components/owner/styles";
+import { Step } from "@/components/step";
 import { Notice } from "@/components/ui";
 import { servicesBookableAt, type Service } from "@/domain/availability";
 import { getClientWithPets, searchClients, type ClientWithPets } from "@/domain/clients";
@@ -18,33 +19,6 @@ import { newBookingStepUrl } from "./urls";
 
 export const metadata: Metadata = { title: "New booking" };
 
-function Step({
-  n,
-  title,
-  back,
-  children,
-}: {
-  n: number;
-  title: string;
-  back?: { href: string; label: string };
-  children: ReactNode;
-}): ReactNode {
-  return (
-    <section className="flex flex-col gap-4">
-      <div>
-        <p className="text-lg font-semibold text-ink-soft">Step {n} of 4</p>
-        <h2 className="text-2xl font-bold">{title}</h2>
-      </div>
-      {back && (
-        <Link href={back.href} className={ownerBackLink}>
-          ← {back.label}
-        </Link>
-      )}
-      {children}
-    </section>
-  );
-}
-
 // --- Step 1: client --------------------------------------------------------
 
 async function ClientStep({
@@ -58,7 +32,7 @@ async function ClientStep({
 }): Promise<ReactNode> {
   const results = q.trim().length >= 2 ? await searchClients(ctx.db, q.slice(0, 100)) : [];
   return (
-    <Step n={1} title="Who is the booking for?">
+    <Step variant="owner" n={1} title="Who is the booking for?">
       <form action="/app/calendar/new" className="flex flex-col gap-3" role="search">
         <input type="hidden" name="start" value={start} />
         <label htmlFor="client-search" className="text-xl font-semibold">
@@ -107,6 +81,7 @@ async function ClientStep({
 function PetStep({ start, client }: { start: string; client: ClientWithPets }): ReactNode {
   return (
     <Step
+      variant="owner"
       n={2}
       title={`Who is being treated?`}
       back={{ href: newBookingStepUrl({ start }), label: "Choose a different client" }}
@@ -161,6 +136,7 @@ function ServiceStep({
 }): ReactNode {
   return (
     <Step
+      variant="owner"
       n={3}
       title="Choose a service"
       back={{ href: newBookingStepUrl({ start, client: client.id }), label: "Back" }}
@@ -221,6 +197,7 @@ function ConfirmStep({
   ];
   return (
     <Step
+      variant="owner"
       n={4}
       title="Check and book"
       back={{ href: newBookingStepUrl({ start: iso, client: client.id, pet }), label: "Back" }}
@@ -315,6 +292,7 @@ export default async function NewBookingPage({
     body =
       params.add === "client" ? (
         <Step
+          variant="owner"
           n={1}
           title="New client"
           back={{ href: newBookingStepUrl({ start: iso }), label: "Search instead" }}
@@ -331,6 +309,7 @@ export default async function NewBookingPage({
     body =
       params.add === "pet" ? (
         <Step
+          variant="owner"
           n={2}
           title={`New animal for ${client.name}`}
           back={{ href: newBookingStepUrl({ start: iso, client: client.id }), label: "Back" }}
