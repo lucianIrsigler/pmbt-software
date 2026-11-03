@@ -80,3 +80,6 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
   on `lower(email)` would enforce it.
 - **An index on `time_off.during`.** Time off is looked up by overlap (calendar, availability).
   The table is tiny now; a GiST index would keep it fast if it grows.
+- **Calendar cancellations in more apps.** The cancellation email's `.ics` uses
+  `METHOD:CANCEL` without an `ORGANIZER`; strict calendar apps (e.g. Outlook) may ignore it
+  and keep the event. Adding the business email as organizer would fix that.

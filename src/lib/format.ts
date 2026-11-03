@@ -56,21 +56,24 @@ export function formatMonth(month: string): string {
   }).format(new Date(Date.UTC(year, mon - 1, 1)));
 }
 
+/**
+ * Midday UTC on a `YYYY-MM-DD` calendar date: formatting it in UTC always shows that
+ * date, whatever the server's time zone.
+ */
+function utcNoon(date: string): Date {
+  const [year, month, day] = date.split("-").map(Number) as [number, number, number];
+  return new Date(Date.UTC(year, month - 1, day, 12));
+}
+
 /** `Tuesday 3 November` for a `YYYY-MM-DD` calendar date. */
 export function formatLocalDate(date: string): string {
-  const [year, month, day] = date.split("-").map(Number) as [number, number, number];
-  return formatDayLong(new Date(Date.UTC(year, month - 1, day, 12)), "UTC");
+  return formatDayLong(utcNoon(date), "UTC");
 }
 
 /** `+27821234567` → `082 123 4567`. Non-South-African numbers are shown as stored. */
 export function formatPhone(e164: string): string {
   const match = /^\+27(\d{2})(\d{3})(\d{4})$/.exec(e164);
   return match ? `0${match[1]} ${match[2]} ${match[3]}` : e164;
-}
-
-function utcNoon(date: string): Date {
-  const [year, month, day] = date.split("-").map(Number) as [number, number, number];
-  return new Date(Date.UTC(year, month - 1, day, 12));
 }
 
 /** `Mon` for a `YYYY-MM-DD` calendar date. */

@@ -8,6 +8,8 @@ export interface RateLimitRule {
   windowSeconds: number;
 }
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 export const BOOKING_RATE_LIMIT: RateLimitRule = { limit: 5, windowSeconds: 60 * 60 };
 
 /** Start of the fixed window containing `now`. */
@@ -38,7 +40,7 @@ export async function consumeRateLimit(
   const count = row?.count ?? 1;
 
   // Housekeeping: drop windows older than a day. Cheap; the table stays tiny.
-  await db.delete(rateLimit).where(lt(rateLimit.windowStart, new Date(now.getTime() - 86_400_000)));
+  await db.delete(rateLimit).where(lt(rateLimit.windowStart, new Date(now.getTime() - ONE_DAY_MS)));
 
   return { allowed: count <= rule.limit, count };
 }
