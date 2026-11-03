@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, count, desc, eq, inArray, isNull, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import type { Database, Transaction } from "@/db/client";
 import { PG_ERROR, pgErrorCode } from "@/db/errors";
 import { appointment, appointmentProduct, client, pet, product, service } from "@/db/schema";
