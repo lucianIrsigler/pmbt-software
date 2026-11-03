@@ -228,15 +228,30 @@ For the developer/son mostly; desktop-friendly is fine.
 
 ## Phase 11: Production deployment (single VPS)
 
-- [ ] `Dockerfile` using Next.js standalone output, multi-stage, non-root user
-- [ ] `docker-compose.prod.yml`: `caddy` (automatic HTTPS), `web`, `db` (Postgres 16, volume, not exposed publicly), `backup`
-- [ ] `Caddyfile` for the domain
-- [ ] Migrations run as a one-off step before the web container starts
-- [ ] Cron in the backup container: nightly `pg_dump` (compressed), keep 14 daily + 8 weekly, copy offsite via `rsync`/`scp` to a second machine (configurable)
-- [ ] Cron for `send-reminders` (e.g. daily 17:00 business time)
-- [ ] GitHub Actions deploy workflow: build image, push to GitHub Container Registry, SSH to VPS, pull, migrate, `docker compose up -d`
-- [ ] `docs/RUNBOOK.md`: first-time server setup (firewall, SSH keys, Docker), deploying, viewing logs, **restoring a backup (tested)**, creating a user, rotating secrets
-- [ ] Health check endpoint `/api/health` (checks DB) used by Docker
+Built and tested locally (the production images and compose file run on a dev machine with
+`DOMAIN=localhost`). Files for the server are in `deploy/`; see `docs/RUNBOOK.md`.
+
+- [x] `Dockerfile` using Next.js standalone output, multi-stage, non-root user
+      (targets: `web`, and `tools` for migrations, scripts and the jobs scheduler)
+- [x] `docker-compose.prod.yml`: `caddy` (automatic HTTPS), `web`, `db` (Postgres 16, volume, not exposed publicly), `backup`
+      (in `deploy/`, plus `migrate` and `jobs`)
+- [x] `Caddyfile` for the domain
+- [x] Migrations run as a one-off step before the web container starts
+- [x] Cron in the backup container: nightly `pg_dump` (compressed), keep 14 daily + 8 weekly, copy offsite via `rsync`/`scp` to a second machine (configurable)
+- [x] Cron for `send-reminders` (e.g. daily 17:00 business time): an in-house scheduler
+      (`pnpm jobs:run`) in the `jobs` container instead of cron, so it runs as a non-root user
+- [x] GitHub Actions deploy workflow: build image, push to GitHub Container Registry, SSH to VPS, pull, migrate, `docker compose up -d`
+      (`.github/workflows/deploy.yml`; off until the `DEPLOY_ENABLED` variable is set)
+- [x] `docs/RUNBOOK.md`: first-time server setup (firewall, SSH keys, Docker), deploying, viewing logs, **restoring a backup (tested)**, creating a user, rotating secrets
+- [x] Health check endpoint `/api/health` (checks DB) used by Docker. Also `/api/health/live`
+      (no DB): Docker's health check uses that one; deploys check `/api/health`.
+
+Still to do, needs the real server, domain and secrets (runbook sections 3–7 and 10):
+
+- [ ] Server set up, DNS pointing at it, `.env` filled in, GitHub secrets set, `DEPLOY_ENABLED=true`
+- [ ] First deploy from a push to `main`, HTTPS working on the domain
+- [ ] Off-server backup copy configured and tested
+- [ ] Restore drill on the real server
 
 **Done when:** a push to `main` deploys, HTTPS works, and a backup has been restored into a scratch database successfully.
 

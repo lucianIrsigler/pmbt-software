@@ -64,3 +64,11 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
   separate product-line export would help with stock.
 - **Show hidden services and products separately.** They're listed with the others, marked
   "Hidden".
+
+## Operations
+
+- **Smaller tools image.** The `tools` image (migrations, scripts, jobs) carries every
+  dependency, about 1.2 GB. Pruning dev-only packages would make deploys faster.
+- **Uptime alerts.** Nothing tells you if the site goes down. A cron job on the backup machine
+  that checks `/api/health` and emails you would do, without any outside service.
+- **Backup alerts.** Likewise, an email when a nightly backup fails.
