@@ -9,7 +9,7 @@ schedule="${BACKUP_SCHEDULE:-0 2 * * *}"
 # file it reads first. `export -p` quotes every value, so passwords with spaces, quotes
 # or % (special in crontabs) survive.
 env_file=/etc/backup.env
-export -p | grep -E "^export (PG[A-Z]+|BACKUP_REMOTE|TZ|SMTP_[A-Z]+|MAIL_FROM|ALERT_EMAIL)=" > "$env_file"
+export -p | grep -E "^export (PATH|PG[A-Z]+|BACKUP_REMOTE|TZ|SMTP_[A-Z]+|MAIL_FROM|ALERT_EMAIL)=" > "$env_file"
 chmod 600 "$env_file"
 
 mkdir -p /etc/crontabs
