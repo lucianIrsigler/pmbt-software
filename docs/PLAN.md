@@ -33,7 +33,7 @@ Create the Drizzle schema in `src/db/schema.ts`:
 | `product` | id, name, description, price_cents, sort_order, active |
 | `working_hours` | id, weekday (0–6, 0 = Sunday), start_time, end_time |
 | `time_off` | id, during (tstzrange), reason, removed_at (set on removal; the row is kept) |
-| `appointment` | id, client_id, pet_id (nullable: null = client is treated), service_id, during (tstzrange, includes buffer), status (`booked` \| `done` \| `no_show` \| `cancelled`), source (`web` \| `app`), notes, manage_token (unique), cancelled_at, created_at, updated_at |
+| `appointment` | id, client_id, pet_id (nullable: null = client is treated), service_id, during (tstzrange, includes buffer), status (`booked` \| `done` \| `no_show` \| `cancelled`), source (`web` \| `app`), notes, manage_token (unique), cancelled_at, reminder_sent_at, created_at, updated_at |
 | `appointment_product` | appointment_id, product_id, qty, price_cents (PK on both ids) |
 | `settings` | single row: business_name, min_notice_hours (12), max_days_ahead (42), slot_step_min (30), cancel_cutoff_hours (24) |
 | `user` | id, email (unique), name, password_hash, created_at |
@@ -190,13 +190,15 @@ Follow the `/app` UX rules in CLAUDE.md strictly.
 
 ## Phase 9: Email (SMTP, in-house)
 
-- [ ] `src/lib/email.ts`: Nodemailer transport from env; in development, log emails to the console instead of sending
-- [ ] `src/lib/ics.ts`: generate a valid `.ics` (VEVENT with UID, DTSTART/DTEND in UTC, SUMMARY, LOCATION); unit tested
-- [ ] Booking confirmation email (only if client gave an email) with .ics attached and manage link
-- [ ] Cancellation email (client cancels or owner cancels)
-- [ ] `scripts/send-reminders.ts`: emails tomorrow's clients; records sent reminders so re-running doesn't double send (add `reminder_sent_at` to `appointment`)
-- [ ] Plain, readable HTML + plain-text versions of every email
-- [ ] Email failures must never break booking: send after commit, catch and log by appointment id
+- [x] `src/lib/email.ts`: Nodemailer transport from env; in development, log emails to the console instead of sending
+- [x] `src/lib/ics.ts`: generate a valid `.ics` (VEVENT with UID, DTSTART/DTEND in UTC, SUMMARY, LOCATION); unit tested
+- [x] Booking confirmation email (only if client gave an email) with .ics attached and manage link.
+      Also for bookings the owner makes in the calendar.
+- [x] Cancellation email (client cancels or owner cancels), including bookings cancelled by
+      archiving a client or animal. The attached .ics has `STATUS:CANCELLED`.
+- [x] `scripts/send-reminders.ts` (`pnpm reminders:send`): emails tomorrow's clients; records sent reminders so re-running doesn't double send (add `reminder_sent_at` to `appointment`)
+- [x] Plain, readable HTML + plain-text versions of every email
+- [x] Email failures must never break booking: send after commit (Next.js `after()`), catch and log by appointment id
 
 **Done when:** booking, cancelling and the reminder script all produce correct emails in dev.
 

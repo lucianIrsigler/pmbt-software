@@ -50,3 +50,8 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 - **Screenshots on the help page.** `/app/help` has a placeholder box for each step.
 - **"Install this app" hint.** A one-time tip on Today until the app is installed, instead of
   only the link on Settings.
+
+## Email
+
+- **Tell the owner about online changes.** Email her when a client books or cancels through the
+  website. Left out for now: she sees every change on the Today and Calendar tabs.
