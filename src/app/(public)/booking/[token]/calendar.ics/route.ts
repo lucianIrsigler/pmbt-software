@@ -1,6 +1,6 @@
 import { getBookingByToken } from "@/domain/booking";
 import { getPublicSettings } from "@/domain/catalogue";
-import { bookingIcs } from "@/lib/booking-ics";
+import { bookingIcs, organizerEmail } from "@/lib/booking-ics";
 import { getEnv } from "@/lib/env";
 import { requestContext } from "@/lib/request";
 
@@ -15,7 +15,7 @@ export async function GET(
   if (!booking) return new Response("Not found", { status: 404 });
 
   const settings = await getPublicSettings(ctx.db);
-  const appUrl = getEnv().APP_URL;
+  const { APP_URL: appUrl, MAIL_FROM: mailFrom } = getEnv();
   const body = bookingIcs({
     appointmentId: booking.appointmentId,
     start: booking.start,
@@ -23,6 +23,7 @@ export async function GET(
     serviceName: booking.serviceName,
     businessName: settings.businessName,
     address: settings.address,
+    organizerEmail: organizerEmail(settings.contactEmail, mailFrom),
     manageUrl: new URL(`/booking/${token}`, appUrl).toString(),
     appUrl,
     cancelled: booking.status === "cancelled",

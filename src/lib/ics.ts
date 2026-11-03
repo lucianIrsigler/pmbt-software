@@ -16,6 +16,19 @@ export interface IcsEvent {
   stamp?: Date | undefined;
   /** CANCELLED events let calendar apps remove a previously added booking. */
   status?: "CONFIRMED" | "CANCELLED";
+  /**
+   * Who sends the event. Strict calendar apps (Outlook) ignore a cancellation without
+   * one, and only accept it when SEQUENCE is higher than the confirmation's.
+   */
+  organizer?: { name: string; email: string } | undefined;
+  /** Revision number: 0 for the confirmation, higher for later changes. */
+  sequence?: number | undefined;
+}
+
+/** `ORGANIZER;CN="Name":mailto:email`. Quotes can't be escaped in a parameter, so drop them. */
+function organizerLine(organizer: { name: string; email: string }): string {
+  const name = organizer.name.replace(/["\r\n]/g, "");
+  return `ORGANIZER;CN="${name}":mailto:${organizer.email}`;
 }
 
 /** `20261103T073000Z` */
@@ -68,10 +81,12 @@ export function buildIcs(event: IcsEvent): string {
     `DTSTAMP:${icsDateTime(event.stamp ?? new Date())}`,
     `DTSTART:${icsDateTime(event.start)}`,
     `DTEND:${icsDateTime(event.end)}`,
+    `SEQUENCE:${event.sequence ?? 0}`,
     `SUMMARY:${escapeText(event.summary)}`,
     ...(event.location ? [`LOCATION:${escapeText(event.location)}`] : []),
     ...(event.description ? [`DESCRIPTION:${escapeText(event.description)}`] : []),
     ...(event.url ? [`URL:${event.url}`] : []),
+    ...(event.organizer ? [organizerLine(event.organizer)] : []),
     `STATUS:${event.status ?? "CONFIRMED"}`,
     "END:VEVENT",
     "END:VCALENDAR",

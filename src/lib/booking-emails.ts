@@ -1,7 +1,7 @@
 import "server-only";
 import { getDb, type Database } from "@/db";
 import { getAppointmentEmailData, type AppointmentEmailData } from "@/domain/notifications";
-import { bookingIcs } from "./booking-ics";
+import { bookingIcs, organizerEmail } from "./booking-ics";
 import { sendEmail, type EmailAttachment } from "./email";
 import {
   cancellationEmail,
@@ -47,6 +47,7 @@ function calendarAttachment(
       serviceName: data.serviceName,
       businessName: data.business.name,
       address: data.business.address,
+      organizerEmail: organizerEmail(data.business.email, getEnv().MAIL_FROM),
       manageUrl,
       appUrl,
       cancelled,
