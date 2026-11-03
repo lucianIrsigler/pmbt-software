@@ -25,7 +25,10 @@ export async function getSessionToken(): Promise<string | undefined> {
 
 /** The signed-in user, or null. */
 export async function getCurrentUser(): Promise<SessionUser | null> {
-  return validateSession(getDb(), await getSessionToken());
+  // Read the cookie *before* touching the database: that marks the page as per-request,
+  // so `next build` never tries to prerender it (which would need the runtime config).
+  const token = await getSessionToken();
+  return validateSession(getDb(), token);
 }
 
 /** The signed-in user; redirects to /login if there isn't one. */
