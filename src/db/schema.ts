@@ -188,6 +188,8 @@ export const appointment = pgTable(
     during: tstzrange("during").notNull(),
     status: appointmentStatus("status").notNull().default("booked"),
     source: bookingSource("source").notNull(),
+    /** The service's price when booked, so stats and records survive price changes. */
+    priceCents: integer("price_cents").notNull(),
     notes: text("notes").notNull().default(""),
     manageToken: text("manage_token").notNull().unique(),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
@@ -206,6 +208,7 @@ export const appointment = pgTable(
       foreignColumns: [pet.id, pet.clientId],
     }),
     boundedRange("appointment_during_bounded", "during"),
+    check("appointment_price_non_negative", sql`${t.priceCents} >= 0`),
     check(
       "appointment_cancelled_at_matches_status",
       sql`(${t.status} = 'cancelled') = (${t.cancelledAt} is not null)`,

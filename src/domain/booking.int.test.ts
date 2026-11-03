@@ -210,7 +210,7 @@ describe("createBooking", () => {
   });
 
   it("lets the owner book at short notice for an existing client", async () => {
-    const existing = await createBooking(db, webBooking(at("2030-03-14", "09:00")), clock);
+    const existing = await createBooking(db, webBooking(at("2030-04-10", "15:00")), clock);
     const shortNotice = at("2030-03-01", "15:00");
     const booking = await createBooking(
       db,
@@ -501,5 +501,26 @@ describe("cancel grace period", () => {
     await expect(
       cancelBookingByToken(db, booking.manageToken, { now: inGrace }),
     ).resolves.toMatchObject({ alreadyCancelled: false });
+  });
+});
+
+describe("price snapshot", () => {
+  it("stores the service price when booked, unaffected by later price changes", async () => {
+    const booking = await createBooking(db, webBooking(at("2030-04-02", "14:00")), clock);
+    const [svc] = await db.select().from(service).where(eq(service.id, humanServiceId));
+    const original = svc?.priceCents ?? 0;
+    await db
+      .update(service)
+      .set({ priceCents: original + 10_000 })
+      .where(eq(service.id, humanServiceId));
+    try {
+      const [row] = await db
+        .select({ priceCents: appointment.priceCents })
+        .from(appointment)
+        .where(eq(appointment.id, booking.appointmentId));
+      expect(row?.priceCents).toBe(original);
+    } finally {
+      await db.update(service).set({ priceCents: original }).where(eq(service.id, humanServiceId));
+    }
   });
 });

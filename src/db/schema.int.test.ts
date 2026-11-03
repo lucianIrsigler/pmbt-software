@@ -53,6 +53,7 @@ function bookingValues(
     during,
     status,
     source: "web",
+    priceCents: 45000,
     manageToken: randomBytes(32).toString("base64url"),
     cancelledAt: status === "cancelled" ? new Date() : null,
   };

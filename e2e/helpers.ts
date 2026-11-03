@@ -45,8 +45,10 @@ export async function seedTodayAppointment(opts: {
 }): Promise<{ appointmentId: string }> {
   const sql = postgres(e2eDatabaseUrl(), { max: 1, onnotice: () => {} });
   try {
-    const [svc] = await sql<{ id: string; duration_min: number; buffer_min: number }[]>`
-      select id, duration_min, buffer_min from service
+    const [svc] = await sql<
+      { id: string; duration_min: number; buffer_min: number; price_cents: number }[]
+    >`
+      select id, duration_min, buffer_min, price_cents from service
       where for_kind = 'human' and active order by sort_order limit 1`;
     if (!svc) throw new Error("seed data missing");
     const minutes = svc.duration_min + svc.buffer_min;
@@ -64,13 +66,15 @@ export async function seedTodayAppointment(opts: {
       sql`tstzrange(${startOf(daysAgo)}, ${startOf(daysAgo)} + make_interval(mins => ${minutes}))`;
 
     await sql`
-      insert into appointment (client_id, service_id, during, status, source, notes, manage_token)
+      insert into appointment
+        (client_id, service_id, during, status, source, notes, manage_token, price_cents)
       values (${client.id}, ${svc.id}, ${during(7)}, 'done', 'app',
-              ${opts.lastVisitNotes ?? ""}, ${randomBytes(32).toString("base64url")})`;
+              ${opts.lastVisitNotes ?? ""}, ${randomBytes(32).toString("base64url")},
+              ${svc.price_cents})`;
     const [appt] = await sql<{ id: string }[]>`
-      insert into appointment (client_id, service_id, during, status, source, manage_token)
+      insert into appointment (client_id, service_id, during, status, source, manage_token, price_cents)
       values (${client.id}, ${svc.id}, ${during(0)}, 'booked', 'app',
-              ${randomBytes(32).toString("base64url")})
+              ${randomBytes(32).toString("base64url")}, ${svc.price_cents})
       returning id`;
     if (!appt) throw new Error("insert failed");
     return { appointmentId: appt.id };

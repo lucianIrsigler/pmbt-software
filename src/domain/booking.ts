@@ -140,6 +140,7 @@ export async function createBooking(
           clientId,
           petId,
           serviceId: svc.id,
+          priceCents: svc.priceCents,
           during,
           source: input.source,
           notes: input.notes ?? "",
