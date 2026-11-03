@@ -87,6 +87,12 @@ export function rangesOverlap(a: TimeRange, b: TimeRange): boolean {
   return a.start.getTime() < b.end.getTime() && b.start.getTime() < a.end.getTime();
 }
 
+/** Minutes since local midnight of `instant`'s own calendar date in `tz`. */
+export function minutesOfDay(instant: Date, tz: string): number {
+  const midnight = zonedInstant(localDateOf(instant, tz), 0, tz);
+  return Math.round((instant.getTime() - midnight.getTime()) / 60_000);
+}
+
 export function addMinutesTo(instant: Date, minutes: number): Date {
   return new Date(instant.getTime() + minutes * 60_000);
 }

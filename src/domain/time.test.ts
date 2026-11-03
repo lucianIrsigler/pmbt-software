@@ -6,6 +6,7 @@ import {
   isLocalDate,
   localDateOf,
   localDayRange,
+  minutesOfDay,
   monthOf,
   timeToMinutes,
   weekdayOf,
@@ -48,5 +49,10 @@ describe("time helpers", () => {
     expect(monthOf("2030-03-04")).toBe("2030-03");
     expect(addMonthsTo("2030-12", 1)).toBe("2031-01");
     expect(addMonthsTo("2030-01", -1)).toBe("2029-12");
+  });
+
+  it("gives minutes since local midnight", () => {
+    expect(minutesOfDay(new Date("2030-03-04T07:30:00Z"), TZ)).toBe(570); // 09:30 local
+    expect(minutesOfDay(new Date("2030-03-03T22:15:00Z"), TZ)).toBe(15); // 00:15 on the 4th
   });
 });

@@ -59,6 +59,8 @@ export interface SlotQuery {
   tz: string;
   /** Owner bookings may skip the minimum-notice rule. */
   ignoreMinNotice?: boolean;
+  /** Owner bookings may be made beyond `maxDaysAhead` (never in the past). */
+  ignoreHorizon?: boolean;
 }
 
 /** Total time an appointment blocks: the session plus its buffer. */
@@ -78,6 +80,7 @@ export function lastBookableDate(now: Date, maxDaysAhead: number, tz: string): L
 
 function isWithinHorizon(query: SlotQuery): boolean {
   const today = localDateOf(query.now, query.tz);
+  if (query.ignoreHorizon) return query.date >= today;
   const last = lastBookableDate(query.now, query.settings.maxDaysAhead, query.tz);
   return query.date >= today && query.date <= last;
 }
@@ -97,7 +100,7 @@ function candidateMinutes(block: SlotWorkingHours, length: number, step: number)
  * - doesn't overlap time off or a booked (or done) appointment,
  * - starts on a `slotStepMin` boundary (counted from local midnight),
  * - is at least `minNoticeHours` after `now` (unless `ignoreMinNotice`),
- * - falls on a date between today and today + `maxDaysAhead`.
+ * - falls on a date between today and today + `maxDaysAhead` (unless `ignoreHorizon`).
  *
  * Returned in ascending order without duplicates.
  */

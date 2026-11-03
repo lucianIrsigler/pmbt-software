@@ -48,6 +48,8 @@ export function generateManageToken(): string {
 export interface CreateBookingOptions extends ClockOptions {
   /** Owner bookings (phone calls) may be made at short notice. */
   ignoreMinNotice?: boolean;
+  /** Owner bookings may be made further ahead than `max_days_ahead`. */
+  ignoreHorizon?: boolean;
   /**
    * Spam guard for public bookings: refuse if the client (matched by phone) already has
    * this many upcoming `booked` appointments. Unlimited when omitted.
@@ -163,7 +165,13 @@ async function findOrCreatePet(tx: Transaction, clientId: string, ref: PetRef): 
 export async function createBooking(
   db: Database,
   rawInput: CreateBookingInput,
-  { tz, now = new Date(), ignoreMinNotice = false, maxUpcomingPerClient }: CreateBookingOptions,
+  {
+    tz,
+    now = new Date(),
+    ignoreMinNotice = false,
+    ignoreHorizon = false,
+    maxUpcomingPerClient,
+  }: CreateBookingOptions,
 ): Promise<CreatedBooking> {
   const input = createBookingSchema.parse(rawInput);
 
@@ -187,6 +195,7 @@ export async function createBooking(
         now,
         tz,
         ignoreMinNotice,
+        ignoreHorizon,
       });
       if (!bookable) throw new SlotUnavailableError();
 

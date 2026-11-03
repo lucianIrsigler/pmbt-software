@@ -212,6 +212,13 @@ describe("getAvailableSlots", () => {
     it("excludes past days", () => {
       expect(getAvailableSlots(query({ date: "2030-02-25" }))).toEqual([]);
     });
+
+    it("can be ignored for owner bookings, but never for past days", () => {
+      expect(
+        getAvailableSlots(query({ date: "2030-06-03", ignoreHorizon: true })).length,
+      ).toBeGreaterThan(0);
+      expect(getAvailableSlots(query({ date: "2030-02-25", ignoreHorizon: true }))).toEqual([]);
+    });
   });
 
   describe("slot step", () => {
