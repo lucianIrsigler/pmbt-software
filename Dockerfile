@@ -2,7 +2,7 @@
 #
 # Two images from one file:
 #   --target web    the Next.js app (standalone output), small, runs as the non-root `node` user
-#   --target tools  full dependencies + source, for migrations, scripts and the jobs scheduler
+#   --target tools  migrations, scripts and the jobs scheduler, bundled to plain JavaScript
 #
 # Nothing secret is needed to build: configuration comes from the environment at run time.
 
@@ -25,16 +25,22 @@ FROM deps AS build
 COPY . .
 RUN pnpm build
 
-# --- tools: migrations (pnpm db:migrate), pnpm user:create, pnpm jobs:run, ... ---------
-FROM base AS tools
+# --- tools-build: bundle the CLI scripts (scripts/build-tools.mjs) --------------------
+FROM deps AS tools-build
+COPY . .
+RUN pnpm build:tools
+
+# --- tools: node tools/migrate.mjs, tools/create-user.mjs, tools/jobs.mjs, ... ----------
+# Only the bundles, the migrations and the one native dependency they can't contain.
+FROM ${NODE_IMAGE} AS tools
 ENV NODE_ENV=production
-COPY --from=deps --chown=node:node /app/node_modules ./node_modules
-COPY --chown=node:node package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.json drizzle.config.ts ./
-COPY --chown=node:node drizzle ./drizzle
-COPY --chown=node:node src ./src
-COPY --chown=node:node scripts ./scripts
+WORKDIR /app
+COPY --from=tools-build /app/tools/package.json ./package.json
+RUN npm install --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY --from=tools-build /app/tools ./tools
+COPY drizzle ./drizzle
 USER node
-CMD ["pnpm", "db:migrate"]
+CMD ["node", "tools/migrate.mjs"]
 
 # --- web: the app ---------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS web

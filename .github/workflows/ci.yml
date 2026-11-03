@@ -33,6 +33,9 @@ jobs:
 
       - run: pnpm test
 
+      # The scripts the production tools image runs, bundled: catches anything esbuild can't.
+      - run: pnpm build:tools
+
   integration:
     runs-on: ubuntu-latest
     timeout-minutes: 15

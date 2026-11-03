@@ -21,6 +21,10 @@ One server runs everything with Docker Compose (`deploy/docker-compose.prod.yml`
 | `db` | Postgres 16. Data in the `dogstuff_db-data` volume. Not reachable from outside. |
 | `backup` | Nightly backup into `./backups`, optional copy to a second machine. |
 
+`migrate` and `jobs` use the small `tools` image: the CLI scripts bundled to plain JavaScript
+(`tools/*.mjs`). Run any of them with `dc run --rm migrate node tools/<name>.mjs`: `migrate`,
+`seed`, `create-user`, `send-reminders` or `jobs`.
+
 On the server, `/opt/dogstuff` holds: `docker-compose.prod.yml`, `Caddyfile` (both copied
 by every deploy), `.env` (your settings), `backups/` and `secrets/`.
 
@@ -151,8 +155,8 @@ The images are private on ghcr.io; each deploy logs the server in with a short-l
    its last step checks `https://<domain>/api/health`.
 2. On the server, load the starting data and create the owner's login:
    ```sh
-   dc run --rm migrate pnpm db:seed        # settings, opening hours, SAMPLE services/products
-   dc run --rm migrate pnpm user:create    # asks for email, name, role and password
+   dc run --rm migrate node tools/seed.mjs         # settings, opening hours, SAMPLE services/products
+   dc run --rm migrate node tools/create-user.mjs  # asks for email, name, role and password
    ```
 3. Sign in at `https://<domain>/admin` and replace the sample services, products and prices,
    check the opening hours, and fill in **Settings** (business name, phone, email, address).
@@ -170,7 +174,7 @@ The images are private on ghcr.io; each deploy logs the server in with a short-l
 | Logs | `dc logs -f web` (or `jobs`, `backup`, `caddy`, `db`); add `--since 1h` |
 | Restart the app | `dc restart web` |
 | Health | `curl https://<domain>/api/health` → `{"status":"ok","database":"ok"}` |
-| Reminders by hand | `dc run --rm migrate pnpm reminders:send` (never sends twice) |
+| Reminders by hand | `dc run --rm migrate node tools/send-reminders.mjs` (never sends twice) |
 | A database shell | `dc exec db psql -U dogstuff dogstuff` |
 
 Logs never contain names, phone numbers or emails (POPIA): only ids and error codes.
@@ -264,7 +268,7 @@ creates an empty database), then follow "For real" above.
 
 ## 11. Logins
 
-- **New login, or forgotten password**: `dc run --rm migrate pnpm user:create`. With an
+- **New login, or forgotten password**: `dc run --rm migrate node tools/create-user.mjs`. With an
   existing email it can change the role and reset the password.
 - **Roles**: `owner` opens her app only; `admin` opens the app and `/admin` (stats, prices,
   hours, settings). Give the owner's own login `owner`. What each role may open is decided in

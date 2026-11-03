@@ -45,7 +45,7 @@ services:
   migrate:
     <<: *app
     image: ${IMAGE_PREFIX}/tools:${IMAGE_TAG:-latest}
-    command: ["pnpm", "db:migrate"]
+    command: ["node", "tools/migrate.mjs"]
     restart: "no"
     depends_on:
       db:
@@ -55,7 +55,7 @@ services:
   jobs:
     <<: *app
     image: ${IMAGE_PREFIX}/tools:${IMAGE_TAG:-latest}
-    command: ["pnpm", "jobs:run"]
+    command: ["node", "tools/jobs.mjs"]
     restart: unless-stopped
     depends_on:
       migrate:
