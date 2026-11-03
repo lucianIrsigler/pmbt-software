@@ -21,7 +21,7 @@ export default defineConfig({
   projects: [{ name: "mobile", use: { ...devices["Pixel 7"] } }],
   webServer: {
     // A production build: what we ship, and it can run alongside `pnpm dev`.
-    command: `pnpm build && pnpm start --port ${PORT}`,
+    command: "pnpm build && pnpm start",
     url: BASE_URL,
     reuseExistingServer: false,
     timeout: 240_000,
@@ -29,6 +29,7 @@ export default defineConfig({
       ...(process.env as Record<string, string>),
       DATABASE_URL: e2eDatabaseUrl(),
       APP_URL: BASE_URL,
+      PORT: String(PORT),
       // `next start` runs in production mode, which requires SMTP settings (never used: see below).
       SMTP_HOST: process.env.SMTP_HOST || "localhost",
       MAIL_FROM: process.env.MAIL_FROM || "e2e@example.com",

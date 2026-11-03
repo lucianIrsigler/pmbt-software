@@ -133,6 +133,8 @@ without help.
 
 ```
 pnpm dev            # start Next.js
+pnpm build          # production build (standalone output, as in the Docker image)
+pnpm start          # run that build like production does (PORT, default 3000)
 pnpm db:up          # start local Postgres (docker compose)
 pnpm db:down        # stop local Postgres (data is kept in the volume)
 pnpm db:generate    # generate migration from schema
