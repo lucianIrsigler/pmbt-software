@@ -257,6 +257,43 @@ Still to do, needs the real server, domain and secrets (runbook sections 3–7 a
 
 ---
 
+## Phase 12: Improvements after the MVP
+
+Moved from `docs/IMPROVEMENTS.md` (calendar, clients, code and database).
+
+Calendar:
+
+- [ ] Calmer week view: empty times in the week grid are plain, highlighted with "Book" on
+      hover/focus only. The one-day (phone) view is unchanged.
+- [ ] "Didn't come" visits shown faded on the calendar; where they overlap something else they
+      take the right third of the column.
+- [ ] "Go to date": jump to any date with the phone's date picker (plain form, no JS needed).
+- [ ] A "Now" line on today's column; on first open, scroll it into view if it is off screen.
+- [ ] Back link from an appointment goes back where it came from ("← Calendar" to that day,
+      "← <client>" from their history), validated so it can't point anywhere else.
+
+Clients:
+
+- [ ] "New booking" button on the client page: opens the calendar with "Booking for <name>",
+      tapping a free time skips choosing the client.
+- [ ] "Archived clients" list (`/app/clients/archived`), linked from the Clients tab when there are any.
+
+Code and database:
+
+- [ ] Unique index on `lower(user.email)` instead of a unique constraint on the raw column
+- [ ] GiST index on `time_off.during`
+- [ ] `.ics`: `ORGANIZER` (settings contact email, else `MAIL_FROM`) and `SEQUENCE`, so strict
+      calendar apps (Outlook) accept cancellations
+- [ ] Rename `SESSION_SECRET` to `IP_HASH_SECRET` (it only hashes IPs for rate limits)
+- [ ] Split `src/domain/booking.ts` into `booking.ts` (create, cancel by token, view),
+      `booking-status.ts` and `booking-products.ts`
+- [ ] One shared `Step` component for the public and the owner booking flows
+- [ ] Lint rule `@typescript-eslint/explicit-module-boundary-types` (not for tests, pages and components)
+
+**Done when:** all of the above work, `docs/UAT.md` covers them, and every check passes.
+
+---
+
 ## Out of scope for MVP (do not build)
 
 Online payments, deposits, WhatsApp/SMS, client accounts, multiple practitioners or rooms,

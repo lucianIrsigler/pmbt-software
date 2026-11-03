@@ -3,26 +3,13 @@
 Ideas noticed while building, **not** part of the MVP. Nothing here gets built until it is
 moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 
-## Calendar
-
-- **Calmer week view on big screens.** Every empty slot shows a "Free" box, which is busy
-  across seven days. Could show empty slots plainly and only highlight on hover.
-- **Show "Didn't come" visits on the calendar.** They're left off because their time is free
-  again and a new booking could sit on top. They could be shown faded beside it. (They do
-  show on Today and in the client's history.)
-- **Jump to any date.** Only previous/next day or week for now; a month picker would help
-  for bookings far ahead.
-- **Mark the current time on today.** A "now" line, and scrolling to it on open.
-- **Back link from an appointment.** The detail page always says "← Today", even when opened
-  from the calendar; it could go back to that calendar day instead.
-
 ## Block time
 
 - **Block several days at once.** An optional "until" date for holidays, instead of one block
   per day.
 - **See removed blocks.** Removed time off is kept in the database (`removed_at`) but there is
   no screen for it yet.
-- **Help with bookings inside a new block.** Today she's shown a list to phone. Once email
+- **Help with bookings inside a new block.** Today she's shown a list to phone. Now that email
   exists (Phase 9), offer to cancel them and email the clients.
 
 ## New booking (owner)
@@ -34,13 +21,6 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 - **Book outside working hours** as a one-off favour. Not possible at the moment.
 - **Typo-tolerant client search.** Search matches parts of names and phone numbers; using
   `pg_trgm` similarity (the index already exists) would also find misspellings.
-
-## Clients
-
-- **Book from the client page.** A "New booking" button there that starts the calendar flow
-  with the client already chosen.
-- **Show archived clients.** They're only reachable through old appointments; a small
-  "Archived clients" list would make bringing someone back easier.
 
 ## Installed app
 
@@ -72,27 +52,3 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 - **Uptime alerts.** Nothing tells you if the site goes down. A cron job on the backup machine
   that checks `/api/health` and emails you would do, without any outside service.
 - **Backup alerts.** Likewise, an email when a nightly backup fails.
-
-## Code and database (from the code review)
-
-- **Case-insensitive unique login emails in the database.** Emails are lower-cased by
-  `user:create` and the login, but the unique constraint is on the raw column; a unique index
-  on `lower(email)` would enforce it.
-- **An index on `time_off.during`.** Time off is looked up by overlap (calendar, availability).
-  The table is tiny now; a GiST index would keep it fast if it grows.
-- **Calendar cancellations in more apps.** The cancellation email's `.ics` uses
-  `METHOD:CANCEL` without an `ORGANIZER`; strict calendar apps (e.g. Outlook) may ignore it
-  and keep the event. Adding the business email as organizer would fix that.
-- **Rename `SESSION_SECRET`.** It only scrambles IP addresses for the rate limits (sessions
-  don't use it), so a name like `IP_HASH_SECRET` would be clearer. It changes every
-  environment's `.env`, so do it together with a deploy.
-- **Split `src/domain/booking.ts`.** At about 400 lines it holds creating, cancelling, status
-  changes, products sold and the client's booking view. Files per concern (e.g.
-  `booking-create.ts`, `booking-status.ts`, `booking-products.ts`) would be easier to find
-  your way around.
-- **One "step" layout for multi-step flows.** The public booking flow and booking from the
-  calendar each have their own `Step` component (title, "Step n of 4", back link). They differ
-  only in styling and could share one.
-- **Enforce return types with a lint rule.** CLAUDE.md asks for explicit return types on
-  exported functions; turning on `@typescript-eslint/explicit-module-boundary-types` would
-  catch misses automatically (the review found one).
