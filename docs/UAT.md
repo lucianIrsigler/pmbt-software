@@ -126,7 +126,7 @@ Do these on a phone first, then a desktop.
 
 - [ ] **3.18** Choose an animal service → details step asks for pet name, species, breed.
 - [ ] **3.19** Book for "Rex". Confirmation shows the pet.
-- [ ] **3.20** Book again later for the same phone with the same pet name: in `/app/clients`, the client has only one Rex (or note what happens and flag it).
+- [ ] **3.20** Book again later for the same phone with the same pet name: in `/app/clients`, the client has only one Rex (pets are matched by name, ignoring capitals).
 
 ### Slot taken
 
@@ -162,7 +162,7 @@ Do these on a phone first, then a desktop.
 - [ ] **4.9** Log out: Today → "Settings" (small link) → "Log out" → back on `/login`; `/app` redirects to login again.
 - [ ] **4.10** "Log out" is **not** on any main tab.
 - [ ] **4.11** Log in on two devices; logging out on one leaves the other logged in.
-- [ ] **4.12** `pnpm user:create` with an email that already exists → clear error, no change.
+- [ ] **4.12** `pnpm user:create` with an email that already exists, also in different capitals (`OWNER@Example.com`) → clear error, no change.
 
 ---
 
@@ -196,7 +196,7 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 ### Products sold
 
 - [ ] **5.15** "+ Add product" → list of products → tap one → it appears under "Products sold" with its price.
-- [ ] **5.16** Add the same product twice → quantity 2 (or two lines; note which).
+- [ ] **5.16** Add the same product twice → one line with quantity 2, at the first price.
 - [ ] **5.17** "Remove" → "Are you sure?" → Yes → gone. No → nothing changes.
 - [ ] **5.18** Hidden products (Phase 10) do not appear in the add list.
 
@@ -218,7 +218,7 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 - [ ] **6.2** "Next week →" / "← Previous week" (or next/previous day on a phone) move correctly and come back.
 - [ ] **6.3** Bookings show as blocks with time and name; tapping opens the appointment detail.
 - [ ] **6.4** Closed days say "Closed. No bookings."
-- [ ] **6.5** Empty times say "Free – tap to book".
+- [ ] **6.5** On a phone, empty times say "09:30 Free – tap to book". In the week view (wide screen) they are plain; hovering one (or tabbing to it) highlights it with "Book".
 - [ ] **6.6** Rotate a phone / widen a desktop window → layout switches between single-day and week grid without breaking.
 
 ### New phone booking
@@ -226,7 +226,7 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 - [ ] **6.7** Tap a free slot → "New booking" with date and time pre-filled.
 - [ ] **6.8** Search an existing client by part of the name → found. By phone (`0825550202`) → found. One letter → "Please type at least 2 letters or numbers."
 - [ ] **6.9** Choose "Dog Owner" → choose Rex → choose an animal service → confirm → "Booked ✓"; appears in the calendar and on Today if today.
-- [ ] **6.10** New client: name + phone → "for the client" → human service → confirm → client now in Clients.
+- [ ] **6.10** New client: name + phone → "for the client" → human service → confirm → client now in Clients. (Known gap: a phone number that already belongs to a client quietly uses that client here, without saying so.)
 - [ ] **6.11** Add a new pet during booking → pet saved on the client.
 - [ ] **6.12** Book a time 2 hours from now (inside min notice) → allowed for the owner.
 - [ ] **6.13** Book a date 60 days ahead (beyond the horizon) → allowed for the owner.
@@ -243,6 +243,15 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 - [ ] **6.21** (Developer) The removed block still exists in `time_off` with `removed_at` set.
 - [ ] **6.22** End time before start time → clear error.
 
+### Finding your way (Phase 12)
+
+- [ ] **6.23** Mark a booking "Didn't come", then open its day: it shows faded with a dashed border and "Didn't come" in the right half of the column; the free times beside it say just "Free" and can still be booked. Tapping it opens the visit.
+- [ ] **6.24** Book over a "Didn't come" time → both show side by side, the new booking on the left. "Undo" on the no-show then says "that time was just taken".
+- [ ] **6.25** "Go to date" → pick a date months ahead with the phone's date picker → "Go" → that day (week) opens. On a phone the "Go" button is fully on screen.
+- [ ] **6.26** Today's column has a red "Now" line at the current time. Open the calendar on a phone in the afternoon: it scrolls so the line is in view. Switching apps and back refreshes it without jumping.
+- [ ] **6.27** Open a booking from the calendar → the top link says "← Calendar" and returns to that same day (not Today). From Today it says "← Today".
+- [ ] **6.28** (Developer) Edit the URL of an appointment to `?from=calendar&date=https://example.com` → the back link falls back to "← Today".
+
 **Sign-off:** the owner added a phone booking and blocked a day off in a few taps, unaided.
 
 ---
@@ -251,7 +260,7 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 
 - [ ] **7.1** Before searching: "Recent clients" shows up to 20 recently seen clients.
 - [ ] **7.2** Search by part of a name, any case → found. By phone in any format → found. No match → "No clients found."
-- [ ] **7.3** Tap a client → contact details, notes, pets, visit history (newest first, each linking to the appointment).
+- [ ] **7.3** Tap a client → contact details, notes, pets, visit history (newest first, each linking to the appointment). Opening a visit from here, the back link says "← <client name>" and returns to the client.
 - [ ] **7.4** "Edit details" → change phone and email → saved; invalid phone → clear error.
 - [ ] **7.5** Client notes autosave with "Saved ✓" and survive leaving the page.
 - [ ] **7.6** Add a pet; edit a pet's breed and notes → saved.
@@ -259,8 +268,17 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 - [ ] **7.8** Give a client 2 upcoming bookings, then "Archive client" → confirmation mentions **2** upcoming bookings will be cancelled → Yes → both cancelled, cancellation emails sent, times free on `/book`, client hidden from the list.
 - [ ] **7.9** An archived client's page shows "This client is archived." and "Bring back"; bringing back does **not** restore the cancelled bookings.
 - [ ] **7.10** "Add client" → new client with name and phone → appears in search.
-- [ ] **7.11** Adding a client with a phone that already exists → clear message (no silent duplicate).
+- [ ] **7.11** Adding a client with a phone that already exists (in any format) → opens the existing client with "This phone number already belongs to …"; no duplicate.
 - [ ] **7.12** There is no way to delete a client, pet or appointment anywhere in the app.
+
+### Booking from a client, archived clients (Phase 12)
+
+- [ ] **7.13** On a client's page, "New booking" → the calendar opens with "Booking for <name>. Tap a free time." Moving between days/weeks and "Go to date" keep the banner.
+- [ ] **7.14** Tap a free time → the booking starts at "Who is being treated?" (choosing the client is skipped) → finish → "Booked ✓", banner gone.
+- [ ] **7.15** "Stop" on the banner → normal calendar ("Block time" is back).
+- [ ] **7.16** An archived client's page has no "New booking" button; `/app/calendar?client=<their id>` shows no banner.
+- [ ] **7.17** With at least one archived client, the bottom of the Clients tab shows "Archived clients (N)" with the right number. With none, the link is not there.
+- [ ] **7.18** The archived list shows them most recently archived first; tap one → their page → "Bring back" → they're back in search and the count goes down.
 
 **Sign-off:** the owner found a named client and told you when their last visit was, in seconds.
 
@@ -291,7 +309,7 @@ both Gmail (web + phone) and one other client (e.g. Outlook or iPhone Mail).
 - [ ] **9.3** Owner's calendar booking for a client with an email → confirmation email too.
 - [ ] **9.4** The `.ics` opens in Google Calendar and iPhone Calendar at the right local time and length.
 - [ ] **9.5** Manage link in the email works.
-- [ ] **9.6** Client cancels via link → cancellation email; its `.ics` removes/marks the event cancelled in a calendar that imported it.
+- [ ] **9.6** Client cancels via link → cancellation email; its `.ics` removes/marks the event cancelled in a calendar that imported it. Check Google Calendar, iPhone Calendar **and Outlook** (the `.ics` names the business as organizer so Outlook accepts the cancellation).
 - [ ] **9.7** Owner cancels → cancellation email.
 - [ ] **9.8** Archiving a client (or pet) with upcoming bookings → a cancellation email per booking.
 - [ ] **9.9** Every email reads well as HTML and as plain text (view "original" / plain-text mode).
@@ -400,6 +418,18 @@ if the runbook is unclear, note where.
 - [ ] **11.25** Rotate `IP_HASH_SECRET` (or the SMTP password) per runbook 12 → app restarts and works; nobody is logged out.
 
 **Sign-off (Phase 11 "done when"):** a push to `main` deployed, HTTPS works, and a backup was restored into a scratch database.
+
+---
+
+## Phase 12: Improvements after the MVP
+
+The owner-facing parts are tested above (6.5, 6.23–6.28, 7.3, 7.13–7.18, 9.6, 4.12). Developer checks:
+
+- [ ] **12.1** `pnpm db:migrate` on a copy of real data applies `0008` without errors (it fails if two logins differ only in capitals; fix those first).
+- [ ] **12.2** In psql, `\d "user"` shows `user_email_lower_idx` (unique) and `\d time_off` shows `time_off_during_idx` (gist).
+- [ ] **12.3** The app refuses to start without `IP_HASH_SECRET`, with a message naming it; `SESSION_SECRET` is no longer read.
+- [ ] **12.4** Download "Add to calendar" from a manage link: the file has `ORGANIZER;CN="<business name>":mailto:<contact email>` and `SEQUENCE:0`; the cancellation email's file has the same UID and `SEQUENCE:1`.
+- [ ] **12.5** The public booking flow and the owner's "New booking" look exactly as before (shared step layout).
 
 ---
 

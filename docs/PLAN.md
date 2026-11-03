@@ -263,32 +263,32 @@ Moved from `docs/IMPROVEMENTS.md` (calendar, clients, code and database).
 
 Calendar:
 
-- [ ] Calmer week view: empty times in the week grid are plain, highlighted with "Book" on
+- [x] Calmer week view: empty times in the week grid are plain, highlighted with "Book" on
       hover/focus only. The one-day (phone) view is unchanged.
-- [ ] "Didn't come" visits shown faded on the calendar; where they overlap something else they
+- [x] "Didn't come" visits shown faded on the calendar; where they overlap something else they
       take the right half of the column.
-- [ ] "Go to date": jump to any date with the phone's date picker (plain form, no JS needed).
-- [ ] A "Now" line on today's column; on first open, scroll it into view if it is off screen.
-- [ ] Back link from an appointment goes back where it came from ("← Calendar" to that day,
+- [x] "Go to date": jump to any date with the phone's date picker (plain form, no JS needed).
+- [x] A "Now" line on today's column; on first open, scroll it into view if it is off screen.
+- [x] Back link from an appointment goes back where it came from ("← Calendar" to that day,
       "← <client>" from their history), validated so it can't point anywhere else.
 
 Clients:
 
-- [ ] "New booking" button on the client page: opens the calendar with "Booking for <name>",
+- [x] "New booking" button on the client page: opens the calendar with "Booking for <name>",
       tapping a free time skips choosing the client.
-- [ ] "Archived clients" list (`/app/clients/archived`), linked from the Clients tab when there are any.
+- [x] "Archived clients" list (`/app/clients/archived`), linked from the Clients tab when there are any.
 
 Code and database:
 
-- [ ] Unique index on `lower(user.email)` instead of a unique constraint on the raw column
-- [ ] GiST index on `time_off.during`
-- [ ] `.ics`: `ORGANIZER` (settings contact email, else `MAIL_FROM`) and `SEQUENCE`, so strict
+- [x] Unique index on `lower(user.email)` instead of a unique constraint on the raw column
+- [x] GiST index on `time_off.during`
+- [x] `.ics`: `ORGANIZER` (settings contact email, else `MAIL_FROM`) and `SEQUENCE`, so strict
       calendar apps (Outlook) accept cancellations
-- [ ] Rename `SESSION_SECRET` to `IP_HASH_SECRET` (it only hashes IPs for rate limits)
-- [ ] Split `src/domain/booking.ts` into `booking.ts` (create, cancel by token, view),
+- [x] Rename `SESSION_SECRET` to `IP_HASH_SECRET` (it only hashes IPs for rate limits)
+- [x] Split `src/domain/booking.ts` into `booking.ts` (create, cancel by token, view),
       `booking-status.ts` and `booking-products.ts`
-- [ ] One shared `Step` component for the public and the owner booking flows
-- [ ] Lint rule `@typescript-eslint/explicit-module-boundary-types` (not for tests, pages and components)
+- [x] One shared `Step` component for the public and the owner booking flows
+- [x] Lint rule `@typescript-eslint/explicit-module-boundary-types` (not for tests, pages and components)
 
 **Done when:** all of the above work, `docs/UAT.md` covers them, and every check passes.
 
