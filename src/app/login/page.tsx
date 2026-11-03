@@ -4,7 +4,13 @@ import type { ReactNode } from "react";
 import { getCurrentUser, safeNextPath } from "@/lib/auth";
 import { LoginForm } from "./login-form";
 
-export const metadata: Metadata = { title: "Sign in", robots: { index: false } };
+export const metadata: Metadata = {
+  title: "Sign in",
+  robots: { index: false },
+  // The installed app may open here when she has to sign in again.
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "My bookings", statusBarStyle: "default" },
+};
 
 export default async function LoginPage({
   searchParams,
