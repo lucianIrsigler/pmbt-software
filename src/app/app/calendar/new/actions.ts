@@ -3,6 +3,12 @@
 import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { z } from "zod";
+import {
+  clientFormValues,
+  petFormValues,
+  type ClientField,
+  type PetField,
+} from "@/components/owner/client-fields";
 import type { FormState } from "@/components/owner/field";
 import { getDb } from "@/db";
 import { createBooking } from "@/domain/booking";
@@ -18,22 +24,23 @@ import { logError, logInfo } from "@/lib/log";
 import { calendarUrl } from "../urls";
 import { newBookingStepUrl } from "./urls";
 
-export type ClientField = "name" | "phone";
-export type PetField = "name" | "species" | "breed";
-
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
 
 const startSchema = z.iso.datetime();
 
-/** Step 1: a new client. If the phone number is already known, that client is used. */
+/**
+ * Step 1: a new client (bound to the booking's start time). If the phone number is
+ * already known, that client is used.
+ */
 export async function createClientAction(
+  start: string,
   _prev: FormState<ClientField>,
   formData: FormData,
 ): Promise<FormState<ClientField>> {
   await requireUser();
-  const values = { name: text(formData, "name"), phone: text(formData, "phone") };
-  const start = startSchema.safeParse(text(formData, "start"));
-  if (!start.success) return { values, errors: {}, message: SOMETHING_WRONG };
+  const values = clientFormValues(formData);
+  if (!startSchema.safeParse(start).success)
+    return { values, errors: {}, message: SOMETHING_WRONG };
 
   const input = ownerClientSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
@@ -46,35 +53,33 @@ export async function createClientAction(
     return { values, errors: {}, message: SOMETHING_WRONG };
   }
   logInfo("calendar.client_ready", { clientId });
-  redirect(newBookingStepUrl({ start: start.data, client: clientId }));
+  redirect(newBookingStepUrl({ start, client: clientId }));
 }
 
-/** Step 2: a new pet for the chosen client. */
+/** Step 2: a new animal for the chosen client (both bound). */
 export async function createPetAction(
+  start: string,
+  clientId: string,
   _prev: FormState<PetField>,
   formData: FormData,
 ): Promise<FormState<PetField>> {
   await requireUser();
-  const values = {
-    name: text(formData, "name"),
-    species: text(formData, "species"),
-    breed: text(formData, "breed"),
-  };
-  const start = startSchema.safeParse(text(formData, "start"));
-  const clientId = idSchema.safeParse(text(formData, "clientId"));
-  if (!start.success || !clientId.success) return { values, errors: {}, message: SOMETHING_WRONG };
+  const values = petFormValues(formData);
+  if (!startSchema.safeParse(start).success || !idSchema.safeParse(clientId).success) {
+    return { values, errors: {}, message: SOMETHING_WRONG };
+  }
 
   const input = ownerPetSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
 
   let petId: string;
   try {
-    petId = await createPet(getDb(), clientId.data, input.data);
+    petId = await createPet(getDb(), clientId, input.data);
   } catch (error) {
-    logError("calendar.create_pet", error, { clientId: clientId.data });
+    logError("calendar.create_pet", error, { clientId });
     return { values, errors: {}, message: SOMETHING_WRONG };
   }
-  redirect(newBookingStepUrl({ start: start.data, client: clientId.data, pet: petId }));
+  redirect(newBookingStepUrl({ start, client: clientId, pet: petId }));
 }
 
 const bookingFields = z.object({

@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { ActionButton, ConfirmButton } from "@/components/owner/confirm-button";
 import { NotesEditor } from "@/components/owner/notes-editor";
-import { ownerButton } from "@/components/owner/styles";
+import { ownerBackLink, ownerButton } from "@/components/owner/styles";
 import { Notice } from "@/components/ui";
 import {
   countUpcomingBookings,
@@ -99,10 +99,7 @@ export default async function ClientPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/app/clients"
-        className="self-start py-2 text-lg font-semibold text-accent underline"
-      >
+      <Link href="/app/clients" className={ownerBackLink}>
         ← Clients
       </Link>
 

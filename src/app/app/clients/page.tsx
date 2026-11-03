@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { ownerButton } from "@/components/owner/styles";
+import { ownerButton, ownerRow } from "@/components/owner/styles";
 import { listRecentClients, searchClients, type ClientSearchResult } from "@/domain/clients";
 import { formatPhone } from "@/lib/format";
 import { requestContext } from "@/lib/request";
@@ -21,10 +21,7 @@ function ClientList({
     <ul className="flex flex-col gap-3" aria-label={label}>
       {clients.map((c) => (
         <li key={c.id}>
-          <Link
-            href={`/app/clients/${c.id}`}
-            className="flex min-h-16 flex-col justify-center rounded-2xl border-2 border-line bg-card px-5 py-3 hover:border-accent"
-          >
+          <Link href={`/app/clients/${c.id}`} className={ownerRow}>
             <span className="text-xl font-bold">{c.name}</span>
             <span className="text-lg">{formatPhone(c.phone)}</span>
             {c.petNames && <span className="text-lg text-ink-soft">{c.petNames}</span>}

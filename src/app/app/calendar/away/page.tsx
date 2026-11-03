@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ConfirmButton } from "@/components/owner/confirm-button";
+import { ownerBackLink } from "@/components/owner/styles";
 import { Notice } from "@/components/ui";
 import { listOverlapping } from "@/domain/appointments";
 import { localDateSchema } from "@/domain/schemas";
@@ -75,7 +76,7 @@ export default async function AwayPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link href={back} className="self-start py-2 text-lg font-semibold text-accent underline">
+      <Link href={back} className={ownerBackLink}>
         ← Calendar
       </Link>
       <h1 className="text-3xl font-bold">Block time</h1>

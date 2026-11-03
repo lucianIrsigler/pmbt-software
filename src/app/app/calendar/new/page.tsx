@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { z } from "zod";
-import { ownerButton } from "@/components/owner/styles";
+import { ClientDetailsForm, PetDetailsForm } from "@/components/owner/client-forms";
+import { ownerBackLink, ownerButton, ownerRow } from "@/components/owner/styles";
 import { Notice } from "@/components/ui";
 import { servicesBookableAt, type Service } from "@/domain/availability";
 import { getClientWithPets, searchClients, type ClientWithPets } from "@/domain/clients";
@@ -11,15 +12,10 @@ import { formatDayLong, formatDuration, formatPhone, formatPrice, formatTime } f
 import { requestContext, type RequestContext } from "@/lib/request";
 import { stringParam, type SearchParams } from "@/lib/search-params";
 import { calendarUrl } from "../urls";
-import { bookFromCalendarAction } from "./actions";
-import { NewClientForm, NewPetForm } from "./forms";
+import { bookFromCalendarAction, createClientAction, createPetAction } from "./actions";
 import { newBookingStepUrl } from "./urls";
 
 export const metadata: Metadata = { title: "New booking" };
-
-const rowLink =
-  "flex min-h-16 flex-col justify-center rounded-2xl border-2 border-line bg-card px-5 py-3 hover:border-accent";
-const backLink = "self-start py-2 text-lg font-semibold text-accent underline";
 
 function Step({
   n,
@@ -39,7 +35,7 @@ function Step({
         <h2 className="text-2xl font-bold">{title}</h2>
       </div>
       {back && (
-        <Link href={back.href} className={backLink}>
+        <Link href={back.href} className={ownerBackLink}>
           ← {back.label}
         </Link>
       )}
@@ -88,7 +84,7 @@ async function ClientStep({
         <ul className="flex flex-col gap-3" aria-label="Clients found">
           {results.map((c) => (
             <li key={c.id}>
-              <Link href={newBookingStepUrl({ start, client: c.id })} className={rowLink}>
+              <Link href={newBookingStepUrl({ start, client: c.id })} className={ownerRow}>
                 <span className="text-xl font-bold">{c.name}</span>
                 <span className="text-lg">{formatPhone(c.phone)}</span>
                 {c.petNames && <span className="text-lg text-ink-soft">{c.petNames}</span>}
@@ -121,7 +117,7 @@ function PetStep({ start, client }: { start: string; client: ClientWithPets }): 
         <li>
           <Link
             href={newBookingStepUrl({ start, client: client.id, pet: "self" })}
-            className={rowLink}
+            className={ownerRow}
           >
             <span className="text-xl font-bold">{client.name} (the person)</span>
           </Link>
@@ -130,7 +126,7 @@ function PetStep({ start, client }: { start: string; client: ClientWithPets }): 
           <li key={p.id}>
             <Link
               href={newBookingStepUrl({ start, client: client.id, pet: p.id })}
-              className={rowLink}
+              className={ownerRow}
             >
               <span className="text-xl font-bold">
                 {p.name} <span className="font-normal">({p.species})</span>
@@ -179,7 +175,7 @@ function ServiceStep({
             <li key={s.id}>
               <Link
                 href={newBookingStepUrl({ start, client: client.id, pet, service: s.id })}
-                className={rowLink}
+                className={ownerRow}
               >
                 <span className="text-xl font-bold">{s.name}</span>
                 <span className="text-lg">
@@ -273,7 +269,7 @@ export default async function NewBookingPage({
 
   const header = (
     <div className="flex flex-col gap-1">
-      <Link href={backToCalendar} className={backLink}>
+      <Link href={backToCalendar} className={ownerBackLink}>
         ← Calendar
       </Link>
       <h1 className="text-3xl font-bold">New booking</h1>
@@ -318,7 +314,10 @@ export default async function NewBookingPage({
           title="New client"
           back={{ href: newBookingStepUrl({ start: iso }), label: "Search instead" }}
         >
-          <NewClientForm start={iso} />
+          <ClientDetailsForm
+            action={createClientAction.bind(null, iso)}
+            submitLabel="Save and continue"
+          />
         </Step>
       ) : (
         <ClientStep ctx={ctx} start={iso} q={stringParam(params.q) ?? ""} />
@@ -331,7 +330,10 @@ export default async function NewBookingPage({
           title={`New animal for ${client.name}`}
           back={{ href: newBookingStepUrl({ start: iso, client: client.id }), label: "Back" }}
         >
-          <NewPetForm start={iso} clientId={client.id} />
+          <PetDetailsForm
+            action={createPetAction.bind(null, iso, client.id)}
+            submitLabel="Save and continue"
+          />
         </Step>
       ) : (
         <PetStep start={iso} client={client} />

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { ownerBackLink } from "@/components/owner/styles";
 
 export const metadata: Metadata = { title: "Install the app" };
 
@@ -94,10 +95,7 @@ function Steps({ id, title, steps }: { id: string; title: string; steps: Step[] 
 export default function HelpPage(): ReactNode {
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href="/app/settings"
-        className="self-start py-2 text-lg font-semibold text-accent underline"
-      >
+      <Link href="/app/settings" className={ownerBackLink}>
         ← Settings
       </Link>
       <h1 className="text-3xl font-bold">Put the app on your home screen</h1>

@@ -3,6 +3,12 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { after } from "next/server";
+import {
+  clientFormValues,
+  petFormValues,
+  type ClientField,
+  type PetField,
+} from "@/components/owner/client-fields";
 import type { FormState } from "@/components/owner/field";
 import { getDb } from "@/db";
 import {
@@ -21,32 +27,14 @@ import { DomainError, PhoneInUseError } from "@/domain/errors";
 import { ownerClientSchema, ownerPetSchema } from "@/domain/schemas";
 import { requireUser } from "@/lib/auth";
 import { sendBookingEmail } from "@/lib/booking-emails";
-import { fieldErrors, text } from "@/lib/form-data";
+import { fieldErrors } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
 
-export type ClientField = "name" | "phone" | "email";
-export type PetField = "name" | "species" | "breed";
 export interface ActionResult {
   error?: string;
 }
 
 const SOMETHING_WRONG = "Something went wrong. Please try again.";
-
-function clientValues(formData: FormData): Record<ClientField, string> {
-  return {
-    name: text(formData, "name"),
-    phone: text(formData, "phone"),
-    email: text(formData, "email"),
-  };
-}
-
-function petValues(formData: FormData): Record<PetField, string> {
-  return {
-    name: text(formData, "name"),
-    species: text(formData, "species"),
-    breed: text(formData, "breed"),
-  };
-}
 
 /** Runs a button action: checks the session, maps errors to friendly text, refreshes. */
 async function run(
@@ -81,7 +69,7 @@ export async function addClientAction(
   formData: FormData,
 ): Promise<FormState<ClientField>> {
   await requireUser();
-  const values = clientValues(formData);
+  const values = clientFormValues(formData);
   const input = ownerClientSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
 
@@ -102,7 +90,7 @@ export async function updateClientAction(
   formData: FormData,
 ): Promise<FormState<ClientField>> {
   await requireUser();
-  const values = clientValues(formData);
+  const values = clientFormValues(formData);
   const input = ownerClientSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
 
@@ -154,7 +142,7 @@ export async function addPetAction(
   formData: FormData,
 ): Promise<FormState<PetField>> {
   await requireUser();
-  const values = petValues(formData);
+  const values = petFormValues(formData);
   const input = ownerPetSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
 
@@ -175,7 +163,7 @@ export async function updatePetAction(
   formData: FormData,
 ): Promise<FormState<PetField>> {
   await requireUser();
-  const values = petValues(formData);
+  const values = petFormValues(formData);
   const input = ownerPetSchema.safeParse(values);
   if (!input.success) return { values, errors: fieldErrors(input.error) };
 

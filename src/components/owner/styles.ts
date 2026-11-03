@@ -18,3 +18,10 @@ const ownerInputBase =
   "block min-h-14 w-full rounded-xl border-2 bg-card px-4 py-2 text-xl text-ink placeholder:text-ink-soft";
 export const ownerInput = `${ownerInputBase} border-ink-soft focus:border-accent`;
 export const ownerInputInvalid = `${ownerInputBase} border-danger`;
+
+/** "← Back" style text links at the top of owner pages. */
+export const ownerBackLink = "self-start py-2 text-lg font-semibold text-accent underline";
+
+/** A large tappable row in a list (a client, an animal, a service…). */
+export const ownerRow =
+  "flex min-h-16 flex-col justify-center rounded-2xl border-2 border-line bg-card px-5 py-3 hover:border-accent";

@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { PetDetailsForm } from "@/components/owner/client-forms";
 import { ActionButton, ConfirmButton } from "@/components/owner/confirm-button";
 import { NotesEditor } from "@/components/owner/notes-editor";
+import { ownerBackLink } from "@/components/owner/styles";
 import { Notice } from "@/components/ui";
 import { countUpcomingBookings, getPet } from "@/domain/clients";
 import { requestContext } from "@/lib/request";
@@ -13,7 +15,6 @@ import {
   unarchivePetAction,
   updatePetAction,
 } from "../../../actions";
-import { PetDetailsForm } from "../../../forms";
 
 export const metadata: Metadata = { title: "Animal" };
 
@@ -40,10 +41,7 @@ export default async function PetPage({
 
   return (
     <div className="flex flex-col gap-6">
-      <Link
-        href={`/app/clients/${p.clientId}`}
-        className="self-start py-2 text-lg font-semibold text-accent underline"
-      >
+      <Link href={`/app/clients/${p.clientId}`} className={ownerBackLink}>
         ← {p.clientName}
       </Link>
 
