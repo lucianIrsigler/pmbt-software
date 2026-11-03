@@ -122,7 +122,15 @@ export function BarList({
   );
 }
 
-export function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
+export function Stat({
+  label,
+  value,
+  note,
+}: {
+  label: string;
+  value: string;
+  note?: string;
+}): ReactNode {
   return (
     <div className="flex flex-col">
       <dt className="text-ink-soft">{label}</dt>

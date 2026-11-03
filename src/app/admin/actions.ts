@@ -9,7 +9,6 @@ import {
   addHours,
   createProduct,
   createService,
-  HoursOverlapError,
   removeHours,
   updateHours,
   updateProduct,
@@ -49,9 +48,7 @@ async function save(
     await write(values);
   } catch (error) {
     if (error instanceof ZodError) return { values, errors: fieldErrors<string>(error) };
-    if (error instanceof HoursOverlapError || error instanceof DomainError) {
-      return { values, errors: {}, message: error.message };
-    }
+    if (error instanceof DomainError) return { values, errors: {}, message: error.message };
     logError(context, error);
     return { values, errors: {}, message: SOMETHING_WRONG };
   }

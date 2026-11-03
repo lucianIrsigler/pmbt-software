@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Database } from "@/db/client";
 import { product, service, settings, workingHours } from "@/db/schema";
 import type { Queryable } from "./availability";
-import { NotFoundError } from "./errors";
+import { DomainError, NotFoundError } from "./errors";
 import { randsSchema } from "./money";
 import { idSchema, optionalEmailSchema, timeOfDaySchema } from "./schemas";
 import { timeToMinutes } from "./time";
@@ -165,7 +165,8 @@ export interface HoursBlock {
 }
 
 /** A working-hours block that overlaps another on the same day. */
-export class HoursOverlapError extends Error {
+export class HoursOverlapError extends DomainError {
+  readonly code = "hours_overlap";
   constructor() {
     super("These hours overlap other hours on the same day.");
   }
@@ -232,7 +233,7 @@ export async function updateHours(db: Database, rawId: string, form: unknown): P
       .set(block)
       .where(eq(workingHours.id, id))
       .returning({ id: workingHours.id });
-    if (updated.length === 0) throw new Error("working hours not found");
+    if (updated.length === 0) throw new NotFoundError("opening hours");
   });
 }
 
