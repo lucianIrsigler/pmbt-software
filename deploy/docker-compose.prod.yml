@@ -83,6 +83,8 @@ services:
   backup:
     image: ${IMAGE_PREFIX}/backup:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    # Alerts say which site they're about ("Backup FAILED on <domain>").
+    hostname: ${DOMAIN}
     environment:
       PGHOST: db
       PGUSER: dogstuff
@@ -91,6 +93,13 @@ services:
       TZ: ${BUSINESS_TZ:-Africa/Johannesburg}
       BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
       BACKUP_REMOTE: ${BACKUP_REMOTE:-}
+      # Failure alerts (alert.sh): the app's SMTP settings, sent to ALERT_EMAIL.
+      ALERT_EMAIL: ${ALERT_EMAIL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      MAIL_FROM: ${MAIL_FROM:-}
     volumes:
       - ./backups:/backups
       # Optional: backup_ssh_key and known_hosts for the off-server copy.
