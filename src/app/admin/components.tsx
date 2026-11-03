@@ -86,10 +86,13 @@ export function BarList({
   title,
   bars,
   empty = "Nothing yet.",
+  footer,
 }: {
   title: string;
   bars: Bar[];
   empty?: string;
+  /** Shown under the list, e.g. a download link. */
+  footer?: ReactNode;
 }): ReactNode {
   const max = Math.max(1, ...bars.map((b) => b.value));
   return (
@@ -118,6 +121,7 @@ export function BarList({
           ))}
         </ul>
       )}
+      {footer && <div className="mt-4">{footer}</div>}
     </section>
   );
 }

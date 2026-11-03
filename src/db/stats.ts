@@ -160,6 +160,42 @@ export async function topProducts(db: Database, range: TimeRange): Promise<TopIt
   return toTopItems(rows);
 }
 
+export interface MonthlyProductSales {
+  /** `YYYY-MM` in the business time zone. */
+  month: string;
+  product: string;
+  units: number;
+  revenueCents: number;
+}
+
+/**
+ * Products sold per month (for stock): units and revenue at done visits, the same rule
+ * as `topProducts`, so totals match the dashboard. Oldest month first, then by name.
+ */
+export async function productSalesByMonth(
+  db: Database,
+  range: TimeRange,
+  tz: string,
+): Promise<MonthlyProductSales[]> {
+  const rows = await db.execute<{ month: string; product: string; units: string; cents: string }>(
+    sql`
+    select to_char(lower(a.during) at time zone ${tz}, 'YYYY-MM') as month,
+      p.name as product, sum(ap.qty) as units, sum(ap.qty * ap.price_cents) as cents
+    from appointment_product ap
+      join appointment a on a.id = ap.appointment_id
+      join product p on p.id = ap.product_id
+    where a.status = 'done' and ${startsIn(range)}
+    group by month, p.id, p.name
+    order by month, p.name`,
+  );
+  return rows.map((r) => ({
+    month: r.month,
+    product: r.product,
+    units: num(r.units),
+    revenueCents: num(r.cents),
+  }));
+}
+
 /** Visits per weekday in the business time zone, Monday first. */
 export async function busiestWeekdays(
   db: Database,

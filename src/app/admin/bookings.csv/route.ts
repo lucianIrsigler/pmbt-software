@@ -1,38 +1,21 @@
 import { bookingFilterSchema, EXPORT_LIMIT, listAdminBookings } from "@/domain/admin-bookings";
-import { rangeInstants, resolveRange } from "@/domain/date-range";
+import { rangeInstants } from "@/domain/date-range";
 import { localDateOf } from "@/domain/time";
-import { getCurrentUser } from "@/lib/auth";
 import { toCsv } from "@/lib/csv";
 import { formatPhone, formatTime } from "@/lib/format";
 import { logInfo } from "@/lib/log";
-import { can } from "@/lib/permissions";
-import { requestContext } from "@/lib/request";
 import { SOURCE_LABELS, STATUS_LABELS } from "../bookings/labels";
-
-/** Rands with two decimals, as a plain number spreadsheets can add up. */
-function rands(cents: number): string {
-  return (cents / 100).toFixed(2);
-}
+import { adminCsvContext, csvResponse, rands } from "../csv-export";
 
 /**
  * CSV export of the bookings table, with the same filters. Contains personal
- * information (POPIA), so it needs a login and is never cached.
+ * information (POPIA), so it needs an admin login and is never cached.
  */
 export async function GET(request: Request): Promise<Response> {
-  const user = await getCurrentUser();
-  if (!user) return new Response("Please sign in.", { status: 401 });
-  if (!(await can(user.role, "admin"))) return new Response("Not allowed.", { status: 403 });
+  const ctx = await adminCsvContext(request);
+  if (ctx instanceof Response) return ctx;
+  const { db, tz, user, params, range } = ctx;
 
-  const { db, tz, now } = await requestContext();
-  const params = new URL(request.url).searchParams;
-  const range = resolveRange(
-    {
-      range: params.get("range") ?? undefined,
-      from: params.get("from") ?? undefined,
-      to: params.get("to") ?? undefined,
-    },
-    localDateOf(now, tz),
-  );
   const filter = bookingFilterSchema.parse({
     status: params.get("status") ?? undefined,
     source: params.get("source") ?? undefined,
@@ -71,12 +54,5 @@ export async function GET(request: Request): Promise<Response> {
     ]),
   ]);
 
-  return new Response(csv, {
-    headers: {
-      "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="bookings-${range.from}-to-${range.to}.csv"`,
-      "Cache-Control": "private, no-store",
-      "X-Robots-Tag": "noindex",
-    },
-  });
+  return csvResponse(csv, `bookings-${range.from}-to-${range.to}.csv`);
 }

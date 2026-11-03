@@ -56,6 +56,17 @@ test("dashboard and bookings show the numbers, and the CSV downloads", async ({
   const anonymous = await request.get("/admin/bookings.csv", { maxRedirects: 0 });
   expect(anonymous.status()).toBe(307);
   expect(anonymous.headers()["location"]).toContain("/login");
+
+  // Products sold per month, linked from "Top products" with the same range.
+  await page.goto("/admin?range=this-month");
+  const link = page.getByRole("link", { name: "Download products sold per month (CSV)" });
+  await expect(link).toHaveAttribute("href", "/admin/products-sold.csv?range=this-month");
+  const products = await page.request.get("/admin/products-sold.csv?range=this-month");
+  expect(products.ok()).toBe(true);
+  expect(products.headers()["content-type"]).toContain("text/csv");
+  expect(
+    (await products.text()).replace(/^﻿/, "").startsWith("Month,Product,Units,Revenue (R)"),
+  ).toBe(true);
 });
 
 test("a new price shows on the website; prices are checked", async ({ page }) => {

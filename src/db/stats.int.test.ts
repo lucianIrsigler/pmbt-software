@@ -9,7 +9,7 @@ import { resetBusinessTables } from "@/test/reset";
 import { createDb, type Database } from "./client";
 import { appointment, appointmentProduct, client, product, service } from "./schema";
 import { seed } from "./seed";
-import { dashboardStats, type DashboardStats } from "./stats";
+import { dashboardStats, productSalesByMonth, type DashboardStats } from "./stats";
 
 const TZ = "Africa/Johannesburg";
 const NOVEMBER = rangeInstants({ from: "2030-11-01", to: "2030-11-30" }, TZ);
@@ -83,7 +83,12 @@ beforeAll(async () => {
   const A = { serviceId: animalId, priceCents: 50_000 };
 
   // Before the range: makes "Returning" a returning client.
-  await visit(returning, at("2030-10-15", "09:00"), { status: "done", ...H });
+  await visit(returning, at("2030-10-15", "09:00"), {
+    status: "done",
+    ...H,
+    // An older price: the monthly product report keeps the price of the day.
+    products: [{ productId: balmId, qty: 1, priceCents: 11_000 }],
+  });
   // In the range.
   await visit(returning, at("2030-11-04", "09:00"), { status: "done", ...H }); // Mon
   await visit(fresh, at("2030-11-04", "10:00"), {
@@ -109,7 +114,12 @@ beforeAll(async () => {
   await visit(returning, at("2030-11-28", "09:00"), { status: "booked", ...H });
   // Edges of the range in Johannesburg time: 23:30 on the 30th is in, 00:15 on 1 Dec is out.
   await visit(returning, at("2030-11-30", "23:30"), { status: "done", ...H }); // Sat
-  await visit(returning, at("2030-12-01", "00:15"), { status: "done", ...H });
+  await visit(returning, at("2030-12-01", "00:15"), {
+    status: "done",
+    ...H,
+    // 22:15 on 30 November in UTC: must count in December (business time zone).
+    products: [{ productId: creamId, qty: 4, priceCents: 9_000 }],
+  });
 
   stats = await dashboardStats(db, NOVEMBER, TZ);
 });
@@ -178,6 +188,36 @@ describe("dashboardStats", () => {
     expect(empty.revenue.totalCents).toBe(0);
     expect(empty.topServices).toEqual([]);
     expect(empty.weekdays).toEqual([0, 0, 0, 0, 0, 0, 0]);
+  });
+});
+
+describe("productSalesByMonth", () => {
+  it("sums units and revenue per product per month, done visits only", async () => {
+    const [balm, cream] = await db.select().from(product).orderBy(asc(product.sortOrder));
+    const rows = await productSalesByMonth(
+      db,
+      rangeInstants({ from: "2030-10-01", to: "2030-12-31" }, TZ),
+      TZ,
+    );
+    expect(rows).toEqual(
+      [
+        { month: "2030-10", product: balm?.name, units: 1, revenueCents: 11_000 },
+        { month: "2030-11", product: balm?.name, units: 3, revenueCents: 36_000 },
+        { month: "2030-11", product: cream?.name, units: 1, revenueCents: 9_000 },
+        { month: "2030-12", product: cream?.name, units: 4, revenueCents: 36_000 },
+      ].sort(
+        (a, b) =>
+          a.month.localeCompare(b.month) || String(a.product).localeCompare(String(b.product)),
+      ),
+    );
+  });
+
+  it("matches the dashboard's top products for the same range", async () => {
+    const rows = await productSalesByMonth(db, NOVEMBER, TZ);
+    const units = rows.reduce((sum, r) => sum + r.units, 0);
+    const cents = rows.reduce((sum, r) => sum + r.revenueCents, 0);
+    expect(units).toBe(stats.topProducts.reduce((sum, p) => sum + p.count, 0));
+    expect(cents).toBe(stats.revenue.productsCents);
   });
 });
 

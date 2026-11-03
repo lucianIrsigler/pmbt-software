@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { dashboardStats } from "@/db/stats";
-import { rangeInstants, resolveRange } from "@/domain/date-range";
+import { rangeInstants, rangeQuery, resolveRange } from "@/domain/date-range";
 import { localDateOf } from "@/domain/time";
 import { formatPrice } from "@/lib/format";
 import { adminContext } from "@/app/admin/context";
@@ -101,6 +101,15 @@ export default async function DashboardPage({
             value: p.count,
             display: `${p.count} sold · ${formatPrice(p.revenueCents)}`,
           }))}
+          footer={
+            <a
+              href={`/admin/products-sold.csv?${new URLSearchParams(rangeQuery(range)).toString()}`}
+              className="text-accent underline"
+              download
+            >
+              Download products sold per month (CSV)
+            </a>
+          }
         />
       </div>
 
