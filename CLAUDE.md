@@ -140,6 +140,7 @@ pnpm db:migrate     # apply migrations
 pnpm db:seed        # seed services, hours, settings
 pnpm user:create    # create a login for the owner/admin
 pnpm reminders:send # email tomorrow's clients a reminder (each at most once)
+pnpm jobs:run       # production scheduler: runs reminders:send daily at REMINDER_TIME
 pnpm test           # vitest
 pnpm test:watch     # vitest in watch mode
 pnpm test:int       # integration tests against a fresh <db>_test database (needs db:up)

@@ -22,9 +22,10 @@
     "db:down": "docker compose -f docker-compose.dev.yml down",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx --env-file=.env --conditions=react-server scripts/seed.ts",
-    "user:create": "tsx --env-file=.env --conditions=react-server scripts/create-user.ts",
-    "reminders:send": "tsx --env-file=.env --conditions=react-server scripts/send-reminders.ts"
+    "db:seed": "tsx --env-file-if-exists=.env --conditions=react-server scripts/seed.ts",
+    "user:create": "tsx --env-file-if-exists=.env --conditions=react-server scripts/create-user.ts",
+    "reminders:send": "tsx --env-file-if-exists=.env --conditions=react-server scripts/send-reminders.ts",
+    "jobs:run": "tsx --env-file-if-exists=.env --conditions=react-server scripts/jobs.ts"
   },
   "dependencies": {
     "@date-fns/tz": "1.5.0",
