@@ -110,6 +110,9 @@ export default async function AppointmentPage({
       <a href={`tel:${a.client.phone}`} className={ownerButton.secondary}>
         Call {a.client.name.split(" ")[0]} · {formatPhone(a.client.phone)}
       </a>
+      <Link href={`/app/clients/${a.client.id}`} className={ownerButton.secondary}>
+        Client page and full history
+      </Link>
 
       <ReadOnlyNotes title={`About ${a.client.name}`} text={a.client.notes} />
       {a.pet && <ReadOnlyNotes title={`About ${a.pet.name}`} text={a.pet.notes} />}
