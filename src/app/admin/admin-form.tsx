@@ -134,7 +134,9 @@ export function AdminForm({
       <button
         type="submit"
         disabled={pending}
-        className="inline-flex min-h-11 items-center justify-center self-start rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-strong disabled:opacity-60"
+        className={`inline-flex min-h-11 items-center justify-center rounded-lg bg-accent px-4 font-semibold text-white hover:bg-accent-strong disabled:opacity-60 ${
+          inline ? "" : "self-start"
+        }`}
       >
         {pending ? "Saving…" : submitLabel}
       </button>
