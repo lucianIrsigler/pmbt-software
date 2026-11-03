@@ -5,7 +5,7 @@ import { appointment, client, pet, product, service } from "@/db/schema";
 import { seed } from "@/db/seed";
 import { testDatabaseUrl } from "@/test/database";
 import { resetBusinessTables } from "@/test/reset";
-import { firstLine, getAppointmentDetail, listDay, undoStatus } from "./appointments";
+import { firstLine, getAppointmentDetail, listDay } from "./appointments";
 import {
   addProductToAppointment,
   cancelByOwner,
@@ -13,6 +13,7 @@ import {
   markDone,
   markNoShow,
   updateAppointmentNotes,
+  undoStatus,
 } from "./booking";
 import { InvalidStatusError, NotFoundError, SlotTakenError } from "./errors";
 import { zonedInstant } from "./time";

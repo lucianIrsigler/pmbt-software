@@ -3,13 +3,13 @@
 import { refresh } from "next/cache";
 import { after } from "next/server";
 import { getDb } from "@/db";
-import { undoStatus } from "@/domain/appointments";
 import {
   addProductToAppointment,
   cancelByOwner,
   markDone,
   markNoShow,
   removeProductFromAppointment,
+  undoStatus,
   updateAppointmentNotes,
 } from "@/domain/booking";
 import { DomainError } from "@/domain/errors";

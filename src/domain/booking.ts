@@ -265,6 +265,19 @@ export async function markNoShow(db: Database, id: string): Promise<void> {
   await setStatus(db, id, ["booked"], "no_show", "marked as didn't come");
 }
 
+/**
+ * Undo "Done" or "Didn't come": back to booked. If someone has since booked an
+ * overlapping time (possible once a "didn't come" slot was freed), raises `SlotTakenError`.
+ */
+export async function undoStatus(db: Database, id: string): Promise<void> {
+  try {
+    await setStatus(db, id, ["done", "no_show"], "booked", "undone");
+  } catch (error) {
+    if (pgErrorCode(error) === PG_ERROR.exclusionViolation) throw new SlotTakenError();
+    throw error;
+  }
+}
+
 /** Owner cancels: no cutoff applies. */
 export async function cancelByOwner(
   db: Database,

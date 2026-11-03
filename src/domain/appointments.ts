@@ -1,15 +1,13 @@
 import { and, asc, desc, eq, inArray, isNull, ne, sql, type SQL } from "drizzle-orm";
 import type { Database } from "@/db/client";
-import { PG_ERROR, pgErrorCode } from "@/db/errors";
 import { formatTstzRange } from "@/db/range";
 import { appointment, appointmentProduct, client, pet, product, service } from "@/db/schema";
 import type { Queryable } from "./availability";
-import { InvalidStatusError, NotFoundError, SlotTakenError } from "./errors";
 import { idSchema } from "./schemas";
 import { BLOCKING_STATUSES } from "./slots";
 import { addMinutesTo, localDayRange, type LocalDate, type TimeRange } from "./time";
 
-/** Owner-facing reads (Today list, appointment detail) and the "Undo" status change. */
+/** Owner-facing reads: the Today list, the calendar and the appointment detail. */
 
 type AppointmentStatus = (typeof appointment.$inferSelect)["status"];
 
@@ -112,7 +110,9 @@ export interface AppointmentDetail {
   end: Date;
   notes: string;
   source: "web" | "app";
-  service: { id: string; name: string; forKind: "human" | "animal"; priceCents: number };
+  /** The price saved when it was booked. */
+  priceCents: number;
+  service: { id: string; name: string; forKind: "human" | "animal" };
   client: { id: string; name: string; phone: string; email: string | null; notes: string };
   pet: { id: string; name: string; species: string; breed: string | null; notes: string } | null;
   products: ProductLine[];
@@ -186,6 +186,7 @@ export async function getAppointmentDetail(
         during: appointment.during,
         notes: appointment.notes,
         source: appointment.source,
+        priceCents: appointment.priceCents,
         clientId: appointment.clientId,
         petId: appointment.petId,
       },
@@ -193,7 +194,6 @@ export async function getAppointmentDetail(
         id: service.id,
         name: service.name,
         forKind: service.forKind,
-        priceCents: service.priceCents,
         durationMin: service.durationMin,
       },
       client: {
@@ -237,36 +237,11 @@ export async function getAppointmentDetail(
     end: addMinutesTo(start, durationMin),
     notes: a.notes,
     source: a.source,
+    priceCents: a.priceCents,
     service: serviceInfo,
     client: row.client,
     pet: row.pet,
     products,
     previousVisits: visits,
   };
-}
-
-/**
- * Undo "Done" or "Didn't come": back to booked. If someone has since booked an
- * overlapping time (possible once a slot was freed), raises `SlotTakenError`.
- */
-export async function undoStatus(db: Database, rawId: string): Promise<void> {
-  const id = idSchema.parse(rawId);
-  try {
-    const [updated] = await db
-      .update(appointment)
-      .set({ status: "booked" })
-      .where(and(eq(appointment.id, id), sql`${appointment.status} in ('done', 'no_show')`))
-      .returning({ id: appointment.id });
-    if (updated) return;
-  } catch (error) {
-    if (pgErrorCode(error) === PG_ERROR.exclusionViolation) throw new SlotTakenError();
-    throw error;
-  }
-
-  const [current] = await db
-    .select({ status: appointment.status })
-    .from(appointment)
-    .where(eq(appointment.id, id));
-  if (!current) throw new NotFoundError("appointment");
-  throw new InvalidStatusError(current.status, "undone");
 }
