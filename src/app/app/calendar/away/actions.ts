@@ -9,14 +9,10 @@ import { addTimeOffSchema } from "@/domain/schemas";
 import { addTimeOff, removeTimeOff } from "@/domain/time-off";
 import { requireUser } from "@/lib/auth";
 import { getEnv } from "@/lib/env";
+import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
 
 export type AwayField = "date" | "kind" | "startTime" | "endTime" | "reason";
-
-function text(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value : "";
-}
 
 /** Blocks a whole day or part of one, then shows the result (and any clashing bookings). */
 export async function addTimeOffAction(
@@ -32,14 +28,7 @@ export async function addTimeOffAction(
     reason: text(formData, "reason"),
   };
   const parsed = addTimeOffSchema.safeParse(values);
-  if (!parsed.success) {
-    const errors: FormState<AwayField>["errors"] = {};
-    for (const issue of parsed.error.issues) {
-      const key = String(issue.path[0] ?? "date") as AwayField;
-      errors[key] ??= issue.message;
-    }
-    return { values, errors };
-  }
+  if (!parsed.success) return { values, errors: fieldErrors<AwayField>(parsed.error) };
 
   let id: string;
   try {

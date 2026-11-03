@@ -6,24 +6,20 @@ import { getDb } from "@/db";
 import { safeNextPath, setSessionCookie } from "@/lib/auth";
 import { clientIp, ipKey } from "@/lib/client-ip";
 import { getEnv } from "@/lib/env";
+import { text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
-import { attemptLogin } from "@/lib/login";
+import { attemptLogin, type LoginResult } from "@/lib/login";
 
 export interface LoginState {
   email: string;
   message?: string;
 }
 
-function text(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value : "";
-}
-
 export async function loginAction(_prev: LoginState, formData: FormData): Promise<LoginState> {
   const email = text(formData, "email");
   const next = safeNextPath(text(formData, "next"));
 
-  let result;
+  let result: LoginResult;
   try {
     result = await attemptLogin(getDb(), {
       email,

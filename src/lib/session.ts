@@ -102,6 +102,6 @@ export function sessionCookieOptions(appUrl: string): SessionCookieOptions {
     secure: new URL(appUrl).protocol === "https:",
     sameSite: "lax",
     path: "/",
-    maxAge: SESSION_DAYS * 86_400,
+    maxAge: SESSION_MS / 1000, // seconds
   };
 }

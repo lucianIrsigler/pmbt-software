@@ -12,6 +12,7 @@ import { idSchema, localDateSchema, newClientSchema, newPetSchema } from "@/doma
 import { sendBookingEmail } from "@/lib/booking-emails";
 import { clientIp, ipKey } from "@/lib/client-ip";
 import { getEnv } from "@/lib/env";
+import { fieldErrors, text } from "@/lib/form-data";
 import { logError, logInfo } from "@/lib/log";
 import { BOOKING_RATE_LIMIT, consumeRateLimit } from "@/lib/rate-limit";
 import { bookingStepUrl } from "./urls";
@@ -33,24 +34,6 @@ const hiddenFields = z.object({
   date: localDateSchema,
   start: z.iso.datetime(),
 });
-
-function text(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value : "";
-}
-
-function firstErrors<K extends string>(
-  error: z.ZodError,
-  rename: Partial<Record<string, K>> = {},
-): Partial<Record<K, string>> {
-  const result: Partial<Record<K, string>> = {};
-  for (const issue of error.issues) {
-    const key = String(issue.path[0] ?? "");
-    const field = (rename[key] ?? key) as K;
-    result[field] ??= issue.message;
-  }
-  return result;
-}
 
 export async function bookAction(
   _prev: BookingFormState,
@@ -101,9 +84,9 @@ export async function bookAction(
         })
       : undefined;
   const errors: BookingFormState["errors"] = {
-    ...(clientResult.success ? {} : firstErrors<BookingField>(clientResult.error)),
+    ...(clientResult.success ? {} : fieldErrors<BookingField>(clientResult.error)),
     ...(petResult && !petResult.success
-      ? firstErrors<BookingField>(petResult.error, { name: "petName" })
+      ? fieldErrors<BookingField>(petResult.error, { name: "petName" })
       : {}),
     ...(formData.get("consent") === "on"
       ? {}

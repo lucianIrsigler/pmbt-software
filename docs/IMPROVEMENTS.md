@@ -83,3 +83,6 @@ moved into `PLAN.md`. Add new ideas under the right heading, with a line on why.
 - **Calendar cancellations in more apps.** The cancellation email's `.ics` uses
   `METHOD:CANCEL` without an `ORGANIZER`; strict calendar apps (e.g. Outlook) may ignore it
   and keep the event. Adding the business email as organizer would fix that.
+- **Rename `SESSION_SECRET`.** It only scrambles IP addresses for the rate limits (sessions
+  don't use it), so a name like `IP_HASH_SECRET` would be clearer. It changes every
+  environment's `.env`, so do it together with a deploy.
