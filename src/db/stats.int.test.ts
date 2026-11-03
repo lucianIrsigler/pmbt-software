@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import { asc, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { countAdminBookings, listAdminBookings } from "@/domain/admin-bookings";
 import { rangeInstants } from "@/domain/date-range";
 import { zonedInstant } from "@/domain/time";
 import { testDatabaseUrl } from "@/test/database";
@@ -178,5 +179,33 @@ describe("dashboardStats", () => {
     expect(empty.revenue.totalCents).toBe(0);
     expect(empty.topServices).toEqual([]);
     expect(empty.weekdays).toEqual([0, 0, 0, 0, 0, 0, 0]);
+  });
+});
+
+describe("admin bookings table", () => {
+  it("lists bookings in the range newest first, with products sold", async () => {
+    const rows = await listAdminBookings(db, NOVEMBER, {}, { limit: 50 });
+    expect(rows).toHaveLength(7);
+    expect(await countAdminBookings(db, NOVEMBER, {})).toBe(7);
+    const starts = rows.map((r) => r.start.getTime());
+    expect(starts).toEqual([...starts].sort((a, b) => b - a));
+    expect(rows[0]?.start).toEqual(at("2030-11-30", "23:30"));
+
+    const withProducts = rows.find(
+      (r) => r.start.getTime() === at("2030-11-04", "10:00").getTime(),
+    );
+    expect(withProducts).toMatchObject({
+      clientName: "New",
+      priceCents: 50_000,
+      productsCents: 33_000,
+    });
+    expect(rows.find((r) => r.status === "booked")?.productsCents).toBe(0);
+  });
+
+  it("filters by status and source, and pages", async () => {
+    expect(await countAdminBookings(db, NOVEMBER, { status: "done" })).toBe(4);
+    expect(await countAdminBookings(db, NOVEMBER, { source: "web" })).toBe(0);
+    const page2 = await listAdminBookings(db, NOVEMBER, {}, { limit: 5, offset: 5 });
+    expect(page2).toHaveLength(2);
   });
 });
