@@ -15,6 +15,9 @@ export function logError(
   console.error(JSON.stringify({ level: "error", context, error: name, code, ...ids }));
 }
 
-export function logInfo(context: string, ids: Record<string, string | undefined> = {}): void {
+export function logInfo(
+  context: string,
+  ids: Record<string, string | number | undefined> = {},
+): void {
   console.info(JSON.stringify({ level: "info", context, ...ids }));
 }

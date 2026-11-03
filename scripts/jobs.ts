@@ -9,35 +9,30 @@
  */
 import { timeOfDaySchema } from "@/domain/schemas";
 import { getEnv } from "@/lib/env";
+import { logError, logInfo } from "@/lib/log";
 import { runReminderJob } from "@/lib/reminder-job";
 import { isPastTodaysRun, nextDailyRun } from "@/lib/schedule";
 
 const runAt = timeOfDaySchema.parse(process.env.REMINDER_TIME ?? "17:00");
 const tz = getEnv().BUSINESS_TZ;
 
-function log(message: string): void {
-  console.info(JSON.stringify({ level: "info", context: "jobs", message, at: new Date() }));
-}
-
 async function sendReminders(): Promise<void> {
   try {
     const run = await runReminderJob();
-    log(`reminders: ${run.sent} sent, ${run.failed} failed, ${run.skipped} skipped`);
+    logInfo("jobs.reminders", {
+      sent: run.sent,
+      failed: run.failed,
+      skipped: run.skipped,
+    });
   } catch (error) {
     // Never crash the scheduler; the next run (or a restart) tries again.
-    console.error(
-      JSON.stringify({
-        level: "error",
-        context: "jobs.reminders",
-        error: error instanceof Error ? error.name : typeof error,
-      }),
-    );
+    logError("jobs.reminders", error);
   }
 }
 
 function scheduleNext(): void {
   const next = nextDailyRun(new Date(), runAt, tz);
-  log(`next reminders run at ${next.toISOString()}`);
+  logInfo("jobs.next_run", { at: next.toISOString() });
   setTimeout(() => {
     void sendReminders().then(scheduleNext);
   }, next.getTime() - Date.now());
@@ -45,12 +40,12 @@ function scheduleNext(): void {
 
 for (const signal of ["SIGTERM", "SIGINT"] as const) {
   process.on(signal, () => {
-    log(`stopping (${signal})`);
+    logInfo("jobs.stopping", { signal });
     process.exit(0);
   });
 }
 
-log(`started; reminders daily at ${runAt} (${tz})`);
+logInfo("jobs.started", { remindersAt: runAt, tz });
 if (isPastTodaysRun(new Date(), runAt, tz)) {
   void sendReminders().then(scheduleNext);
 } else {

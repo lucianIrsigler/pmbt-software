@@ -38,7 +38,7 @@ export async function GET(request: Request): Promise<Response> {
   const rows = await listAdminBookings(db, rangeInstants(range, tz), filter, {
     limit: EXPORT_LIMIT,
   });
-  logInfo("admin.bookings_export", { userId: user.id, rows: String(rows.length) });
+  logInfo("admin.bookings_export", { userId: user.id, rows: rows.length });
 
   const csv = toCsv([
     [

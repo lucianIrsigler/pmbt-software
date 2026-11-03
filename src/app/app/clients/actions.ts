@@ -101,7 +101,7 @@ export async function saveClientNotesAction(
 export async function archiveClientAction(clientId: string): Promise<ActionResult> {
   return runOwnerAction("clients.archive", { clientId }, async () => {
     const cancelled = await archiveClient(getDb(), clientId);
-    logInfo("clients.archived", { clientId, cancelledBookings: String(cancelled.length) });
+    logInfo("clients.archived", { clientId, cancelledBookings: cancelled.length });
     emailCancellations(cancelled);
   });
 }
@@ -169,7 +169,7 @@ export async function savePetNotesAction(petId: string, notes: string): Promise<
 export async function archivePetAction(petId: string): Promise<ActionResult> {
   return runOwnerAction("pets.archive", { petId }, async () => {
     const cancelled = await archivePet(getDb(), petId);
-    logInfo("pets.archived", { petId, cancelledBookings: String(cancelled.length) });
+    logInfo("pets.archived", { petId, cancelledBookings: cancelled.length });
     emailCancellations(cancelled);
   });
 }
