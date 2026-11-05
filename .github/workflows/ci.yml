@@ -43,18 +43,18 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: dogstuff
-          POSTGRES_PASSWORD: dogstuff
-          POSTGRES_DB: dogstuff
+          POSTGRES_USER: daisyhealing
+          POSTGRES_PASSWORD: daisyhealing
+          POSTGRES_DB: daisyhealing
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U dogstuff -d dogstuff"
+          --health-cmd "pg_isready -U daisyhealing -d daisyhealing"
           --health-interval 2s
           --health-timeout 5s
           --health-retries 15
     env:
-      DATABASE_URL: postgres://dogstuff:dogstuff@localhost:5432/dogstuff
+      DATABASE_URL: postgres://daisyhealing:daisyhealing@localhost:5432/daisyhealing
     steps:
       - uses: actions/checkout@v7
 
@@ -76,18 +76,18 @@ jobs:
       postgres:
         image: postgres:16
         env:
-          POSTGRES_USER: dogstuff
-          POSTGRES_PASSWORD: dogstuff
-          POSTGRES_DB: dogstuff
+          POSTGRES_USER: daisyhealing
+          POSTGRES_PASSWORD: daisyhealing
+          POSTGRES_DB: daisyhealing
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U dogstuff -d dogstuff"
+          --health-cmd "pg_isready -U daisyhealing -d daisyhealing"
           --health-interval 2s
           --health-timeout 5s
           --health-retries 15
     env:
-      DATABASE_URL: postgres://dogstuff:dogstuff@localhost:5432/dogstuff
+      DATABASE_URL: postgres://daisyhealing:daisyhealing@localhost:5432/daisyhealing
       APP_URL: http://localhost:3100
       IP_HASH_SECRET: ci-only-secret-at-least-32-characters-long
     steps:

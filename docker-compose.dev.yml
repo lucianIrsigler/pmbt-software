@@ -4,16 +4,16 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: dogstuff
-      POSTGRES_PASSWORD: dogstuff
-      POSTGRES_DB: dogstuff
+      POSTGRES_USER: daisyhealing
+      POSTGRES_PASSWORD: daisyhealing
+      POSTGRES_DB: daisyhealing
       TZ: UTC
     ports:
       - "5432:5432"
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dogstuff -d dogstuff"]
+      test: ["CMD-SHELL", "pg_isready -U daisyhealing -d daisyhealing"]
       interval: 2s
       timeout: 5s
       retries: 15
