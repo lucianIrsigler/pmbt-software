@@ -15,3 +15,10 @@
 		-Server
 	}
 }
+
+# Visitors typing www. get the main address. Needs a DNS record for www. pointing at
+# this server; remove this block if there isn't one (Caddy would keep failing to get a
+# certificate for it).
+www.{$DOMAIN} {
+	redir https://{$DOMAIN}{uri} permanent
+}

@@ -90,13 +90,12 @@ At your DNS provider, add an **A record** for the domain pointing at the server'
 (and an **AAAA** record if the server has IPv6). Wait until `ping <domain>` shows the server's
 address. Caddy can only get a certificate once this works and ports 80/443 are open.
 
-Want `www.` too? Add a DNS record for it, then add this to `deploy/Caddyfile`:
+**`www.`**: `deploy/Caddyfile` redirects `www.<domain>` to the main address, so also add an
+**A record for `www`** pointing at the server. Without one, delete the `www.{$DOMAIN}` block from
+the Caddyfile, or Caddy keeps trying (and failing) to get a certificate for it.
 
-```
-www.{$DOMAIN} {
-	redir https://{$DOMAIN}{uri} permanent
-}
-```
+Remove any other A/AAAA records for `@` and `www` (registrars often add one pointing at their
+own hosting): with two addresses, some visitors reach the wrong server.
 
 ## 5. Settings (`.env`)
 

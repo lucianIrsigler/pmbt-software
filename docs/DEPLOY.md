@@ -22,7 +22,14 @@ computer)** run in a terminal on your own machine, in the project folder.
 At the domain registrar, add an **A record**: name `@` (the bare domain) or a subdomain such as
 `bookings`, value `<SERVER_IP>`.
 
-Check: `ping <your-domain>` shows `<SERVER_IP>`. It can take minutes to hours.
+Add a second **A record**, name `www`, value `<SERVER_IP>` (the site redirects `www.` to the main
+address).
+
+> **Gotcha:** delete every other A or AAAA record for `@` and `www`. Registrars often create one
+> pointing at their own hosting; with two, some devices (often phones) get the registrar's
+> "web server is functioning correctly" page instead of the site.
+
+Check: `nslookup <your-domain>` shows **only** `<SERVER_IP>`. It can take minutes to hours.
 
 ## 2. Set up the server (server, as root)
 
@@ -172,6 +179,7 @@ Then set up the **off-server backup copy** to a second machine:
 | `Permission denied (publickey)` | The deploy key's `.pub` isn't in the server's `~/.ssh/authorized_keys`, or `DEPLOY_SSH_KEY` is incomplete (must include the BEGIN/END lines). |
 | `Host key verification failed` | `DEPLOY_KNOWN_HOSTS` is wrong: re-run `ssh-keyscan -t ed25519 <SERVER_IP>` and paste that one line. |
 | "Check the live site" fails | DNS doesn't point at the server yet, or `APP_URL` is wrong. On the server: `dc ps`, `dc logs web migrate caddy`. |
+| Some devices show "web server is functioning correctly" | A second A/AAAA record (the registrar's) for `@` or `www`: delete it (step 1). |
 | No HTTPS / certificate errors | DNS not pointing at the server yet, or ports 80/443 blocked (`ufw status`, the host's firewall). `dc logs caddy`. |
 | `password authentication failed` / `database does not exist` | The database names in `deploy/docker-compose.prod.yml` must all match (`daisyhealing`). They can only change before the first deploy. |
 | Emails don't arrive | `dc logs web jobs \| grep email`. "EAUTH" means `SMTP_USER` or the app password is wrong. Check spam. |
