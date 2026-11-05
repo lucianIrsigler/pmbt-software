@@ -1,7 +1,11 @@
 # Runbook
 
 How to set up, run, update and recover the production system. Commands assume an Ubuntu
-24.04 server and that you are in the app folder on it (`/opt/dogstuff`) unless stated.
+24.04 server and that you are in the app folder on it (`/opt/dogstuff` in the examples;
+the live server uses `/opt/daisyhealing`) unless stated.
+
+**Setting up a server from scratch?** Follow the step-by-step checklist in
+[DEPLOY.md](DEPLOY.md); it links back here for the details.
 
 Short form used below: `dc` means `docker compose -f docker-compose.prod.yml`. Add it to
 the deploy user's shell once: `echo "alias dc='docker compose -f docker-compose.prod.yml'" >> ~/.bashrc`.
