@@ -9,7 +9,7 @@ x-app: &app
   env_file: .env
   environment:
     NODE_ENV: production
-    DATABASE_URL: postgres://dogstuff:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/dogstuff
+    DATABASE_URL: postgres://daisyhealing:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@db:5432/daisyhealing
 
 services:
   # HTTPS front door: gets and renews certificates for $DOMAIN automatically.
@@ -66,14 +66,14 @@ services:
     image: postgres:16.11-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: dogstuff
+      POSTGRES_USER: daisyhealing
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: dogstuff
+      POSTGRES_DB: daisyhealing
       TZ: UTC
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dogstuff -d dogstuff"]
+      test: ["CMD-SHELL", "pg_isready -U daisyhealing -d daisyhealing"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -87,9 +87,9 @@ services:
     hostname: ${DOMAIN}
     environment:
       PGHOST: db
-      PGUSER: dogstuff
+      PGUSER: daisyhealing
       PGPASSWORD: ${POSTGRES_PASSWORD}
-      PGDATABASE: dogstuff
+      PGDATABASE: daisyhealing
       TZ: ${BUSINESS_TZ:-Africa/Johannesburg}
       BACKUP_SCHEDULE: ${BACKUP_SCHEDULE:-0 2 * * *}
       BACKUP_REMOTE: ${BACKUP_REMOTE:-}

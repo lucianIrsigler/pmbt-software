@@ -175,7 +175,7 @@ The images are private on ghcr.io; each deploy logs the server in with a short-l
 | Restart the app | `dc restart web` |
 | Health | `curl https://<domain>/api/health` → `{"status":"ok","database":"ok"}` |
 | Reminders by hand | `dc run --rm migrate node tools/send-reminders.mjs` (never sends twice) |
-| A database shell | `dc exec db psql -U dogstuff dogstuff` |
+| A database shell | `dc exec db psql -U daisyhealing daisyhealing` |
 
 Logs never contain names, phone numbers or emails (POPIA): only ids and error codes.
 
@@ -279,7 +279,7 @@ dc exec backup restore.sh /backups/daily/dogstuff-2026-11-03T0200.dump
 
 It prints row counts (clients, appointments, …) from the copy, named `restore_check`;
 compare them with the live data. Remove it afterwards:
-`dc exec db dropdb -U dogstuff restore_check`.
+`dc exec db dropdb -U daisyhealing restore_check`.
 
 ### For real: replace the live database
 
@@ -288,7 +288,7 @@ Only when the live data is lost or damaged. Bookings made after the backup are l
 ```sh
 dc exec backup backup.sh                     # keep a copy of the current state anyway
 dc stop web jobs                             # nothing may write meanwhile
-dc exec -e RESTORE_INTO_LIVE=yes backup restore.sh /backups/daily/<file>.dump dogstuff
+dc exec -e RESTORE_INTO_LIVE=yes backup restore.sh /backups/daily/<file>.dump daisyhealing
 dc up -d --wait                              # migrations bring an older backup up to date
 curl https://<domain>/api/health
 ```
@@ -308,7 +308,7 @@ creates an empty database), then follow "For real" above.
 - **Roles**: `owner` opens her app only; `admin` opens the app and `/admin` (stats, prices,
   hours, settings). Give the owner's own login `owner`. What each role may open is decided in
   `src/lib/permissions.ts` (Casbin). A role change applies on the next page load.
-- **Sign everyone out** (e.g. a lost phone): `dc exec db psql -U dogstuff dogstuff -c "delete from session;"`.
+- **Sign everyone out** (e.g. a lost phone): `dc exec db psql -U daisyhealing daisyhealing -c "delete from session;"`.
 
 ## 12. Changing secrets
 
@@ -316,7 +316,7 @@ creates an empty database), then follow "For real" above.
 |---|---|
 | Google app password | Create a new app password, put it in `SMTP_PASS`, `dc up -d`, then revoke the old one in Google. |
 | `IP_HASH_SECRET` | Only scrambles IP addresses for the rate limits; changing it just resets those counts (it does **not** sign anyone out). New value in `.env`, `dc up -d`. |
-| `POSTGRES_PASSWORD` | `dc exec db psql -U dogstuff dogstuff -c "alter user dogstuff password '<new>';"`, put the same value in `.env`, `dc up -d`. |
+| `POSTGRES_PASSWORD` | `dc exec db psql -U daisyhealing daisyhealing -c "alter user daisyhealing password '<new>';"`, put the same value in `.env`, `dc up -d`. |
 | GitHub deploy key | Make a new key (section 6), add it to `authorized_keys`, update `DEPLOY_SSH_KEY`, then remove the old line from `authorized_keys`. |
 | Backup key | New key in `secrets/` (section 9), update the second machine's `authorized_keys`, remove the old line. |
 
