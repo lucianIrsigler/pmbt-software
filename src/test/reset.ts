@@ -7,6 +7,6 @@ import type { Database } from "@/db/client";
  */
 export async function resetBusinessTables(db: Database): Promise<void> {
   await db.execute(
-    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off`,
+    sql`truncate appointment_product, appointment, pet, client, service, product, working_hours, settings, time_off, testimonial`,
   );
 }

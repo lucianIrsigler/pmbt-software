@@ -1,7 +1,7 @@
 import { and, asc, eq, ne } from "drizzle-orm";
 import { z } from "zod";
 import type { Database } from "@/db/client";
-import { product, service, settings, workingHours } from "@/db/schema";
+import { product, service, settings, testimonial, workingHours } from "@/db/schema";
 import type { Queryable } from "./availability";
 import { DomainError, NotFoundError } from "./errors";
 import { randsSchema } from "./money";
@@ -9,8 +9,9 @@ import { idSchema, optionalEmailSchema, timeOfDaySchema } from "./schemas";
 import { timeToMinutes } from "./time";
 
 /**
- * Admin settings: services, products, working hours and business settings. Services
- * and products are never deleted (past bookings refer to them): they're hidden instead.
+ * Admin settings: services, products, testimonials, working hours and business settings.
+ * Services and products are never deleted (past bookings refer to them): they're hidden
+ * instead. Testimonials follow the same rule.
  * Write functions take the raw form values (strings) and validate them with Zod.
  */
 
@@ -139,6 +140,48 @@ export async function updateProduct(db: Database, rawId: string, form: unknown):
     .where(eq(product.id, id))
     .returning({ id: product.id });
   if (updated.length === 0) throw new NotFoundError("product");
+}
+
+// ---------------------------------------------------------------------------
+// Testimonials
+// ---------------------------------------------------------------------------
+
+export const testimonialFormSchema = z.object({
+  quote: requiredText("the quote", 600),
+  author: requiredText("who said it", 80),
+  sortOrder: wholeNumber("the order", -1000, 1000),
+  active: checkbox,
+});
+export type TestimonialForm = z.input<typeof testimonialFormSchema>;
+export type Testimonial = typeof testimonial.$inferSelect;
+
+export async function listAllTestimonials(db: Queryable): Promise<Testimonial[]> {
+  return db.select().from(testimonial).orderBy(asc(testimonial.sortOrder), asc(testimonial.author));
+}
+
+export async function getTestimonial(db: Queryable, rawId: string): Promise<Testimonial | null> {
+  const id = idSchema.safeParse(rawId);
+  if (!id.success) return null;
+  const [row] = await db.select().from(testimonial).where(eq(testimonial.id, id.data));
+  return row ?? null;
+}
+
+export async function createTestimonial(db: Database, form: unknown): Promise<string> {
+  const values = testimonialFormSchema.parse(form);
+  const [row] = await db.insert(testimonial).values(values).returning({ id: testimonial.id });
+  if (!row) throw new Error("testimonial insert returned no row");
+  return row.id;
+}
+
+export async function updateTestimonial(db: Database, rawId: string, form: unknown): Promise<void> {
+  const id = idSchema.parse(rawId);
+  const values = testimonialFormSchema.parse(form);
+  const updated = await db
+    .update(testimonial)
+    .set(values)
+    .where(eq(testimonial.id, id))
+    .returning({ id: testimonial.id });
+  if (updated.length === 0) throw new NotFoundError("testimonial");
 }
 
 // ---------------------------------------------------------------------------

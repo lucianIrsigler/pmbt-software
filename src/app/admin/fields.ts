@@ -45,6 +45,18 @@ export const PRODUCT_FIELDS: readonly FieldSpec[] = [
   { name: "active", label: "Shown (untick to hide it)", kind: "checkbox" },
 ];
 
+export const TESTIMONIAL_FIELDS: readonly FieldSpec[] = [
+  { name: "quote", label: "What they said", kind: "textarea" },
+  {
+    name: "author",
+    label: "Who said it",
+    kind: "text",
+    hint: 'As it should appear, e.g. "Sarah, with Max the Labrador". Ask them first.',
+  },
+  { name: "sortOrder", label: "Order", kind: "number", hint: "Lower numbers are listed first." },
+  { name: "active", label: "Shown on the website (untick to hide it)", kind: "checkbox" },
+];
+
 export const HOURS_FIELDS: readonly FieldSpec[] = [
   { name: "weekday", label: "Day", kind: "hidden" },
   { name: "startTime", label: "Opens", kind: "time" },

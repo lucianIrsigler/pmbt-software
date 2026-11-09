@@ -26,7 +26,14 @@ export class NotFoundError extends DomainError {
   readonly code = "not_found";
   constructor(
     readonly entity:
-      "appointment" | "client" | "pet" | "service" | "product" | "time off" | "opening hours",
+      | "appointment"
+      | "client"
+      | "pet"
+      | "service"
+      | "product"
+      | "testimonial"
+      | "time off"
+      | "opening hours",
   ) {
     super(`That ${entity} could not be found.`);
   }

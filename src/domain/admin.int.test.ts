@@ -7,17 +7,21 @@ import {
   addHours,
   createProduct,
   createService,
+  createTestimonial,
   getService,
+  getTestimonial,
   HoursOverlapError,
   listAllServices,
+  listAllTestimonials,
   listHours,
   removeHours,
   updateHours,
   updateService,
   updateSettings,
+  updateTestimonial,
 } from "./admin";
 import { findSlots, loadSettings } from "./availability";
-import { listActiveProducts, listActiveServices } from "./catalogue";
+import { listActiveProducts, listActiveServices, listActiveTestimonials } from "./catalogue";
 
 const TZ = "Africa/Johannesburg";
 const clock = { tz: TZ, now: new Date("2030-03-01T06:00:00Z") };
@@ -89,6 +93,49 @@ describe("products", () => {
       sortOrder: "0",
     });
     expect((await listActiveProducts(db)).map((p) => p.id)).not.toContain(id); // not ticked
+  });
+});
+
+describe("testimonials", () => {
+  const form = { quote: "Rex walks easily again.", author: "Sam, with Rex", sortOrder: "5" };
+
+  it("adds testimonials and lists the shown ones in order", async () => {
+    const later = await createTestimonial(db, { ...form, active: "on" });
+    const first = await createTestimonial(db, {
+      ...form,
+      author: "Ann",
+      sortOrder: "1",
+      active: "on",
+    });
+    expect(await getTestimonial(db, later)).toMatchObject({
+      quote: "Rex walks easily again.",
+      author: "Sam, with Rex",
+      sortOrder: 5,
+      active: true,
+    });
+    const shown = (await listActiveTestimonials(db)).map((t) => t.id);
+    expect(shown.indexOf(first)).toBeLessThan(shown.indexOf(later));
+  });
+
+  it("hides a testimonial: kept, but not on the website", async () => {
+    const id = await createTestimonial(db, { ...form, active: "on" });
+    await updateTestimonial(db, id, { ...form, quote: "Edited.", active: undefined });
+    expect(await getTestimonial(db, id)).toMatchObject({ quote: "Edited.", active: false });
+    expect((await listActiveTestimonials(db)).map((t) => t.id)).not.toContain(id);
+    expect((await listAllTestimonials(db)).map((t) => t.id)).toContain(id);
+  });
+
+  it("requires a quote and who said it", async () => {
+    await expect(createTestimonial(db, { ...form, quote: " ", author: "" })).rejects.toMatchObject({
+      issues: expect.arrayContaining([
+        expect.objectContaining({ path: ["quote"], message: "Please enter the quote" }),
+        expect.objectContaining({ path: ["author"], message: "Please enter who said it" }),
+      ]),
+    });
+  });
+
+  it("treats a malformed id as not found", async () => {
+    expect(await getTestimonial(db, "not-a-uuid")).toBeNull();
   });
 });
 

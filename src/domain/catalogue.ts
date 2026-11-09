@@ -1,8 +1,9 @@
 import { and, asc, eq } from "drizzle-orm";
-import { product, service } from "@/db/schema";
+import { product, service, testimonial } from "@/db/schema";
 import { loadSettings, type Queryable, type Service } from "./availability";
 
 export type Product = typeof product.$inferSelect;
+export type Testimonial = typeof testimonial.$inferSelect;
 
 /** Active services in display order, optionally only those for humans or animals. */
 export async function listActiveServices(
@@ -22,6 +23,15 @@ export async function listActiveProducts(db: Queryable): Promise<Product[]> {
     .from(product)
     .where(eq(product.active, true))
     .orderBy(asc(product.sortOrder), asc(product.name));
+}
+
+/** Testimonials shown on the home page, in display order. */
+export async function listActiveTestimonials(db: Queryable): Promise<Testimonial[]> {
+  return db
+    .select()
+    .from(testimonial)
+    .where(eq(testimonial.active, true))
+    .orderBy(asc(testimonial.sortOrder), asc(testimonial.author));
 }
 
 export interface PublicSettings {

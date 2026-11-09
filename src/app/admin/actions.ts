@@ -9,11 +9,13 @@ import {
   addHours,
   createProduct,
   createService,
+  createTestimonial,
   removeHours,
   updateHours,
   updateProduct,
   updateService,
   updateSettings,
+  updateTestimonial,
 } from "@/domain/admin";
 import { DomainError } from "@/domain/errors";
 import { requireAccess } from "@/lib/auth";
@@ -26,6 +28,7 @@ import {
   PRODUCT_FIELDS,
   SERVICE_FIELDS,
   SETTINGS_FIELDS,
+  TESTIMONIAL_FIELDS,
   type FieldSpec,
 } from "./fields";
 
@@ -81,6 +84,20 @@ export async function saveProductAction(
     formData,
     (values) => (id ? updateProduct(getDb(), id, values) : createProduct(getDb(), values)),
     "/admin/products?saved=1",
+  );
+}
+
+export async function saveTestimonialAction(
+  id: string | null,
+  _prev: State,
+  formData: FormData,
+): Promise<State> {
+  return save(
+    "admin.testimonial_saved",
+    TESTIMONIAL_FIELDS,
+    formData,
+    (values) => (id ? updateTestimonial(getDb(), id, values) : createTestimonial(getDb(), values)),
+    "/admin/testimonials?saved=1",
   );
 }
 

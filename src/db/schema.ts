@@ -135,6 +135,16 @@ export const product = pgTable(
   (t) => [check("product_price_non_negative", sql`${t.priceCents} >= 0`)],
 );
 
+/** Quotes from happy clients for the home page. Hidden (active = false), never deleted. */
+export const testimonial = pgTable("testimonial", {
+  id: id(),
+  quote: text("quote").notNull(),
+  /** Who said it, as it should appear, e.g. "Sarah, with Max the Labrador". */
+  author: text("author").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+});
+
 // ---------------------------------------------------------------------------
 // Availability
 // ---------------------------------------------------------------------------
