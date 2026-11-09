@@ -22,7 +22,9 @@ export default defineConfig({
   webServer: {
     // A production build: what we ship, and it can run alongside `pnpm dev`.
     command: "pnpm build && pnpm start",
-    url: BASE_URL,
+    // The readiness check must not need the database: global setup only creates it once
+    // the server is up.
+    url: `${BASE_URL}/api/health/live`,
     reuseExistingServer: false,
     timeout: 240_000,
     env: {
