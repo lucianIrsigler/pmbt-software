@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /*
- * Daisy Healing palette: cream page, terracotta for buttons and links. Text colours all pass
- * WCAG AA on the background (white on accent 5.4:1, accent on page 5.0:1).
- * `brand` is the logo's coral: too light for text, so use it for decoration only.
+ * Daisy Healing palette: cream page, forest green for buttons and links, paired with the
+ * logo's coral. Text colours all pass WCAG AA on the background (white on accent 6.4:1,
+ * accent on page 5.9:1). `brand` is the logo's coral: too light for text, so use it for
+ * decoration only.
  */
 @theme {
   --color-page: #faf5ee;
@@ -12,14 +13,13 @@
   --color-ink-soft: #4a433b;
   --color-line: #e6d9cc;
   --color-brand: #f47c59;
-  --color-accent: #b5462a;
-  --color-accent-strong: #8f3820;
-  --color-accent-soft: #fde9e1;
+  --color-accent: #2d6a4f;
+  --color-accent-strong: #1f4d39;
+  --color-accent-soft: #e4f0e8;
   --color-warn-soft: #fdf0d5;
   --color-warn-ink: #6b4400;
-  /* Crimson, so it stays distinct from the terracotta accent. */
-  --color-danger: #9f1d35;
-  --color-danger-soft: #fbe4e8;
+  --color-danger: #a12a1f;
+  --color-danger-soft: #fbe7e4;
   /* Blocked time on the calendar: grey, with ink text on it. */
   --color-away: #e2ddd6;
 

@@ -40,7 +40,7 @@ export default function OfflinePage(): ReactNode {
           alignItems: "center",
           justifyContent: "center",
           borderRadius: "0.75rem",
-          background: "#b5462a",
+          background: "#2d6a4f",
           color: "#ffffff",
           fontWeight: 700,
           fontSize: "1.25rem",

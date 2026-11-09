@@ -327,7 +327,7 @@ The business is now **Daisy Healing** (logo: a coral heart, cream background, Po
 
 - [x] Logo in the header (`public/logo.svg`)
 - [x] Brand colours everywhere (public site, owner app, login, emails): cream page,
-      terracotta buttons and links (`#b5462a`, readable with white text), logo coral
+      forest green buttons and links (`#2d6a4f`, readable with white text), logo coral
       (`#f47c59`) for decoration only, never for text
 - [x] Poppins for headings, self-hosted with `next/font` (downloaded at build time; visitors
       never contact Google)

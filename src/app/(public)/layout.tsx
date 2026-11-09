@@ -7,14 +7,16 @@ import { requestContext } from "@/lib/request";
 // No <Suspense> here on purpose: every page renders completely on the server, so the
 // site (including booking) works without JavaScript. See next.config.ts.
 
-/** The business name set like the banner: first word bold, the rest light underneath. */
+/**
+ * The business name on one line: first word bold, the rest light. On a very narrow screen
+ * (or with large text) it wraps onto two lines by itself.
+ */
 function Wordmark({ name }: { name: string }): ReactNode {
   const [first = "", ...rest] = name.split(" ");
   return (
-    <span className="flex flex-col font-heading uppercase leading-none tracking-wide text-ink">
-      <span className="text-2xl font-bold">{first}</span>
-      {/* A space so the accessible name reads "Daisy Healing", not "DaisyHealing". */}
-      {rest.length > 0 && <span className="text-lg font-normal"> {rest.join(" ")}</span>}
+    <span className="font-heading text-lg uppercase leading-tight tracking-wide text-ink sm:text-2xl">
+      <span className="font-bold">{first}</span>
+      {rest.length > 0 && <span className="font-normal"> {rest.join(" ")}</span>}
     </span>
   );
 }

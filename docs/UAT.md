@@ -480,11 +480,11 @@ Apply the new migration first (`pnpm db:migrate`).
 
 - [ ] **14.1** The browser tab says "Daisy Healing" on the home page and "<page> · Daisy Healing" elsewhere (e.g. "Services · Daisy Healing").
 - [ ] **14.2** The header shows the heart logo with "DAISY" (bold) over "HEALING", and a coral line under the header and above the footer.
-- [ ] **14.3** Colours match the banner: cream background, terracotta buttons with white text, headings in Poppins. White text on buttons is easy to read in sunlight.
+- [ ] **14.3** Colours: cream background, forest green buttons with white text, coral logo and lines, headings in Poppins. White text on buttons is easy to read in sunlight.
 - [ ] **14.4** If the business name was still the old default "PBMT & Natural Products", it is now "Daisy Healing" (`/admin/settings`). A name you had changed yourself is left alone.
-- [ ] **14.5** `/app`, `/login` and `/admin` use the same colours. "Cancel booking" and other danger buttons are clearly a different (crimson) colour from normal buttons.
-- [ ] **14.6** A booking confirmation email (terminal in dev) has a terracotta "Manage your booking" button.
-- [ ] **14.7** With the phone in dark mode (Samsung Internet or Chrome), the site stays light: cream background, terracotta (not green) buttons. The booking calendar's month name and "Next →" stay inside the card, also with a large system text size.
+- [ ] **14.5** `/app`, `/login` and `/admin` use the same colours. "Cancel booking" and other danger buttons are red, clearly different from the green buttons.
+- [ ] **14.6** A booking confirmation email (terminal in dev) has a green "Manage your booking" button.
+- [ ] **14.7** With the phone in dark mode (Samsung Internet or Chrome), the site stays light: cream background, the same green buttons and coral lines (not inverted). The booking calendar's month name and "Next →" stay inside the card, also with a large system text size.
 
 ### Mobile menu (phone)
 
