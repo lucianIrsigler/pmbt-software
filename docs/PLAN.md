@@ -321,6 +321,28 @@ image is much smaller and still runs every script, and both alerts have been see
 
 ---
 
+## Phase 14: Daisy Healing branding, testimonials, mobile menu
+
+The business is now **Daisy Healing** (logo: a coral heart, cream background, Poppins type).
+
+- [x] Logo in the header (`public/logo.svg`)
+- [x] Brand colours everywhere (public site, owner app, login, emails): cream page,
+      terracotta buttons and links (`#b5462a`, readable with white text), logo coral
+      (`#f47c59`) for decoration only, never for text
+- [x] Poppins for headings, self-hosted with `next/font` (downloaded at build time; visitors
+      never contact Google)
+- [x] Site title "Daisy Healing"; seed default and a migration that renames the old default
+- [x] Mobile menu: below `sm` the nav collapses behind a large "Menu" button
+      (`<details>`, works without JavaScript); closes after choosing a page
+- [x] Testimonials managed in `/admin/testimonials` (quote, author, order, hidden; never
+      deleted), shown as "What people say" on the home page when there is at least one
+- [x] App icon: the logo heart on cream instead of the green "B"; help page wording updated
+
+**Done when:** the site matches the banner, the menu collapses on a phone, testimonials
+added in `/admin` show on the home page, and every check passes.
+
+---
+
 ## Out of scope for MVP (do not build)
 
 Online payments, deposits, WhatsApp/SMS, client accounts, multiple practitioners or rooms,

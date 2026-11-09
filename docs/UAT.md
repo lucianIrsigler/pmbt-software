@@ -101,12 +101,12 @@ Do these on a phone first, then a desktop.
 
 ### Pages
 
-- [ ] **3.1** Header shows the business name and nav: Home, Services, Products, Book. Footer shows contact info and a privacy link.
-- [ ] **3.2** `/`: intro to PBMT and natural products; "Book now" goes to `/book`.
-- [ ] **3.3** `/services`: grouped "For you" and "For your animals", each with duration and price in rand (e.g. `R450`).
-- [ ] **3.4** `/products`: products with prices and a note that they are available at your session. No buy/cart button.
-- [ ] **3.5** `/privacy`: placeholder notice, clearly marked as needing the owner's review.
-- [ ] **3.6** Text is readable on a phone without zooming; no sideways scrolling on any page.
+- [x] **3.1** Header shows the business name and nav: Home, Services, Products, Book. Footer shows contact info and a privacy link.
+- [x] **3.2** `/`: intro to PBMT and natural products; "Book now" goes to `/book`.
+- [x] **3.3** `/services`: grouped "For you" and "For your animals", each with duration and price in rand (e.g. `R450`).
+- [x] **3.4** `/products`: products with prices and a note that they are available at your session. No buy/cart button.
+- [x] **3.5** `/privacy`: placeholder notice, clearly marked as needing the owner's review.
+- [x] **3.6** Text is readable on a phone without zooming; no sideways scrolling on any page.
 - [ ] **3.7** Pages load quickly on mobile data.
 
 ### Booking a human service
@@ -288,7 +288,7 @@ Ideally hand the phone to the owner with no instructions and watch. Note every h
 
 Must be tested on a production build. For phones, use the real HTTPS server (after Phase 11).
 
-- [ ] **8.1** Android/Chrome: log in → `/app/help` explains installing; "Install app" (or browser menu → "Add to Home screen") installs "My bookings" with the green B icon.
+- [ ] **8.1** Android/Chrome: log in → `/app/help` explains installing; "Install app" (or browser menu → "Add to Home screen") installs "My bookings" with the coral heart icon.
 - [ ] **8.2** iPhone/Safari: Share → "Add to Home Screen" → icon appears; `/app/help` instructions match what Safari shows.
 - [ ] **8.3** Opening from the home-screen icon goes straight to `/app` (Today), full screen with no browser address bar.
 - [ ] **8.4** Close and reopen the installed app a day later → still logged in.
@@ -469,6 +469,43 @@ The owner-facing parts are tested above (6.5, 6.23–6.28, 7.3, 7.13–7.18, 9.6
 - [ ] **13.18** `dc stop web` on the server: within about 10 minutes, one "Site down" email (not one every 5 minutes). `dc start web`: one "Recovered" email.
 - [ ] **13.19** Rename the newest backups on the second machine to something older (or point `BACKUP_DIR` at an empty folder): at the next check, one "No new backup" email; put them back → "Recovered".
 - [ ] **13.20** A normal deploy (site briefly restarting) does not trigger a "Site down" email.
+
+---
+
+## Phase 14: Daisy Healing branding, testimonials, mobile menu
+
+Apply the new migration first (`pnpm db:migrate`).
+
+### Look and title
+
+- [ ] **14.1** The browser tab says "Daisy Healing" on the home page and "<page> · Daisy Healing" elsewhere (e.g. "Services · Daisy Healing").
+- [ ] **14.2** The header shows the heart logo with "DAISY" (bold) over "HEALING", and a coral line under the header and above the footer.
+- [ ] **14.3** Colours match the banner: cream background, terracotta buttons with white text, headings in Poppins. White text on buttons is easy to read in sunlight.
+- [ ] **14.4** If the business name was still the old default "PBMT & Natural Products", it is now "Daisy Healing" (`/admin/settings`). A name you had changed yourself is left alone.
+- [ ] **14.5** `/app`, `/login` and `/admin` use the same colours. "Cancel booking" and other danger buttons are clearly a different (crimson) colour from normal buttons.
+- [ ] **14.6** A booking confirmation email (terminal in dev) has a terracotta "Manage your booking" button.
+- [ ] **14.7** The home page shows "Creams · Light therapy · Pets and people" on one line on a phone.
+
+### Mobile menu (phone)
+
+- [ ] **14.8** On a phone the links are hidden behind a large "☰ Menu" button; on a desktop they show in a row with a "Book" button.
+- [ ] **14.9** Tap "Menu": Home, Services, Products and "Book a session" open as a big list under the header; the button now says "Close". The current page is highlighted.
+- [ ] **14.10** Tap "Services": the Services page opens and the menu is closed.
+- [ ] **14.11** With JavaScript turned off, the menu still opens and its links work.
+
+### Testimonials
+
+- [ ] **14.12** With no testimonials, the home page has no "What people say" section.
+- [ ] **14.13** `/admin/testimonials` → "Add testimonial": quote and "Who said it" are required (friendly errors when empty). Save: it shows under "On the website".
+- [ ] **14.14** The home page now shows it under "What people say": quote, then who said it. Two or more sit side by side on a desktop, one per row on a phone.
+- [ ] **14.15** Order: a lower "Order" number is listed first on the home page.
+- [ ] **14.16** Untick "Shown on the website": it moves to "Hidden" in admin and disappears from the home page. Tick it again: it comes back. There is no delete.
+- [ ] **14.17** Signed in as the owner (role `owner`), `/admin/testimonials` shows "This area is for the administrator".
+
+### App icon
+
+- [ ] **14.18** `/icons/icon-192.png`, `/icons/maskable-512.png` and `/apple-icon` show the coral heart on cream.
+- [ ] **14.19** On a phone where the app was installed before: after opening it once online, remove and re-add it to the home screen; the icon is the heart. (Some phones keep the old icon until reinstalled.)
 
 ---
 
