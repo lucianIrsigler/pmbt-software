@@ -194,3 +194,30 @@ test("settings: business details show on the website", async ({ page }) => {
   await page.getByRole("button", { name: "Save settings" }).click();
   await expect(page.getByText("Saved ✓")).toBeVisible();
 });
+
+test("a testimonial added in admin shows on the home page until it is hidden", async ({ page }) => {
+  const quote = "E2E: my dog sleeps through the night now.";
+  await page.goto("/");
+  await expect(page.getByText(quote)).toHaveCount(0);
+
+  await signIn(page, "/admin/testimonials");
+  await page.getByRole("link", { name: "Add testimonial" }).click();
+  await page.getByLabel("What they said").fill(quote);
+  await page.getByLabel("Who said it").fill("E2E Owner, with Bella");
+  await page.getByRole("button", { name: "Add testimonial" }).click();
+  await expect(page.getByText("Saved ✓")).toBeVisible();
+
+  await page.goto("/");
+  const section = page.getByRole("region", { name: "What people say" });
+  await expect(section).toContainText(quote);
+  await expect(section).toContainText("E2E Owner, with Bella");
+
+  await page.goto("/admin/testimonials");
+  await page.getByRole("link", { name: "Edit E2E Owner, with Bella" }).click();
+  await page.getByLabel("Shown on the website (untick to hide it)").uncheck();
+  await page.getByRole("button", { name: "Save changes" }).click();
+  await expect(page.getByText("Saved ✓")).toBeVisible();
+
+  await page.goto("/");
+  await expect(page.getByText(quote)).toHaveCount(0);
+});
