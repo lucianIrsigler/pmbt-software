@@ -56,10 +56,10 @@ export default async function PublicLayout({
     <>
       <header className="relative border-b-4 border-brand bg-card">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3">
             {/* A plain <img>: the SVG is small and needs no resizing. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/logo.svg" alt="" width={56} height={48} className="h-12 w-auto" />
+            <img src="/logo.svg" alt="" width={56} height={48} className="h-10 w-auto sm:h-12" />
             <Wordmark name={settings.businessName} />
           </Link>
           <SiteNav />

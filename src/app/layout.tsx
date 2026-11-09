@@ -23,6 +23,9 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: THEME_COLOR,
+  // The site is designed light only. Stops phone browsers (Samsung Internet, Chrome's
+  // auto dark mode) from inverting it, which turns the terracotta green.
+  colorScheme: "only light",
   width: "device-width",
   initialScale: 1,
 };

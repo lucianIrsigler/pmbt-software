@@ -112,7 +112,8 @@ async function DateStep({
     >
       <ServiceSummary service={service} />
       <div className={card}>
-        <div className="mb-4 flex items-center justify-between gap-2">
+        {/* Phones: the month on its own line, Previous/Next under it (fits large text sizes). */}
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-x-2">
           {prev ? (
             <Link
               href={bookingStepUrl({ service: service.id, month: prev })}
@@ -123,7 +124,9 @@ async function DateStep({
           ) : (
             <span className={`${navClass} invisible`}>← Previous</span>
           )}
-          <h2 className="whitespace-nowrap text-lg font-bold sm:text-xl">{formatMonth(shown)}</h2>
+          <h2 className="order-first w-full text-center text-xl font-bold sm:order-none sm:w-auto">
+            {formatMonth(shown)}
+          </h2>
           {next ? (
             <Link
               href={bookingStepUrl({ service: service.id, month: next })}

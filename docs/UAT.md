@@ -484,27 +484,28 @@ Apply the new migration first (`pnpm db:migrate`).
 - [ ] **14.4** If the business name was still the old default "PBMT & Natural Products", it is now "Daisy Healing" (`/admin/settings`). A name you had changed yourself is left alone.
 - [ ] **14.5** `/app`, `/login` and `/admin` use the same colours. "Cancel booking" and other danger buttons are clearly a different (crimson) colour from normal buttons.
 - [ ] **14.6** A booking confirmation email (terminal in dev) has a terracotta "Manage your booking" button.
+- [ ] **14.7** With the phone in dark mode (Samsung Internet or Chrome), the site stays light: cream background, terracotta (not green) buttons. The booking calendar's month name and "Next →" stay inside the card, also with a large system text size.
 
 ### Mobile menu (phone)
 
-- [ ] **14.7** On a phone the links are hidden behind a large "☰ Menu" button; on a desktop they show in a row with a "Book" button.
-- [ ] **14.8** Tap "Menu": Home, Services, Products and "Book a session" open as a big list under the header; the button now says "Close". The current page is highlighted.
-- [ ] **14.9** Tap "Services": the Services page opens and the menu is closed.
-- [ ] **14.10** With JavaScript turned off, the menu still opens and its links work.
+- [ ] **14.8** On a phone the links are hidden behind a large "☰ Menu" button; on a desktop they show in a row with a "Book" button.
+- [ ] **14.9** Tap "Menu": Home, Services, Products and "Book a session" open as a big list under the header; the button now says "Close". The current page is highlighted.
+- [ ] **14.10** Tap "Services": the Services page opens and the menu is closed.
+- [ ] **14.11** With JavaScript turned off, the menu still opens and its links work.
 
 ### Testimonials
 
-- [ ] **14.11** With no testimonials, the home page has no "What people say" section.
-- [ ] **14.12** `/admin/testimonials` → "Add testimonial": quote and "Who said it" are required (friendly errors when empty). Save: it shows under "On the website".
-- [ ] **14.13** The home page now shows it under "What people say": quote, then who said it. Two or more sit side by side on a desktop, one per row on a phone.
-- [ ] **14.14** Order: a lower "Order" number is listed first on the home page.
-- [ ] **14.15** Untick "Shown on the website": it moves to "Hidden" in admin and disappears from the home page. Tick it again: it comes back. There is no delete.
-- [ ] **14.16** Signed in as the owner (role `owner`), `/admin/testimonials` shows "This area is for the administrator".
+- [ ] **14.12** With no testimonials, the home page has no "What people say" section.
+- [ ] **14.13** `/admin/testimonials` → "Add testimonial": quote and "Who said it" are required (friendly errors when empty). Save: it shows under "On the website".
+- [ ] **14.14** The home page now shows it under "What people say": quote, then who said it. Two or more sit side by side on a desktop, one per row on a phone.
+- [ ] **14.15** Order: a lower "Order" number is listed first on the home page.
+- [ ] **14.16** Untick "Shown on the website": it moves to "Hidden" in admin and disappears from the home page. Tick it again: it comes back. There is no delete.
+- [ ] **14.17** Signed in as the owner (role `owner`), `/admin/testimonials` shows "This area is for the administrator".
 
 ### App icon
 
-- [ ] **14.17** `/icons/icon-192.png`, `/icons/maskable-512.png` and `/apple-icon` show the coral heart on cream.
-- [ ] **14.18** On a phone where the app was installed before: after opening it once online, remove and re-add it to the home screen; the icon is the heart. (Some phones keep the old icon until reinstalled.)
+- [ ] **14.18** `/icons/icon-192.png`, `/icons/maskable-512.png` and `/apple-icon` show the coral heart on cream.
+- [ ] **14.19** On a phone where the app was installed before: after opening it once online, remove and re-add it to the home screen; the icon is the heart. (Some phones keep the old icon until reinstalled.)
 
 ---
 

@@ -30,6 +30,8 @@
 
 html {
   font-size: 18px;
+  /* Light only: see `colorScheme` in src/app/layout.tsx. */
+  color-scheme: only light;
 }
 
 body {

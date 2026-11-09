@@ -52,7 +52,7 @@ export function SiteNav(): ReactNode {
       </nav>
 
       <details ref={menu} className="group sm:hidden">
-        <summary className="flex min-h-12 cursor-pointer list-none items-center gap-2 rounded-xl border-2 border-accent px-4 text-lg font-semibold text-accent [&::-webkit-details-marker]:hidden">
+        <summary className="flex min-h-12 shrink-0 cursor-pointer list-none items-center gap-2 rounded-xl border-2 border-accent px-3 text-lg font-semibold text-accent [&::-webkit-details-marker]:hidden">
           <span aria-hidden="true">☰</span>
           <span className="group-open:hidden">Menu</span>
           <span className="hidden group-open:inline">Close</span>
