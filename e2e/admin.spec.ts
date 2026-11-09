@@ -34,6 +34,8 @@ test("dashboard and bookings show the numbers, and the CSV downloads", async ({
     "true",
   );
 
+  // A phone-sized screen: the admin links are behind the Menu button.
+  await page.locator("summary", { hasText: "Menu" }).click();
   await page
     .getByRole("navigation", { name: "Admin" })
     .getByRole("link", { name: "Bookings" })

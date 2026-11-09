@@ -493,19 +493,21 @@ Apply the new migration first (`pnpm db:migrate`).
 - [ ] **14.10** Tap "Services": the Services page opens and the menu is closed.
 - [ ] **14.11** With JavaScript turned off, the menu still opens and its links work.
 
+- [ ] **14.13** `/admin` on a phone: the same "☰ Menu" button lists all admin pages (current one highlighted), with your email and "Owner app" at the bottom. On a desktop the links show in a row.
+
 ### Testimonials
 
 - [ ] **14.12** With no testimonials, the home page has no "What people say" section.
-- [ ] **14.13** `/admin/testimonials` → "Add testimonial": quote and "Who said it" are required (friendly errors when empty). Save: it shows under "On the website".
-- [ ] **14.14** The home page now shows it under "What people say": quote, then who said it. Two or more sit side by side on a desktop, one per row on a phone.
-- [ ] **14.15** Order: a lower "Order" number is listed first on the home page.
-- [ ] **14.16** Untick "Shown on the website": it moves to "Hidden" in admin and disappears from the home page. Tick it again: it comes back. There is no delete.
-- [ ] **14.17** Signed in as the owner (role `owner`), `/admin/testimonials` shows "This area is for the administrator".
+- [ ] **14.14** `/admin/testimonials` → "Add testimonial": quote and "Who said it" are required (friendly errors when empty). Save: it shows under "On the website".
+- [ ] **14.15** The home page now shows it under "What people say": quote, then who said it. Two or more sit side by side on a desktop, one per row on a phone.
+- [ ] **14.16** Order: a lower "Order" number is listed first on the home page.
+- [ ] **14.17** Untick "Shown on the website": it moves to "Hidden" in admin and disappears from the home page. Tick it again: it comes back. There is no delete.
+- [ ] **14.18** Signed in as the owner (role `owner`), `/admin/testimonials` shows "This area is for the administrator".
 
 ### App icon
 
-- [ ] **14.18** `/icons/icon-192.png`, `/icons/maskable-512.png` and `/apple-icon` show the coral heart on cream.
-- [ ] **14.19** On a phone where the app was installed before: after opening it once online, remove and re-add it to the home screen; the icon is the heart. (Some phones keep the old icon until reinstalled.)
+- [ ] **14.19** `/icons/icon-192.png`, `/icons/maskable-512.png` and `/apple-icon` show the coral heart on cream.
+- [ ] **14.20** On a phone where the app was installed before: after opening it once online, remove and re-add it to the home screen; the icon is the heart. (Some phones keep the old icon until reinstalled.)
 
 ---
 

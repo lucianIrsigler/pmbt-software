@@ -9,25 +9,28 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-/** Admin area: stats and settings. Desktop-friendly; not linked from the owner's app. */
+/** Admin area: stats and settings. Phone menu below `lg`; not linked from the owner's app. */
 export default async function AdminLayout({
   children,
 }: {
   children: ReactNode;
 }): Promise<ReactNode> {
   const user = await requireAccess("admin");
+  const account = (
+    <p className="text-ink-soft">
+      {user.email} ·{" "}
+      <Link href="/app" className="text-accent underline">
+        Owner app
+      </Link>
+    </p>
+  );
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b-2 border-line bg-card">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <header className="relative border-b-4 border-brand bg-card">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <p className="text-xl font-bold">Admin</p>
-          <AdminNav />
-          <p className="text-ink-soft">
-            {user.email} ·{" "}
-            <Link href="/app" className="text-accent underline">
-              Owner app
-            </Link>
-          </p>
+          <AdminNav account={account} />
+          <div className="hidden lg:block">{account}</div>
         </div>
       </header>
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">{children}</main>
