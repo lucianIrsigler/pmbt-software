@@ -3,22 +3,6 @@ import { ButtonLink, PageTitle } from "@/components/ui";
 import { listActiveTestimonials, type Testimonial } from "@/domain/catalogue";
 import { requestContext } from "@/lib/request";
 
-const TAGLINE = ["Creams", "Light therapy", "Pets and people"] as const;
-
-/** "Creams · Light therapy · Pets and people", as on the banner. */
-function Tagline(): ReactNode {
-  return (
-    <p className="flex flex-wrap items-center gap-x-2 font-heading text-sm uppercase tracking-wide sm:gap-x-3 sm:text-base">
-      {TAGLINE.map((item, i) => (
-        <span key={item} className="flex items-center gap-x-2 sm:gap-x-3">
-          {i > 0 && <span aria-hidden="true" className="size-2 rounded-full bg-brand" />}
-          {item}
-        </span>
-      ))}
-    </p>
-  );
-}
-
 function Testimonials({ items }: { items: readonly Testimonial[] }): ReactNode {
   return (
     <section aria-labelledby="testimonials-heading" className="flex flex-col gap-4">
@@ -49,7 +33,6 @@ export default async function Home(): Promise<ReactNode> {
   return (
     <div className="flex flex-col gap-10">
       <section className="flex flex-col gap-4">
-        <Tagline />
         <PageTitle>Gentle light therapy for you and your animals</PageTitle>
         <p className="text-lg">
           Photobiomodulation therapy (PBMT) uses low-level red and near-infrared light. Many people
