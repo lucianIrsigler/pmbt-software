@@ -79,7 +79,7 @@ function renderHtml(subject: string, blocks: Block[]): string {
       }
       return (
         `<p style="margin:0 0 16px"><a href="${escapeHtml(b.href)}" ` +
-        `style="display:inline-block;padding:12px 20px;background:#1f5f4a;color:#ffffff;` +
+        `style="display:inline-block;padding:12px 20px;background:#b5462a;color:#ffffff;` +
         `text-decoration:none;border-radius:8px;font-weight:bold">${escapeHtml(b.label)}</a></p>`
       );
     })
@@ -88,7 +88,7 @@ function renderHtml(subject: string, blocks: Block[]): string {
     "<!doctype html>",
     '<html lang="en"><head><meta charset="utf-8">',
     `<meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(subject)}</title></head>`,
-    `<body style="margin:0;padding:24px 16px;background:#fdf8f1"><div style="max-width:560px;margin:0 auto;${FONT}">`,
+    `<body style="margin:0;padding:24px 16px;background:#faf5ee"><div style="max-width:560px;margin:0 auto;${FONT}">`,
     body,
     "</div></body></html>",
   ].join("\n");

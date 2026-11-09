@@ -1,23 +1,31 @@
 @import "tailwindcss";
 
-/* Warm, high-contrast palette. Text colours all pass WCAG AA on the background. */
+/*
+ * Daisy Healing palette: cream page, terracotta for buttons and links. Text colours all pass
+ * WCAG AA on the background (white on accent 5.4:1, accent on page 5.0:1).
+ * `brand` is the logo's coral: too light for text, so use it for decoration only.
+ */
 @theme {
-  --color-page: #fdf8f1;
+  --color-page: #faf5ee;
   --color-card: #ffffff;
   --color-ink: #1d1a16;
   --color-ink-soft: #4a433b;
-  --color-line: #d8cdbf;
-  --color-accent: #1f5f4a;
-  --color-accent-strong: #164536;
-  --color-accent-soft: #e3efe8;
+  --color-line: #e6d9cc;
+  --color-brand: #f47c59;
+  --color-accent: #b5462a;
+  --color-accent-strong: #8f3820;
+  --color-accent-soft: #fde9e1;
   --color-warn-soft: #fdf0d5;
   --color-warn-ink: #6b4400;
-  --color-danger: #a12a1f;
-  --color-danger-soft: #fbe7e4;
+  /* Crimson, so it stays distinct from the terracotta accent. */
+  --color-danger: #9f1d35;
+  --color-danger-soft: #fbe4e8;
   /* Blocked time on the calendar: grey, with ink text on it. */
   --color-away: #e2ddd6;
 
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Poppins, self-hosted by next/font (see src/app/layout.tsx), with the system font as fallback. */
+  --font-heading: var(--font-poppins), var(--font-sans);
 }
 
 html {
@@ -29,6 +37,12 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
 }
 
 :focus-visible {

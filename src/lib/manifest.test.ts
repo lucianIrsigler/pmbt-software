@@ -10,7 +10,7 @@ describe("ownerAppManifest", () => {
       short_name: "My bookings",
       start_url: "/app",
       display: "standalone",
-      theme_color: "#1f5f4a",
+      theme_color: "#b5462a",
     });
     expect((manifest.short_name ?? "").length).toBeLessThanOrEqual(12);
   });

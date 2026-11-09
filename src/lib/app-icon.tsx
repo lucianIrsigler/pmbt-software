@@ -1,19 +1,33 @@
+import "server-only";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
+import { BACKGROUND_COLOR } from "./brand";
+
+/** The logo's width / height (from its viewBox). */
+const LOGO_ASPECT = 114.974 / 99.368;
+
+let logoDataUrl: string | undefined;
 
 /**
- * Placeholder app icon: a white "B" on the app's green. Replace with the real logo
- * later (see docs/IMPROVEMENTS.md); the manifest only needs the icon URLs to stay.
+ * `public/logo.svg` as a data URL for next/og. The icons are drawn at build time, when the
+ * working directory is the project root.
  */
-
-export const THEME_COLOR = "#1f5f4a";
-export const BACKGROUND_COLOR = "#fdf8f1";
+function logoSrc(): string {
+  logoDataUrl ??= `data:image/svg+xml;base64,${readFileSync(
+    join(process.cwd(), "public", "logo.svg"),
+  ).toString("base64")}`;
+  return logoDataUrl;
+}
 
 /**
- * `maskable` icons fill the whole square and keep the letter inside the central safe
- * zone, because Android crops them to a circle or squircle. Plain icons get rounded
- * corners and a bigger letter.
+ * The app icon: the logo heart on cream. `maskable` icons fill the whole square and keep
+ * the heart inside the central safe zone (a circle 80% wide), because Android crops them
+ * to a circle or squircle. Plain icons get rounded corners and a bigger heart.
  */
 export function appIcon(size: number, { maskable = false } = {}): ImageResponse {
+  const width = Math.round(size * (maskable ? 0.6 : 0.78));
+  const height = Math.round(width / LOGO_ASPECT);
   return new ImageResponse(
     <div
       style={{
@@ -22,14 +36,13 @@ export function appIcon(size: number, { maskable = false } = {}): ImageResponse 
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: THEME_COLOR,
+        background: BACKGROUND_COLOR,
         borderRadius: maskable ? 0 : size * 0.22,
-        color: "white",
-        // next/og's built-in font has no bold weight, so none is set.
-        fontSize: size * (maskable ? 0.5 : 0.62),
       }}
     >
-      B
+      {/* next/og only draws plain <img>. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={logoSrc()} width={width} height={height} alt="" />
     </div>,
     { width: size, height: size },
   );

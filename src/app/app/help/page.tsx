@@ -106,8 +106,8 @@ export default function HelpPage(): ReactNode {
       <Steps id="android-heading" title="Android phone" steps={ANDROID} />
       <Steps id="iphone-heading" title="iPhone" steps={IPHONE} />
       <p className="text-xl">
-        Afterwards, look for the green <strong>B</strong> icon called <strong>My bookings</strong>{" "}
-        on your home screen.
+        Afterwards, look for the coral <strong>heart</strong> icon called{" "}
+        <strong>My bookings</strong> on your home screen.
       </p>
     </div>
   );

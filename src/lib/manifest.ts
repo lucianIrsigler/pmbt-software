@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { BACKGROUND_COLOR, THEME_COLOR } from "./app-icon";
+import { BACKGROUND_COLOR, THEME_COLOR } from "./brand";
 
 /** The installable icons, served by `src/app/icons/[file]/route.ts`. */
 export const MANIFEST_ICONS = {

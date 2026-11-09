@@ -106,7 +106,7 @@ export async function seed(db: Database): Promise<SeedResult> {
   return db.transaction(async (tx) => {
     const settingsRows = await tx
       .insert(settings)
-      .values({ id: 1, businessName: "PBMT & Natural Products" })
+      .values({ id: 1, businessName: "Daisy Healing" })
       .onConflictDoNothing()
       .returning({ id: settings.id });
 

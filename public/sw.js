@@ -9,7 +9,7 @@
  *
  * Bump VERSION to clear old saved files.
  */
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = `static-${VERSION}`;
 const OFFLINE_URL = "/offline";
 
