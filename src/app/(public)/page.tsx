@@ -8,9 +8,9 @@ const TAGLINE = ["Creams", "Light therapy", "Pets and people"] as const;
 /** "Creams · Light therapy · Pets and people", as on the banner. */
 function Tagline(): ReactNode {
   return (
-    <p className="flex flex-wrap items-center gap-x-3 font-heading uppercase tracking-wide">
+    <p className="flex flex-wrap items-center gap-x-2 font-heading text-sm uppercase tracking-wide sm:gap-x-3 sm:text-base">
       {TAGLINE.map((item, i) => (
-        <span key={item} className="flex items-center gap-x-3">
+        <span key={item} className="flex items-center gap-x-2 sm:gap-x-3">
           {i > 0 && <span aria-hidden="true" className="size-2 rounded-full bg-brand" />}
           {item}
         </span>
@@ -29,12 +29,10 @@ function Testimonials({ items }: { items: readonly Testimonial[] }): ReactNode {
         {items.map((t) => (
           <li key={t.id}>
             <figure className="flex h-full flex-col gap-3 rounded-2xl border border-line border-t-4 border-t-brand bg-card p-5">
-              <span aria-hidden="true" className="font-heading text-5xl leading-none text-brand">
+              <span aria-hidden="true" className="h-8 font-serif text-6xl leading-none text-brand">
                 &ldquo;
               </span>
-              <blockquote className="-mt-4 flex-1 whitespace-pre-line text-lg">
-                {t.quote}
-              </blockquote>
+              <blockquote className="flex-1 whitespace-pre-line text-lg">{t.quote}</blockquote>
               <figcaption className="font-semibold">{t.author}</figcaption>
             </figure>
           </li>
