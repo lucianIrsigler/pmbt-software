@@ -169,7 +169,7 @@ Then set up the **off-server backup copy** to a second machine:
 |---|---|
 | `Docker isn't running on this computer` | Start Docker Desktop and wait until it says it's running. |
 | `there are uncommitted changes` | Commit first (so the deployed version has a name), or add `--allow-dirty` for a quick test. |
-| `can't read /opt/daisyhealing/.env` | SSH doesn't work (`ssh deploy@<SERVER_IP>`), or `.env` isn't there yet (step 3), or `DEPLOY_PATH` is wrong. |
+| `can't read …/.env` | The line above it says why. `No such file or directory`: `DEPLOY_PATH` isn't the app folder. Find it on the server with `docker inspect dogstuff-web-1 --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}'` (an earlier deploy may have used `/home/deploy/opt/daisyhealing`), or create `.env` (step 3). `Permission denied (publickey)`: SSH access. |
 | `scp: … Permission denied` | The folder doesn't exist at that exact path (e.g. made in `~/opt/…`), or belongs to root. Fix it as in step 2. |
 | `Permission denied (publickey)` | Your public key isn't in the server's `/home/deploy/.ssh/authorized_keys`. |
 | `exec format error` in `dc logs` | The server's CPU type doesn't match `DEPLOY_PLATFORM` (ARM servers need `linux/arm64`). |

@@ -94,8 +94,9 @@ fi
 
 step "Reading the server's settings"
 docker info >/dev/null 2>&1 || fail "Docker isn't running on this computer. Start Docker Desktop."
-server_env=$(remote "cat '$DEPLOY_PATH/.env'" 2>/dev/null) ||
-  fail "can't read $DEPLOY_PATH/.env on $DEPLOY_HOST. Check SSH access and that the file exists (docs/DEPLOY.md step 3)."
+# The error from ssh/cat (shown above this message) says which: no access, or no such file.
+server_env=$(remote "cat '$DEPLOY_PATH/.env'") ||
+  fail "can't read $DEPLOY_PATH/.env on $DEPLOY_HOST (see the error above). Check SSH access, that DEPLOY_PATH is the app folder on the server (ls it there), and that .env exists (docs/DEPLOY.md step 3)."
 
 env_value() {
   # The value of $1 in the server's .env, without surrounding quotes.
