@@ -39,7 +39,8 @@ by every deploy), `.env` (your settings), `backups/` and `secrets/`.
 - **A Google account** to send email from (Gmail or Google Workspace).
 - **Optional but strongly advised: a second machine** reachable over SSH for off-server backup
   copies (another small VPS, a home server…).
-- **The GitHub repository**, with permission to add secrets.
+- **On your computer**: Docker Desktop, Git Bash and an SSH key for the server (deploys are
+  built there and uploaded; see section 6).
 
 ## 3. First-time server setup
 
@@ -113,8 +114,8 @@ openssl rand -hex 24      # POSTGRES_PASSWORD (letters and digits only: it goes 
 openssl rand -base64 48   # IP_HASH_SECRET
 ```
 
-`IMAGE_PREFIX` is `ghcr.io/<github owner>/<repository>`, all lower case. `IMAGE_TAG` is set by
-each deploy.
+`IMAGE_PREFIX` is a lower-case name for the images, e.g. `daisyhealing` (with GitHub deploys
+instead: `ghcr.io/<github owner>/<repository>`). `IMAGE_TAG` is set by each deploy.
 
 ### Email: a Google account with an app password
 
@@ -128,34 +129,42 @@ each deploy.
 
 Gmail allows about 500 recipients a day (Workspace about 2,000), far more than needed.
 
-## 6. Automatic deploys (GitHub)
+## 6. Deploying
 
-Every push to `main` that passes CI builds the images, pushes them to ghcr.io and updates the
-server (`.github/workflows/deploy.yml`). To switch it on:
+From your own computer, in Git Bash in the project folder, with Docker Desktop running:
 
-1. **A key for GitHub to reach the server.** On your own computer:
-   ```sh
-   ssh-keygen -t ed25519 -N "" -C "github-deploy" -f github_deploy
-   ```
-   Append `github_deploy.pub` to `/home/deploy/.ssh/authorized_keys` on the server.
-2. **The server's fingerprint**, so GitHub only talks to your server:
-   ```sh
-   ssh-keyscan -t ed25519 <server ip or name>
-   ```
-3. In GitHub → repository → Settings → Secrets and variables → Actions:
-   - **Secrets**: `DEPLOY_HOST` (server IP or name), `DEPLOY_USER` (`deploy`),
-     `DEPLOY_SSH_KEY` (the whole private key file `github_deploy`),
-     `DEPLOY_KNOWN_HOSTS` (the `ssh-keyscan` output line).
-   - **Variables**: `APP_URL` (e.g. `https://bookings.example.co.za`),
-     `DEPLOY_PATH` (`/opt/dogstuff`, the default), and last `DEPLOY_ENABLED` = `true`.
-4. Delete the private key `github_deploy` from your computer; GitHub has it.
+```sh
+deploy/deploy.sh                 # checks, builds, uploads, migrates, restarts, health check
+deploy/deploy.sh --skip-checks   # without typecheck/lint/tests (e.g. a re-run)
+deploy/deploy.sh --allow-dirty   # with uncommitted changes (tagged …-dirty-<time>)
+```
 
-The images are private on ghcr.io; each deploy logs the server in with a short-lived token.
+It needs `deploy/.env.deploy` (copy `deploy/.env.deploy.example`): `DEPLOY_HOST` (e.g.
+`deploy@203.0.113.10`), `DEPLOY_PATH` and `DEPLOY_PLATFORM` (`linux/amd64`, or `linux/arm64` for
+an ARM server). `IMAGE_PREFIX` and `APP_URL` are read from the server's `.env`.
+
+What it does: builds the `web`, `tools` and `backup` images tagged with the commit
+(`sha-<12 characters>`), streams them to the server (`docker save | ssh … docker load`, a few
+hundred MB), copies `docker-compose.prod.yml` and `Caddyfile`, sets `IMAGE_TAG` in `.env`, runs
+`dc up -d --wait` (migrations first: a failed migration stops the deploy, the old version keeps
+running) and reloads Caddy, then checks `/api/health`. No registry and no GitHub Actions.
+
+### Alternative: automatic deploys from GitHub
+
+`.github/workflows/deploy.yml` does the same on every push to `main` that passes CI, through
+GitHub's container registry. It costs Actions minutes and registry storage, and is off unless
+the repository variable `DEPLOY_ENABLED` is `true`. To use it: set `IMAGE_PREFIX` in the
+server's `.env` to `ghcr.io/<github owner>/<repository>` (lower case); make an SSH key with
+`ssh-keygen -t ed25519 -N "" -C "github-deploy" -f github_deploy` and add `github_deploy.pub`
+to the server's `authorized_keys`; then in GitHub → Settings → Secrets and variables → Actions
+add the secrets `DEPLOY_HOST`, `DEPLOY_USER` (`deploy`), `DEPLOY_SSH_KEY` (the private key file),
+`DEPLOY_KNOWN_HOSTS` (`ssh-keyscan -t ed25519 <server>`), and the variables `APP_URL`,
+`DEPLOY_PATH` and, last, `DEPLOY_ENABLED` = `true`. Delete the private key from your computer.
 
 ## 7. First deploy
 
-1. GitHub → Actions → **Deploy** → **Run workflow** (or push to `main`). Watch it finish green;
-   its last step checks `https://<domain>/api/health`.
+1. Run `deploy/deploy.sh` on your computer (section 6). It ends with `Deployed sha-…` after
+   checking `https://<domain>/api/health`.
 2. On the server, load the starting data and create the owner's login:
    ```sh
    dc run --rm migrate node tools/seed.mjs         # settings, opening hours, SAMPLE services/products
@@ -172,7 +181,7 @@ The images are private on ghcr.io; each deploy logs the server in with a short-l
 
 | Task | Command (in `/opt/dogstuff`) |
 |---|---|
-| Deploy a change | Push to `main` (or Actions → Deploy → Run workflow) |
+| Deploy a change | `deploy/deploy.sh` on your computer (section 6) |
 | Status | `dc ps` (`web` should say `healthy`) |
 | Logs | `dc logs -f web` (or `jobs`, `backup`, `caddy`, `db`); add `--since 1h` |
 | Restart the app | `dc restart web` |
@@ -184,8 +193,8 @@ Logs never contain names, phone numbers or emails (POPIA): only ids and error co
 
 ### Rolling back
 
-Each deploy is tagged with its commit, e.g. `sha-1a2b3c4d5e6f` (see the Deploy run, or
-`docker images`). To go back:
+Each deploy is tagged with its commit, e.g. `sha-1a2b3c4d5e6f` (printed at the end of the
+deploy, or see `docker images`). Earlier versions stay on the server until pruned. To go back:
 
 ```sh
 sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=sha-1a2b3c4d5e6f/' .env
@@ -320,14 +329,14 @@ creates an empty database), then follow "For real" above.
 | Google app password | Create a new app password, put it in `SMTP_PASS`, `dc up -d`, then revoke the old one in Google. |
 | `IP_HASH_SECRET` | Only scrambles IP addresses for the rate limits; changing it just resets those counts (it does **not** sign anyone out). New value in `.env`, `dc up -d`. |
 | `POSTGRES_PASSWORD` | `dc exec db psql -U daisyhealing daisyhealing -c "alter user daisyhealing password '<new>';"`, put the same value in `.env`, `dc up -d`. |
-| GitHub deploy key | Make a new key (section 6), add it to `authorized_keys`, update `DEPLOY_SSH_KEY`, then remove the old line from `authorized_keys`. |
+| Your SSH key | Add the new public key to `/home/deploy/.ssh/authorized_keys`, check you can log in with it, then remove the old line. (GitHub deploys: also update `DEPLOY_SSH_KEY`.) |
 | Backup key | New key in `secrets/` (section 9), update the second machine's `authorized_keys`, remove the old line. |
 
 ## 13. Troubleshooting
 
 - **No HTTPS / certificate errors**: `dc logs caddy`. Usually DNS doesn't point at the server
   yet, or ports 80/443 are blocked (`ufw status`, the hosting provider's firewall).
-- **Deploy fails at "Check the live site"**: `dc ps` and `dc logs web migrate`. A failed
+- **Deploy fails at the health check**: `dc ps` and `dc logs web migrate`. A failed
   migration stops `web` from starting; fix and redeploy, or roll back (section 8).
 - **Emails don't arrive**: `dc logs web jobs | grep email`. "EAUTH" means the SMTP user or app
   password is wrong. Check the client's spam folder.

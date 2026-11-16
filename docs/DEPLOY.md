@@ -15,7 +15,9 @@ computer)** run in a terminal on your own machine, in the project folder.
 - A **server**: Ubuntu 24.04, 1–2 GB RAM, with its public IP address.
 - A **domain**.
 - A **Google account** to send email from (Gmail or Workspace).
-- The code **pushed to GitHub** (`git push`). Deploys build from GitHub, not your computer.
+- On **your computer**: Docker Desktop (running), Git Bash, and an SSH key that can log in to the
+  server as `deploy`. Deploys are built here and uploaded over SSH: no GitHub Actions or
+  registry needed.
 
 ## 1. Point the domain at the server
 
@@ -67,7 +69,7 @@ chmod 600 .env
 |---|---|
 | `DOMAIN` | `<your-domain>`: no `https://`, no `/` |
 | `APP_URL` | `https://<your-domain>`: with `https://`, no `/` at the end |
-| `IMAGE_PREFIX` | `ghcr.io/lucianirsigler/pmbt-software` (all lower case) |
+| `IMAGE_PREFIX` | `daisyhealing` (a name for the images; lower case) |
 | `IMAGE_TAG` | `latest` (each deploy updates it) |
 | `POSTGRES_PASSWORD` | output of `openssl rand -hex 24` (run on the server) |
 | `IP_HASH_SECRET` | output of `openssl rand -base64 48` (run on the server) |
@@ -79,50 +81,41 @@ chmod 600 .env
 | `BACKUP_REMOTE` | empty until the off-server copy is set up (step 9) |
 | `ALERT_EMAIL` | your email address, for backup-failure alerts |
 
-> The passwords and secrets live **only** in this file. Never commit it, paste it anywhere, or
-> put the Postgres password in GitHub: GitHub doesn't need it.
+> The passwords and secrets live **only** in this file. Never commit it or paste it anywhere.
 
-## 4. A deploy key for GitHub (your computer)
+## 4. Deploy settings (your computer)
+
+Check your SSH key reaches the server: `ssh deploy@<SERVER_IP> "echo it works"`.
+
+Then, in the project folder:
 
 ```sh
-ssh-keygen -t ed25519 -N "" -C "github-deploy" -f ~/.ssh/github_deploy
-cat ~/.ssh/github_deploy.pub | ssh deploy@<SERVER_IP> "cat >> ~/.ssh/authorized_keys"
-ssh -i ~/.ssh/github_deploy deploy@<SERVER_IP> "echo it works"     # test
-cat ~/.ssh/github_deploy                                            # copy for the next step
-ssh-keyscan -t ed25519 <SERVER_IP>                                  # copy this line too
+cp deploy/.env.deploy.example deploy/.env.deploy
 ```
 
-After step 5, delete the private key: `rm ~/.ssh/github_deploy` (GitHub has it).
+and set `DEPLOY_HOST=deploy@<SERVER_IP>` in it (`DEPLOY_PATH=/opt/daisyhealing` and
+`DEPLOY_PLATFORM=linux/amd64` are already right for a normal VPS). This file is not committed.
 
-## 5. GitHub secrets and variables
+## 5. Deploy (your computer)
 
-GitHub → the repository → **Settings → Secrets and variables → Actions**. Use the **Repository**
-ones, and put each on the right tab: one on the wrong tab counts as empty.
+Start Docker Desktop, commit your changes, then in **Git Bash** in the project folder:
 
-**Secrets** tab:
+```sh
+deploy/deploy.sh
+```
 
-| Name | Value |
-|---|---|
-| `DEPLOY_HOST` | `<SERVER_IP>` |
-| `DEPLOY_USER` | `deploy` |
-| `DEPLOY_SSH_KEY` | the whole private key, `-----BEGIN …` to `… END OPENSSH PRIVATE KEY-----` |
-| `DEPLOY_KNOWN_HOSTS` | the one `ssh-keyscan` line: `<SERVER_IP> ssh-ed25519 AAAA…` |
+It checks the code (typecheck, lint, unit tests), builds the images, uploads them to the server
+(a few hundred MB, so it can take a while on a slow connection), starts the new version and
+finally checks `https://<your-domain>/api/health`. It ends with `Deployed sha-…`.
 
-**Variables** tab:
+The first deploy also downloads Postgres and Caddy on the server and gets the HTTPS certificate,
+so give it a few minutes.
 
-| Name | Value |
-|---|---|
-| `APP_URL` | `https://<your-domain>` (same as in `.env`) |
-| `DEPLOY_PATH` | `/opt/daisyhealing`: exactly the server folder |
-| `DEPLOY_ENABLED` | `true`. Set this **last**. |
+## 6. (Not needed) GitHub Actions
 
-## 6. Deploy
-
-Push to `main` (deploys run after CI passes), or GitHub → **Actions → Deploy → Run workflow**.
-Wait for it to go green. Its last step checks `https://<your-domain>/api/health`.
-
-If a run fails, fix the cause, then open the run and click **Re-run failed jobs** (no new push
-needed). Common failures are in [Troubleshooting](#troubleshooting) below.
+Deploying from GitHub instead is still possible (`.github/workflows/deploy.yml`, switched off
+unless the `DEPLOY_ENABLED` variable is `true`; setup in [RUNBOOK.md §6](RUNBOOK.md#6-deploying)).
+It costs GitHub Actions minutes and registry storage, which the script above avoids.
 
 ## 7. First run on the server
 
@@ -164,8 +157,8 @@ Then set up the **off-server backup copy** to a second machine:
 
 ## From now on
 
-- **Deploying a change:** `git push` to `main`. CI runs, then Deploy. Nothing to do on the
-  server.
+- **Deploying a change:** commit, then `deploy/deploy.sh` (Docker Desktop running). Nothing to
+  do on the server.
 - **Logs:** `dc logs -f web` (or `jobs`, `backup`, `caddy`).
 - **Everything else** (rollback, restore, new logins, changing passwords):
   [RUNBOOK.md](RUNBOOK.md).
@@ -174,13 +167,14 @@ Then set up the **off-server backup copy** to a second machine:
 
 | Problem | Cause and fix |
 |---|---|
-| Deploy does nothing | `DEPLOY_ENABLED` isn't `true`, or it's on the Secrets tab instead of Variables. |
-| `scp: remote mkdir "/opt/…": Permission denied` | The folder doesn't exist at that exact path (e.g. made in `~/opt/…`), or belongs to root. Fix it as in step 2; check `DEPLOY_PATH` matches. |
-| `Permission denied (publickey)` | The deploy key's `.pub` isn't in the server's `~/.ssh/authorized_keys`, or `DEPLOY_SSH_KEY` is incomplete (must include the BEGIN/END lines). |
-| `Host key verification failed` | `DEPLOY_KNOWN_HOSTS` is wrong: re-run `ssh-keyscan -t ed25519 <SERVER_IP>` and paste that one line. |
-| "Check the live site" fails | DNS doesn't point at the server yet, or `APP_URL` is wrong. On the server: `dc ps`, `dc logs web migrate caddy`. |
+| `Docker isn't running on this computer` | Start Docker Desktop and wait until it says it's running. |
+| `there are uncommitted changes` | Commit first (so the deployed version has a name), or add `--allow-dirty` for a quick test. |
+| `can't read /opt/daisyhealing/.env` | SSH doesn't work (`ssh deploy@<SERVER_IP>`), or `.env` isn't there yet (step 3), or `DEPLOY_PATH` is wrong. |
+| `scp: … Permission denied` | The folder doesn't exist at that exact path (e.g. made in `~/opt/…`), or belongs to root. Fix it as in step 2. |
+| `Permission denied (publickey)` | Your public key isn't in the server's `/home/deploy/.ssh/authorized_keys`. |
+| `exec format error` in `dc logs` | The server's CPU type doesn't match `DEPLOY_PLATFORM` (ARM servers need `linux/arm64`). |
+| Health check at the end fails | DNS doesn't point at the server yet, or `APP_URL` is wrong. On the server: `dc ps`, `dc logs web migrate caddy`. |
 | Some devices show "web server is functioning correctly" | A second A/AAAA record (the registrar's) for `@` or `www`: delete it (step 1). |
 | No HTTPS / certificate errors | DNS not pointing at the server yet, or ports 80/443 blocked (`ufw status`, the host's firewall). `dc logs caddy`. |
 | `password authentication failed` / `database does not exist` | The database names in `deploy/docker-compose.prod.yml` must all match (`daisyhealing`). They can only change before the first deploy. |
 | Emails don't arrive | `dc logs web jobs \| grep email`. "EAUTH" means `SMTP_USER` or the app password is wrong. Check spam. |
-| `***` in GitHub logs | GitHub hiding secret values (e.g. `deploy`). Harmless. |

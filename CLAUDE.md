@@ -154,6 +154,7 @@ pnpm typecheck
 pnpm lint
 pnpm format         # prettier --write
 pnpm format:check   # prettier --check (runs in CI)
+deploy/deploy.sh    # (Git Bash) build here, upload over SSH, migrate, restart (docs/DEPLOY.md)
 ```
 
 Keep this list up to date as scripts are added.

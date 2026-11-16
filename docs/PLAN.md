@@ -343,6 +343,24 @@ added in `/admin` show on the home page, and every check passes.
 
 ---
 
+## Phase 15: Deploy from your own computer
+
+To avoid GitHub Actions minutes and registry storage costs. The GitHub workflow stays as an
+option (off unless `DEPLOY_ENABLED` is `true`).
+
+- [x] `deploy/deploy.sh` (Git Bash): checks, builds the three images tagged `sha-<commit>`,
+      streams them over SSH (`docker save | ssh … docker load`), copies the compose file and
+      Caddyfile, `up -d --wait` (migrations first), reloads Caddy, checks `/api/health`
+- [x] Settings in a gitignored `deploy/.env.deploy` (host, folder, CPU type); `IMAGE_PREFIX`
+      and `APP_URL` come from the server's `.env`
+- [x] Refuses uncommitted changes unless `--allow-dirty`; `--skip-checks`
+- [x] `docs/DEPLOY.md` and `docs/RUNBOOK.md` describe it; the GitHub way is the alternative
+
+**Done when:** one command deploys a commit to the server and the site reports healthy.
+(Tested end to end against a stand-in server on this machine; the real server is next.)
+
+---
+
 ## Out of scope for MVP (do not build)
 
 Online payments, deposits, WhatsApp/SMS, client accounts, multiple practitioners or rooms,
